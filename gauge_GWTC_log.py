@@ -396,7 +396,15 @@ class Meter(tk.Frame):
                     print("----------------------------------")
                     self.step6_txt.set("END " + datefinish)
 
-            dst = distance.euclidean(_pos, _lastPos)
+
+
+            #dst = distance.euclidean(_pos, _lastPos)
+            #print(_pos, _2dpos)
+            #calculo de velocidad quitando eje Y (altura)
+
+            _2dpos = [_pos[0],_pos[2]]
+            dst = distance.euclidean(_2dpos, _lastPos)
+
             velocity = dst * 39.3700787 / timer
             if velocity > 0.0:
 
@@ -430,7 +438,7 @@ class Meter(tk.Frame):
                     i = self.canvas.find_withtag("numero")
                     self.canvas.itemconfig(i, fg=color)
             _lastTime = _time
-            _lastPos = _pos
+            _lastPos = _2dpos
             _lastTick = _tick
         self.after(20, self.updateMeterTimer)
 

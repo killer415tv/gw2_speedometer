@@ -1,4 +1,4 @@
-pandas==1.2.3
-plotly==4.14.3
-scipy==1.6.0
-pynput==1.7.3
+pandas
+plotly
+scipy
+pynput

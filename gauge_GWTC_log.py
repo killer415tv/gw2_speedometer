@@ -256,7 +256,7 @@ class Meter(tk.Frame):
             arraystart = (ctypes.c_float * len(start))(*start)
 
             if distance.euclidean(_pos, arraystart) < 5 and pressedQ == 0:
-                pressedQ = 1
+                pressedQ = 0.3
                 #cerrar fichero si hubiera una sesión anterior
                 filename = ""
                 filename_timer = _time

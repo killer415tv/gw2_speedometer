@@ -144,12 +144,8 @@ class Meter(tk.Frame):
         self.steps2 = tk.Label(self, textvariable = self.step2_txt, fg = "white", bg="#666666", font=("Lucida Console", 10)).place(x = 395+10, y = 30+10)
         self.step3_txt = tk.StringVar(self, "")
         self.steps3 = tk.Label(self, textvariable = self.step3_txt, fg = "white", bg="#666666", font=("Lucida Console", 10)).place(x = 395+10, y = 45+10)
-        self.step4_txt = tk.StringVar(self, "")
-        self.steps4 = tk.Label(self, textvariable = self.step4_txt, fg = "white", bg="#666666", font=("Lucida Console", 10)).place(x = 395+10, y = 60+10)
-        self.step5_txt = tk.StringVar(self, "")
-        self.steps5 = tk.Label(self, textvariable = self.step5_txt, fg = "white", bg="#666666", font=("Lucida Console", 10)).place(x = 395+10, y = 75+10)
         self.step6_txt = tk.StringVar(self, "")
-        self.steps6 = tk.Label(self, textvariable = self.step6_txt, fg = "white", bg="#666666", font=("Lucida Console", 10)).place(x = 395+10, y = 90+10)
+        self.steps6 = tk.Label(self, textvariable = self.step6_txt, fg = "white", bg="#666666", font=("Lucida Console", 10)).place(x = 395+10, y = 60+10)
 
         #trans
         self.canvas.create_arc(2*10, 2*15, 2*winw-10, 2*winw-10, extent=44, start=101,style='arc', outline="#666666", width="10", tags="arc1")
@@ -238,7 +234,7 @@ class Meter(tk.Frame):
             #print(list(_pos) , flush=True)
             
             # reset , tp position
-            step = [3.1894779205322266, 61.3292350769043, -35.5834846496582]
+            step = [114.48, 9.07, 37.47]
             arraystep = (ctypes.c_float * len(step))(*step)
             #la distancia de 5 es como si fuera una esfera de tamaño similar a una esfera de carreras de tiria
             if distance.euclidean(_pos, arraystep) < 5 and pressedQ == 0:
@@ -255,7 +251,7 @@ class Meter(tk.Frame):
 
 
             # start
-            start = [72.18, 564.62, 79.11]
+            start = [116.5, 183.9, 207.8]
             arraystart = (ctypes.c_float * len(start))(*start)
 
             if distance.euclidean(_pos, arraystart) < 5 and pressedQ == 0:
@@ -270,35 +266,21 @@ class Meter(tk.Frame):
                 self.step1_txt.set("")
                 self.step2_txt.set("")
                 self.step3_txt.set("")
-                self.step4_txt.set("")
-                self.step5_txt.set("")
                 self.step6_txt.set("")
                 self.vartime.set("")
 
-            # end mirror
-            end = [-21.2, -0.05, -36]
-            arrayend = (ctypes.c_float * len(end))(*end)
 
-            if distance.euclidean(_pos, arrayend) < 5 and pressedQ == 0:
-                pressedQ = delaytimer
-                #cerrar fichero si hubiera una sesión anterior
-                filename = ""
-                filename_timer = _time
-                print("----------------------------------")
-                print("FINAL MIRROR TP")
-                print("----------------------------------")
-   
             # inicio de la carrera
-            step0 = [49.9, 564.5, 31.9]
+            step0 = [186.02, 140.6, 198.7]
             arraystep0 = (ctypes.c_float * len(step0))(*step0)
             
-            if distance.euclidean(_pos, arraystep0) < 5 and pressedQ == 0:
+            if distance.euclidean(_pos, arraystep0) < 15 and pressedQ == 0:
                 if enable_livesplit_hotkey == 1:
                     keyboard.press(live_start)
                     keyboard.release(live_start)
                 pressedQ = delaytimer
                 #cerrar fichero si hubiera una sesión anterior
-                filename = "GWTC_log_" + str(_time) + ".csv"
+                filename = "EQE_log_" + str(_time) + ".csv"
                 filename_timer = _time
                 print("----------------------------------")
                 print("NEW LOG FILE - " + filename)
@@ -307,8 +289,6 @@ class Meter(tk.Frame):
                 self.step1_txt.set("")
                 self.step2_txt.set("")
                 self.step3_txt.set("")
-                self.step4_txt.set("")
-                self.step5_txt.set("")
                 self.step6_txt.set("")
                 self.vartime.set("")
                 if log:
@@ -319,37 +299,37 @@ class Meter(tk.Frame):
                
                 #abrir fichero nuevo con nombre de fichero terminado en la fecha o _time
                 
-            # el punto de la estatua
-            step1 = [-30.5, 495.9, 219.6]
+            # la vela amarilla - yellow sail
+            step1 = [-78.8, 23.9, -94.5]
             arraystep1 = (ctypes.c_float * len(step1))(*step1)
             
-            if distance.euclidean(_pos, arraystep1) < 20 and pressedQ == 0:
+            if distance.euclidean(_pos, arraystep1) < 10 and pressedQ == 0:
                 if enable_livesplit_hotkey == 1:
                     keyboard.press(live_start)
                     keyboard.release(live_start)
                 pressedQ = 2 # 10 SEGUNDOS
                 print("----------------------------------")
-                print("CHECKPOINT 1 - STATUE : " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(_time - filename_timer), "%M:%S:%f"))
+                print("CHECKPOINT 1 - YELLOW SAIL  : " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(_time - filename_timer), "%M:%S:%f"))
                 print("----------------------------------")
-                self.steps_txt.set("GWTC Times")
+                self.steps_txt.set("EQE Times")
                 self.step1_txt.set(" T1 " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(_time - filename_timer), "%M:%S:%f"))
 
-            # entrada a la mina
-            step2 = [-156, 363.1, 157.4]
+            # tp de mundo - wvw tp
+            step2 = [104, 142.6, -44]
             arraystep2 = (ctypes.c_float * len(step2))(*step2)
 
-            if distance.euclidean(_pos, arraystep2) < 15 and pressedQ == 0:
+            if distance.euclidean(_pos, arraystep2) < 10 and pressedQ == 0:
                 if enable_livesplit_hotkey == 1:
                     keyboard.press(live_start)
                     keyboard.release(live_start)
                 pressedQ = delaytimer
                 print("----------------------------------")
-                print("CHECKPOINT 2 - MINE ENTRANCE : " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(_time - filename_timer), "%M:%S:%f"))
+                print("CHECKPOINT 2 - WVW TP : " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(_time - filename_timer), "%M:%S:%f"))
                 print("----------------------------------")
                 self.step2_txt.set(" T2 " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(_time - filename_timer), "%M:%S:%f"))
 
-            #salida de la mina
-            step3 = [359, 245.7, 84]
+            #serpiente - serpent
+            step3 = [-207, 122, -41]
             arraystep3 = (ctypes.c_float * len(step3))(*step3)
 
             if distance.euclidean(_pos, arraystep3) < 20 and pressedQ == 0:
@@ -358,49 +338,22 @@ class Meter(tk.Frame):
                     keyboard.release(live_start)
                 pressedQ = delaytimer
                 print("----------------------------------")
-                print("CHECKPOINT 3 - MINE EXIT : " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(_time - filename_timer), "%M:%S:%f"))
+                print("CHECKPOINT 3 - SERPENT : " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(_time - filename_timer), "%M:%S:%f"))
                 print("----------------------------------")
                 self.step3_txt.set(" T3 " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(_time - filename_timer), "%M:%S:%f"))
             
-            #puerta de focking oro
-            step4 = [-142.9, 140.2, -57.6]
-            arraystep4 = (ctypes.c_float * len(step4))(*step4)
-
-            if distance.euclidean(_pos, arraystep4) < 15 and pressedQ == 0:
-                if enable_livesplit_hotkey == 1:
-                    keyboard.press(live_start)
-                    keyboard.release(live_start)
-                pressedQ = delaytimer
-                print("----------------------------------")
-                print("CHECKPOINT 4 - GOLDEN ARC : " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(_time - filename_timer), "%M:%S:%f"))
-                print("----------------------------------")
-                self.step4_txt.set(" T4 " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(_time - filename_timer), "%M:%S:%f"))
-
-            #banderita
-            step5 = [4.6, 56, 191.6]
-            arraystep5 = (ctypes.c_float * len(step5))(*step5)
-
-            if distance.euclidean(_pos, arraystep5) < 20 and pressedQ == 0:
-                if enable_livesplit_hotkey == 1:
-                    keyboard.press(live_start)
-                    keyboard.release(live_start)
-                pressedQ = delaytimer
-                print("----------------------------------")
-                print("CHECKPOINT 5 - FLAGS : " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(_time - filename_timer), "%M:%S:%f"))
-                print("----------------------------------")
-                self.step5_txt.set(" T5 " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(_time - filename_timer), "%M:%S:%f"))
 
             #final
-            step6 = [-37.9, 1.74, -26.7]
+            step6 = [117, 158, 256]
             arraystep6 = (ctypes.c_float * len(step6))(*step6)
 
-            if distance.euclidean(_pos, arraystep6) < 10 and pressedQ == 0:
+            if distance.euclidean(_pos, arraystep6) < 15 and pressedQ == 0:
                 if filename != "":
                     datefinish = datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(_time - filename_timer), "%M:%S:%f")
                     if enable_livesplit_hotkey == 1:
                         keyboard.press(live_start)
                         keyboard.release(live_start)
-                    pressedQ = 0.5
+                    pressedQ = 0
                     filename = ""
                     print("----------------------------------")
                     print("CHECKPOINT FINAL : " + datefinish)
@@ -481,3 +434,4 @@ if __name__ == '__main__':
 
 
     root.mainloop()
+    

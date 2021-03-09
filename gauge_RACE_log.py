@@ -231,7 +231,7 @@ class Meter(tk.Frame):
         """Fade over time"""
         #print("actualiza", flush=True)
         #toma de datos nueva
-        ml = read()
+        ml.read()
         _tick = ml.data.uiTick
         _time = time.time()
         if _lastTime + timer <= _time and _tick != _lastTick :

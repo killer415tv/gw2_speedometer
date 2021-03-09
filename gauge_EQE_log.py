@@ -227,7 +227,7 @@ class Meter(tk.Frame):
         """Fade over time"""
         #print("actualiza", flush=True)
         #toma de datos nueva
-        ml = MumbleLink()
+        ml = read()
         _tick = ml.data.uiTick
         _time = time.time()
         if _lastTime + timer <= _time and _tick != _lastTick :
@@ -415,6 +415,8 @@ if __name__ == '__main__':
     root = tk.Tk()
     root.call('wm', 'attributes', '.', '-topmost', '1')
     root.withdraw()
+
+    ml = MumbleLink()
 
     windowWidth = root.winfo_reqwidth()
     windowHeight = root.winfo_reqheight()

@@ -88,26 +88,30 @@ class MumbleLink:
     context: Context
 
     def __init__(self):
-        size_link = ctypes.sizeof(Link)
-        size_context = ctypes.sizeof(Context)
+        self.size_link = ctypes.sizeof(Link)
+        self.size_context = ctypes.sizeof(Context)
+        size_discarded = 256 - self.size_context + 4096  # empty areas of context and description
 
-        #memfile = mmap.mmap(fileno=-1, length=size_link + size_context, tagname="MumbleLink", access=mmap.ACCESS_READ)
-        #memfile = mmap.mmap(fileno=-1, length=size_link + size_context, tagname="MumbleLink", access=mmap.ACCESS_READ)
-        memfile = mmap.mmap(0, size_link + size_context, "MumbleLink")
-        #memfile = mmap.mmap(0, size_link + size_context, "MumbleLink", mmap.ACCESS_READ)
-        memfile.seek(0)
+        # GW2 won't start sending data if memfile isn't big enough so we have to add discarded bits too
+        memfile_length = self.size_link + self.size_context + size_discarded
 
-        self.data = self.unpack(Link, memfile.read(size_link))
-        self.context = self.unpack(Context, memfile.read(size_context))
+        self.memfile = mmap.mmap(fileno=-1, length=memfile_length, tagname="MumbleLink")
 
-        memfile.close()
+    def read(self):
+        self.memfile.seek(0)
 
+        self.data = self.unpack(Link, self.memfile.read(self.size_link))
+        self.context = self.unpack(Context, self.memfile.read(self.size_context))
+
+    def close(self):
+        self.memfile.close()
 
     @staticmethod
     def unpack(ctype, buf):
         cstring = ctypes.create_string_buffer(buf)
         ctype_instance = ctypes.cast(ctypes.pointer(cstring), ctypes.POINTER(ctype)).contents
         return ctype_instance
+
 
 class Meter(tk.Frame):
     def __init__(self, master=None, **kw):
@@ -227,7 +231,7 @@ class Meter(tk.Frame):
         """Fade over time"""
         #print("actualiza", flush=True)
         #toma de datos nueva
-        ml = MumbleLink()
+        ml.read()
         _tick = ml.data.uiTick
         _time = time.time()
         if _lastTime + timer <= _time and _tick != _lastTick :
@@ -458,6 +462,8 @@ if __name__ == '__main__':
     root = tk.Tk()
     root.call('wm', 'attributes', '.', '-topmost', '1')
     root.withdraw()
+
+    ml = MumbleLink()
 
     windowWidth = root.winfo_reqwidth()
     windowHeight = root.winfo_reqheight()

@@ -6,6 +6,5 @@ Speedometer for beetle races in guildwars2 using mumblelink API
 1. Install python for windows with add to PATH checked (https://www.python.org/downloads/)
 2. Execute "install_dependencies.bat" or execute "pip install -r requirements.txt" in console (cmd at windows)
 3. Open guildwars2 game
-4. Open TacO or blish Hud
-5. Execute gauge file with double click
+4. Execute gauge file with double click
 

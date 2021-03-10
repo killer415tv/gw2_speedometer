@@ -1,6 +1,11 @@
 # gw2_speedometer
 Speedometer for beetle races in guildwars2 using mumblelink API
 
+#demo
+
+To watch how is it ingame:
+https://www.youtube.com/watch?v=_npJtLIhm4U
+
 #install
 
 1. Install python for windows with add to PATH checked (https://www.python.org/downloads/)

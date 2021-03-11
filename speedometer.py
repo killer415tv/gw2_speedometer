@@ -360,7 +360,7 @@ class Meter(tk.Frame):
                         self.steps_txt.set("")
                         writer = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + filename,'a',newline='', encoding='utf-8')
                         writer.seek(0,2)
-                        writer.writelines( (',').join(["X","Y","Z","SPEED","ANGLE_CAM", "ANGLE_BEETLE","TIME"]))
+                        writer.writelines( (',').join(["X","Y","Z","SPEED","ANGLE_CAM", "ANGLE_BEETLE","TIME", "ACCELERATION"]))
                 
                 if step == "end":
                 
@@ -541,6 +541,18 @@ class Meter(tk.Frame):
                             # el angulo de la camara hay que forzarlo a ser relativo al de velocidad
                             self.canvas.coords(avatar_circle, 200 + 190 * float(uaf[0])-11,  195 + 190 * float(uaf[1])-11 , 200 + 190 * float(uaf[0])+11 ,  195 + 190 * float(uaf[1])+11 )
 
+                if hud_acceleration:
+                    #calculamos la aceleración
+                    acceleration = round(((velocity - _lastVel) / (_time - _lastTime)))*100/1000 
+
+                    if acceleration > 900:
+                        acceleration = 900
+                    
+                    if acceleration < -900:
+                        acceleration = -900
+
+                    if acceleration < 900 and acceleration > -900:
+                        self.accelvar.set(acceleration);
                     
                 #escribir velocidad,tiempo,x,y,z en fichero, solo si está abierto el fichero y si está habilitado el log
                 if log and filename != "" and round((velocity*100/10000)*99/72) < 150:
@@ -548,7 +560,7 @@ class Meter(tk.Frame):
                     writer = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + filename,'a',newline='', encoding='utf-8')
                     writer.seek(0,2)
                     writer.writelines("\r")
-                    writer.writelines( (',').join([str(_pos[0]),str(_pos[1]),str(_pos[2]),str(round((velocity*100/10000)*99/72)),str(angle_between_res1),str(angle_between_res2), str(_time - filename_timer)]))
+                    writer.writelines( (',').join([str(_pos[0]),str(_pos[1]),str(_pos[2]),str(round((velocity*100/10000)*99/72)),str(angle_between_res1),str(angle_between_res2), str(_time - filename_timer), str(acceleration)]))
                     self.vartime.set(datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(_time - filename_timer), "%M:%S:%f"))
 
                 #print(velocity, flush=True)
@@ -570,11 +582,7 @@ class Meter(tk.Frame):
                     i = self.canvas.find_withtag("numero")
                     self.canvas.itemconfig(i, fg=color)
 
-                    if hud_acceleration:
-                        #calculamos la aceleración
-                        acceleration = round(((velocity - _lastVel) / (_time - _lastTime)))*100/1000 
-                        if acceleration < 900 and acceleration > -900:
-                            self.accelvar.set(acceleration);
+                    
             _lastTime = _time
             _lastPos = _2Dpos
             _lastVel = velocity

@@ -360,7 +360,7 @@ class Meter(tk.Frame):
                         self.steps_txt.set("")
                         writer = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + filename,'a',newline='', encoding='utf-8')
                         writer.seek(0,2)
-                        writer.writelines( (',').join(["X","Y","Z","SPEED","TIME"]))
+                        writer.writelines( (',').join(["X","Y","Z","SPEED","TIME","ANGLE_CAM", "ANGLE_BEETLE"]))
                 
                 if step == "end":
                 
@@ -464,6 +464,10 @@ class Meter(tk.Frame):
             if velocity > 0.0:
 
                 #calcular el vector unitario
+
+                angle_between_res1 = 0
+                angle_between_res2 = 0
+
                 if hud_angles:
                     def unit_vector(a):
                         return a/ np.linalg.norm(a)
@@ -544,7 +548,7 @@ class Meter(tk.Frame):
                     writer = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + filename,'a',newline='', encoding='utf-8')
                     writer.seek(0,2)
                     writer.writelines("\r")
-                    writer.writelines( (',').join([str(_pos[0]),str(_pos[1]),str(_pos[2]),str(round((velocity*100/10000)*99/72)), str(_time - filename_timer)]))
+                    writer.writelines( (',').join([str(_pos[0]),str(_pos[1]),str(_pos[2]),str(round((velocity*100/10000)*99/72)),str(angle_between_res1),str(angle_between_res2), str(_time - filename_timer)]))
                     self.vartime.set(datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(_time - filename_timer), "%M:%S:%f"))
 
                 #print(velocity, flush=True)

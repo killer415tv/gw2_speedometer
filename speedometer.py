@@ -360,7 +360,7 @@ class Meter(tk.Frame):
                         self.steps_txt.set("")
                         writer = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + filename,'a',newline='', encoding='utf-8')
                         writer.seek(0,2)
-                        writer.writelines( (',').join(["X","Y","Z","SPEED","TIME","ANGLE_CAM", "ANGLE_BEETLE"]))
+                        writer.writelines( (',').join(["X","Y","Z","SPEED","ANGLE_CAM", "ANGLE_BEETLE","TIME"]))
                 
                 if step == "end":
                 

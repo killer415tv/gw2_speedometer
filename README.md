@@ -11,5 +11,5 @@ https://www.youtube.com/watch?v=_npJtLIhm4U
 1. Install python for windows with add to PATH checked (https://www.python.org/downloads/)
 2. Execute "install_dependencies.bat" or execute "pip install -r requirements.txt" in console (cmd at windows)
 3. Open guildwars2 game
-4. Execute gauge file with double click
+4. Execute speedometer file with double click
 

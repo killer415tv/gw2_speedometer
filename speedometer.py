@@ -49,6 +49,7 @@ log = 1  # 1 = on , 0 = off
 audio = 1  # 1 = on , 0 = off
 #Angle meter, shows angles between velocity and mouse camera , and velocity and avatar angle 
 hud_angles = 1 # 1 = on , 0 = off
+hud_angles_bubbles = 1 # 1 = on , 0 = off
 #Show acceleration, shows the acceleration number on hud
 hud_acceleration = 1 # 1 = on , 0 = off
 # show velocity
@@ -190,7 +191,7 @@ class Meter(tk.Frame):
         #self.canvas.create_circle(200, 300, 26, fill="#666", outline="white", width=1)
         #self.canvas.create_circle(200, 300, 22, fill="#666", outline="#00d1e0", width=4)
 
-        if hud_angles:
+        if hud_angles_bubbles:
             self.canvas.create_circle(200, 300, 10, fill="#666", outline="#00d1e0", width=1, tags="avatar_angle")
             self.canvas.create_circle(200, 300, 2, fill="#666", outline="#adfaff", width=1, tags="camera_angle")
             self.canvas.create_circle(200, 300, 2, fill="#666", outline="white", width=1, tags="speed_angle")
@@ -421,7 +422,7 @@ class Meter(tk.Frame):
                 checkpoint("end", [-37.9, 1.74, -26.7])
 
             if guildhall_name.get() == "RACE":
-                #GWTC Checkpoints
+                #race Checkpoints
                 checkTP([35.67, 111.35, -7.02]) # use this position when you take te map TP , to stop log file
                 checkpoint("start", [37.53, 462.32, 138.97])
                 checkpoint(1, [-58.18, 332.07, 16.30])
@@ -432,7 +433,7 @@ class Meter(tk.Frame):
                 checkpoint("end", [-276.66, 42.59, -320.23])
 
             if guildhall_name.get() == "EQE":
-                #GWTC Checkpoints
+                #eqe Checkpoints
                 checkTP([114.48, 9.07, 37.47]) # use this position when you take te map TP , to stop log file
                 checkpoint("start", [186.02, 140.6, 198.7])
                 checkpoint(1, [-78.8, 23.9, -94.5])
@@ -530,16 +531,17 @@ class Meter(tk.Frame):
 
                             #uc = [cos(angle_between_res1),sin(angle_between_res1)]
 
-                            #representamos con dos circulos el angulo de velocidad y el de camara
-                            speed_circle = self.canvas.find_withtag("speed_angle")
-                            # forzamos la representación del angulo velocidad a ponerse arriba en 0º
-                            self.canvas.coords(speed_circle, 200 + 190 * float(uv[0])-4,  195 + 190 * float(uv[1])-4 , 200 + 190 * float(uv[0])+4 ,  195 + 190 * float(uv[1])+4 )
-                            camera_circle = self.canvas.find_withtag("camera_angle")
-                            # el angulo de la camara hay que forzarlo a ser relativo al de velocidad
-                            self.canvas.coords(camera_circle, 200 + 190 * float(uc[0])-8,  195 + 190 * float(uc[1])-8 , 200 + 190 * float(uc[0])+8 ,  195 + 190 * float(uc[1])+8 )
-                            avatar_circle = self.canvas.find_withtag("avatar_angle")
-                            # el angulo de la camara hay que forzarlo a ser relativo al de velocidad
-                            self.canvas.coords(avatar_circle, 200 + 190 * float(uaf[0])-11,  195 + 190 * float(uaf[1])-11 , 200 + 190 * float(uaf[0])+11 ,  195 + 190 * float(uaf[1])+11 )
+                            if hud_angles_bubbles:
+                                #representamos con dos circulos el angulo de velocidad y el de camara
+                                speed_circle = self.canvas.find_withtag("speed_angle")
+                                # forzamos la representación del angulo velocidad a ponerse arriba en 0º
+                                self.canvas.coords(speed_circle, 200 + 190 * float(uv[0])-4,  195 + 190 * float(uv[1])-4 , 200 + 190 * float(uv[0])+4 ,  195 + 190 * float(uv[1])+4 )
+                                camera_circle = self.canvas.find_withtag("camera_angle")
+                                # el angulo de la camara hay que forzarlo a ser relativo al de velocidad
+                                self.canvas.coords(camera_circle, 200 + 190 * float(uc[0])-8,  195 + 190 * float(uc[1])-8 , 200 + 190 * float(uc[0])+8 ,  195 + 190 * float(uc[1])+8 )
+                                avatar_circle = self.canvas.find_withtag("avatar_angle")
+                                # el angulo de la camara hay que forzarlo a ser relativo al de velocidad
+                                self.canvas.coords(avatar_circle, 200 + 190 * float(uaf[0])-11,  195 + 190 * float(uaf[1])-11 , 200 + 190 * float(uaf[0])+11 ,  195 + 190 * float(uaf[1])+11 )
 
                 if hud_acceleration:
                     #calculamos la aceleración

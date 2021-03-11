@@ -1,4 +1,6 @@
-pandas
-plotly
-scipy
+numpy
 pynput
+matplotlib
+pandas
+scipy
+playsound

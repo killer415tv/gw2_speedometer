@@ -13,21 +13,12 @@ import csv
 import sys, os
 import numpy as np
 from playsound import playsound
-
-from mpl_toolkits.mplot3d import Axes3D
-from matplotlib.backends.backend_tkagg import (
-                                    FigureCanvasTkAgg, NavigationToolbar2Tk)
-from matplotlib.figure import Figure
-import matplotlib as mpl
-import random
-from itertools import count
+from datetime import date
+import json
 import pandas as pd
-import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
 
 np.seterr(divide='ignore', invalid='ignore')
 
-mpl.rcParams['toolbar'] = 'None'
 
 #-----------------------------
 #  CONFIGURATION VARIABLES
@@ -49,7 +40,7 @@ log = 1  # 1 = on , 0 = off
 audio = 1  # 1 = on , 0 = off
 #Angle meter, shows angles between velocity and mouse camera , and velocity and avatar angle 
 hud_angles = 1 # 1 = on , 0 = off
-hud_angles_bubbles = 1 # 1 = on , 0 = off
+hud_angles_bubbles = 0 # 1 = on , 0 = off
 #Show acceleration, shows the acceleration number on hud
 hud_acceleration = 1 # 1 = on , 0 = off
 # show velocity
@@ -96,6 +87,20 @@ if audio:
 
 
 class Link(ctypes.Structure):
+    def __str__(self): 
+        
+        return  " uiVersion:" + str(self.uiVersion) \
+        + " \n uiTick: " + str(self.uiTick) \
+        + " \n fAvatarPosition: " + str(self.fAvatarPosition) \
+        + " \n fAvatarFront: " + str(self.fAvatarFront) \
+        + " \n fAvatarTop: " + str(self.fAvatarTop) \
+        + " \n name: " + str(self.name) \
+        + " \n fCameraPosition: " + str(self.fCameraPosition) \
+        + " \n fCameraFront: " + str(self.fCameraFront) \
+        + " \n fCameraTop: " + str(self.fCameraTop) \
+        + " \n identity: " + str(self.identity) \
+        + " \n context_len: " + str(self.context_len)
+
     _fields_ = [
         ("uiVersion", ctypes.c_uint32),           # 4 bytes
         ("uiTick", ctypes.c_ulong),               # 4 bytes
@@ -114,6 +119,24 @@ class Link(ctypes.Structure):
 
 
 class Context(ctypes.Structure):
+    def __str__(self): 
+        return  ""\
+        + " \n serverAddress:" + str(self.serverAddress) \
+        + " \n mapId:" + str(self.mapId) \
+        + " \n mapType:" + str(self.mapType) \
+        + " \n shardId:" + str(self.shardId) \
+        + " \n instance:" + str(self.instance) \
+        + " \n buildId:" + str(self.buildId) \
+        + " \n uiState:" + str(self.uiState) \
+        + " \n compassWidth:" + str(self.compassWidth) \
+        + " \n compassHeight:" + str(self.compassHeight) \
+        + " \n compassRotation:" + str(self.compassRotation) \
+        + " \n playerX:" + str(self.playerX) \
+        + " \n playerY:" + str(self.playerY) \
+        + " \n mapCenterX:" + str(self.mapCenterX) \
+        + " \n mapCenterY:" + str(self.mapCenterY) \
+        + " \n mapScale:" + str(self.mapScale) 
+        
     _fields_ = [
         ("serverAddress", ctypes.c_byte * 28),    # 28 bytes
         ("mapId", ctypes.c_uint32),               # 4 bytes
@@ -195,6 +218,8 @@ class Meter(tk.Frame):
             self.canvas.create_circle(200, 300, 10, fill="#666", outline="#00d1e0", width=1, tags="avatar_angle")
             self.canvas.create_circle(200, 300, 2, fill="#666", outline="#adfaff", width=1, tags="camera_angle")
             self.canvas.create_circle(200, 300, 2, fill="#666", outline="white", width=1, tags="speed_angle")
+            self.canvas.create_circle(200, 300, 2, fill="#666", outline="white", width=1, tags="left_50_angle")
+            self.canvas.create_circle(200, 300, 2, fill="#666", outline="white", width=1, tags="right_50_angle")
 
 
         #self.scale = tk.Scale(self, orient='horizontal', from_=0, to=100, variable=self.var)
@@ -348,6 +373,10 @@ class Meter(tk.Frame):
                     pressedQ = delaytimer
                     #cerrar fichero si hubiera una sesión anterior
                     
+                    #debug mumble link object
+                    #print(ml.data)
+                    #print(ml.context)
+
                     self.steps_txt.set("")
                     self.step1_txt.set("")
                     self.vartime.set("")
@@ -362,7 +391,8 @@ class Meter(tk.Frame):
                         writer = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + filename,'a',newline='', encoding='utf-8')
                         writer.seek(0,2)
                         writer.writelines( (',').join(["X","Y","Z","SPEED","ANGLE_CAM", "ANGLE_BEETLE","TIME", "ACCELERATION"]))
-                
+
+
                 if step == "end":
                 
                     if filename != "":
@@ -377,6 +407,17 @@ class Meter(tk.Frame):
                         print("----------------------------------")
                         newline = self.step1_txt.get() + "\n"
                         self.step1_txt.set(newline + "END " + datefinish)
+                        self.vartime.set(datefinish)
+
+                        if log:
+                            #store in file the record time of full track , today date and player name
+                            now = datetime.datetime.now()
+                            today_date = now.strftime("%d/%m/%Y %H:%M:%S")
+                            writer = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + guildhall_name.get() + "_records.csv",'a',newline='', encoding='utf-8')
+                            writer.seek(0,2)
+                            writer.writelines("\r")
+                            writer.writelines( (',').join([datefinish, today_date, json.loads(ml.data.identity)["name"]]))
+                        
                         if audio:
                             playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "checkpoint.mp3", block=False)
 
@@ -441,12 +482,6 @@ class Meter(tk.Frame):
                 checkpoint(3, [-207, 122, -41])
                 checkpoint("end", [117, 158, 256])
 
-            if guildhall_name.get() == "OLLO":
-                #ollo checkpoints
-                checkTP([-123, 127, -352]) # use this position when you take te map TP , to stop log file
-                checkpoint("start", [-85, 127, -351])
-                checkpoint("end", [-143, 130, -319])
-
 
             #DEBUG
             #print(list(_pos) , flush=True)
@@ -454,18 +489,13 @@ class Meter(tk.Frame):
             #print(_pos, _2Dpos)
             #calculo de velocidad quitando eje Y (altura)
 
-            
             dst = distance.euclidean(_2Dpos, _lastPos)
-
             total_distance = total_distance + dst
-
             velocity = dst * 39.3700787 / timer
-
             
             if velocity > 0.0:
 
                 #calcular el vector unitario
-
                 angle_between_res1 = 0
                 angle_between_res2 = 0
 
@@ -519,12 +549,12 @@ class Meter(tk.Frame):
                             #forzamos el vector velocidad siempre alante
                             uv = full_straight_vector
                             #creamos un vector camara girando el velocidad 
-                            theta = np.radians(angle_between_res1)
+                            theta = np.radians(angle_between_res1/2)
                             c, s = np.cos(theta), np.sin(theta)
                             R = np.array(((c,-s), (s, c)))
                             uc = np.dot(R, uv)
                             #creamos un vector avatar front girando la velocidad
-                            theta = np.radians(angle_between_res2)
+                            theta = np.radians(angle_between_res2/2)
                             c, s = np.cos(theta), np.sin(theta)
                             R = np.array(((c,-s), (s, c)))
                             uaf = np.dot(R, uv)
@@ -532,6 +562,24 @@ class Meter(tk.Frame):
                             #uc = [cos(angle_between_res1),sin(angle_between_res1)]
 
                             if hud_angles_bubbles:
+                                theta = np.radians(50/2)
+                                c, s = np.cos(theta), np.sin(theta)
+                                R = np.array(((c,-s), (s, c)))
+                                r50v = np.dot(R, uv)
+                                theta = np.radians(-50/2)
+                                c, s = np.cos(theta), np.sin(theta)
+                                R = np.array(((c,-s), (s, c)))
+                                l50v = np.dot(R, uv)
+                            
+                                #representamos con dos circulos el angulo de velocidad y el de camara
+                                left_tick = self.canvas.find_withtag("left_50_angle")
+                                # forzamos la representación del angulo velocidad a ponerse arriba en 0º
+                                self.canvas.coords(left_tick, 200 + 195 * float(r50v[0])-4,  195 + 195 * float(r50v[1])-4 , 200 + 195 * float(r50v[0])+4 ,  195 + 195 * float(r50v[1])+4 )
+                                #representamos con dos circulos el angulo de velocidad y el de camara
+                                right_tick = self.canvas.find_withtag("right_50_angle")
+                                # forzamos la representación del angulo velocidad a ponerse arriba en 0º
+                                self.canvas.coords(right_tick, 200 + 190 * float(l50v[0])-4,  195 + 190 * float(l50v[1])-4 , 200 + 190 * float(l50v[0])+4 ,  195 + 190 * float(l50v[1])+4 )
+
                                 #representamos con dos circulos el angulo de velocidad y el de camara
                                 speed_circle = self.canvas.find_withtag("speed_angle")
                                 # forzamos la representación del angulo velocidad a ponerse arriba en 0º
@@ -599,9 +647,9 @@ if __name__ == '__main__':
 
     root.title("Guildhall logs")
 
-    choices = ['None, im free!', 'GWTC', 'OLLO', 'RACE', 'EQE']
+    choices = ['None, im free!', 'GWTC', 'RACE', 'EQE']
     guildhall_name = StringVar(root)
-    guildhall_name.set('GUILDHALL')
+    guildhall_name.set('SELECT GUILDHALL')
 
     tk.Label(root, text="""Choose guildhall for the checkpoints\nYou can close this window once selected""", justify = tk.CENTER, padx = 20).pack()
     w = OptionMenu(root, guildhall_name, *choices)

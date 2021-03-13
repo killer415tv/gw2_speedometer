@@ -482,6 +482,36 @@ class Meter(tk.Frame):
                 checkpoint(3, [-207, 122, -41])
                 checkpoint("end", [117, 158, 256])
 
+            if guildhall_name.get() == "SoTD":
+                #SoTD Checkpoints
+                checkTP([3.18, 61.32, -35.58]) # use this position when you take te map TP , to stop log file
+                checkpoint("start", [93.41, 512.07, -6.85])
+                checkpoint(1, [-39.83, -0.34, 74.95])
+                checkpoint(2, [5.39, 88.43, 170.73])
+                checkpoint(3, [-62.09, 242.28, -251.58])
+                checkpoint(4, [369.351, 396.35, 91.34])
+                checkpoint("end", [61.96, 512.09, -58.64])
+
+            if guildhall_name.get() == "LRS":
+                #SoTD Checkpoints
+                checkTP([3.18, 61.32, -35.58]) # use this position when you take te map TP , to stop log file
+                checkpoint("start", [25.83, 575.20, -14.51])
+                checkpoint(1, [182.53, 488.21, 59.85])
+                checkpoint(2, [203.48, 261.82, -96.09])
+                checkpoint(3, [-0.6, 19.45, -254.91])
+                checkpoint(4, [-101.72, 53.04, 244.96])
+                checkpoint("end", [-26.74, 0.55, -51.33])
+
+            if guildhall_name.get() == "HUR":
+                #HUR Checkpoints
+                checkTP([35.67, 111.35, -7.02]) # use this position when you take te map TP , to stop log file
+                checkpoint("start", [42.57, 103.83, -282.71])
+                checkpoint(1, [-253.95, 162.94, 284.7])
+                checkpoint(2, [81.8, 0.56, -323.83])
+                checkpoint(3, [293.64, 60.74, -49.93])
+                checkpoint(4, [113.59, 154.99, -62.03])
+                checkpoint(5, [97.33, 221.3, 278.31])
+                checkpoint("end", [42.5, 103.87, -187.45])
 
             #DEBUG
             #print(list(_pos) , flush=True)
@@ -647,7 +677,7 @@ if __name__ == '__main__':
 
     root.title("Guildhall logs")
 
-    choices = ['None, im free!', 'GWTC', 'RACE', 'EQE']
+    choices = ['None, im free!', 'GWTC', 'RACE', 'EQE', 'SoTD', 'LRS', 'HUR']
     guildhall_name = StringVar(root)
     guildhall_name.set('SELECT GUILDHALL')
 

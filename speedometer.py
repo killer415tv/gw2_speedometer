@@ -23,7 +23,8 @@ np.seterr(divide='ignore', invalid='ignore')
 #-----------------------------
 #  CONFIGURATION VARIABLES
 #-----------------------------
-
+#measure the speed in 3 dimensions or ignore the altitude axis
+speed_in_3D = 0 # 1 = on , 0 = off
 #WIDGET POSITION 
 # this variable adjust the position of the gauge +250 for bottom position or -250 for upper position , 0 is default and center on screen
 position_up_down_offset = -250
@@ -61,13 +62,16 @@ hud_timer = 1 # 1 = on , 0 = off
 winh = 110
 winw = 200
 
-_lastPos = [0,0]
+_pos = [0,0,0]
+if speed_in_3D:
+    _lastPos = [0,0,0]
+else:
+    _lastPos = [0,0]
 _lastVel = 0
 _lastTick = 0
 _lastTime = 0
 velocity = 0
 _time = 0
-_pos = [0,0,0]
 _tick = 0
 timer = 0.01
 color = "white"
@@ -293,6 +297,7 @@ class Meter(tk.Frame):
         global velocity
         global _time
         global _pos
+        global _3Dpos
         global _tick
         global timer
         global color
@@ -316,7 +321,7 @@ class Meter(tk.Frame):
 
         def checkTP(coords):
 
-            global _pos
+            global _3Dpos
             global _time
 
             global pressedQ
@@ -330,7 +335,7 @@ class Meter(tk.Frame):
             step = coords
             arraystep = (ctypes.c_float * len(step))(*step)
             #la distancia de 5 es como si fuera una esfera de tamaño similar a una esfera de carreras de tiria
-            if distance.euclidean(_pos, arraystep) < 5 and pressedQ == 0:
+            if distance.euclidean(_3Dpos, arraystep) < 5 and pressedQ == 0:
                 if enable_livesplit_hotkey == 1:
                     keyboard.press(live_reset)
                     keyboard.release(live_reset)
@@ -348,7 +353,7 @@ class Meter(tk.Frame):
 
         def checkpoint(step, coords):
 
-            global _pos
+            global _3Dpos
             global _time
             global guildhall_name
 
@@ -363,7 +368,7 @@ class Meter(tk.Frame):
             step0 = coords
             arraystep0 = (ctypes.c_float * len(step0))(*step0)
             
-            if distance.euclidean(_pos, arraystep0) < 15 and pressedQ == 0:
+            if distance.euclidean(_3Dpos, arraystep0) < 15 and pressedQ == 0:
                 if step == "start":
                     if audio:
                         playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "checkpoint.mp3", block=False)
@@ -374,8 +379,8 @@ class Meter(tk.Frame):
                     #cerrar fichero si hubiera una sesión anterior
                     
                     #debug mumble link object
-                    #print(ml.data)
-                    #print(ml.context)
+                    print(ml.data)
+                    print(ml.context)
 
                     self.steps_txt.set("")
                     self.step1_txt.set("")
@@ -445,11 +450,16 @@ class Meter(tk.Frame):
         ml.read()
         _tick = ml.data.uiTick
         _time = time.time()
-        _pos = ml.data.fAvatarPosition
-        _2Dpos = [_pos[0],_pos[2]]
+
+        _3Dpos = ml.data.fAvatarPosition
+
+        if speed_in_3D:
+            _pos = [ml.data.fAvatarPosition[0],ml.data.fAvatarPosition[1],ml.data.fAvatarPosition[2]]
+        else:
+            _pos = [ml.data.fAvatarPosition[0],ml.data.fAvatarPosition[2]]
 
 
-        if _lastTime + timer <= _time and _tick != _lastTick and _2Dpos != _lastPos :
+        if _lastTime + timer <= _time and _tick != _lastTick and _pos != _lastPos :
             pressedQ = max(pressedQ - timer, 0)
             if guildhall_name.get() == "GWTC":
                 #GWTC Checkpoints
@@ -516,10 +526,10 @@ class Meter(tk.Frame):
             #DEBUG
             #print(list(_pos) , flush=True)
             #dst = distance.euclidean(_pos, _lastPos)
-            #print(_pos, _2Dpos)
+            #print(_pos, _pos)
             #calculo de velocidad quitando eje Y (altura)
 
-            dst = distance.euclidean(_2Dpos, _lastPos)
+            dst = distance.euclidean(_pos, _lastPos)
             total_distance = total_distance + dst
             velocity = dst * 39.3700787 / timer
             
@@ -546,12 +556,16 @@ class Meter(tk.Frame):
                         return str(round(np.rad2deg(np.arccos(dot_pr / norms))))
 
                     # construimos un vector con la posición actual y la anterior
-                    a = np.array([_2Dpos[0] - _lastPos[0], _2Dpos[1] - _lastPos[1]])
+                    if speed_in_3D:
+                        Y_index = 2
+                    else:
+                        Y_index = 1
+                    a = np.array([_pos[0] - _lastPos[0], _pos[Y_index] - _lastPos[Y_index]])
                     b = np.array([ml.data.fCameraFront[0], ml.data.fCameraFront[2]])
                     c = np.array([ml.data.fAvatarFront[0], ml.data.fAvatarFront[2]])
                     
                     # si el vector es nulo , no hacemos nada, no hay movimiento
-                    if _2Dpos[0] - _lastPos[0] == 0 or _2Dpos[1] - _lastPos[1] == 0:
+                    if _pos[0] - _lastPos[0] == 0 or _pos[Y_index] - _lastPos[Y_index] == 0:
                         # self.step3_txt.set("stop")
                         stop = 1
                     else:
@@ -640,7 +654,7 @@ class Meter(tk.Frame):
                     writer = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + filename,'a',newline='', encoding='utf-8')
                     writer.seek(0,2)
                     writer.writelines("\r")
-                    writer.writelines( (',').join([str(_pos[0]),str(_pos[1]),str(_pos[2]),str(round((velocity*100/10000)*99/72)),str(angle_between_res1),str(angle_between_res2), str(_time - filename_timer), str(acceleration)]))
+                    writer.writelines( (',').join([str(_3Dpos[0]),str(_3Dpos[1]),str(_3Dpos[2]),str(round((velocity*100/10000)*99/72)),str(angle_between_res1),str(angle_between_res2), str(_time - filename_timer), str(acceleration)]))
                     self.vartime.set(datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(_time - filename_timer), "%M:%S:%f"))
 
                 #print(velocity, flush=True)
@@ -664,14 +678,13 @@ class Meter(tk.Frame):
 
                     
             _lastTime = _time
-            _lastPos = _2Dpos
+            _lastPos = _pos
             _lastVel = velocity
             _lastTick = _tick
         self.after(20, self.updateMeterTimer)
 
 
 if __name__ == '__main__':
-
 
     root = Tk()
 

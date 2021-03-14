@@ -1,6 +1,7 @@
-numpy
-pynput
-matplotlib
-pandas
-scipy
 playsound
+numpy
+pandas
+plotly
+scipy
+pynput
+paho_mqtt

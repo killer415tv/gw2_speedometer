@@ -379,8 +379,8 @@ class Meter(tk.Frame):
                     #cerrar fichero si hubiera una sesión anterior
                     
                     #debug mumble link object
-                    print(ml.data)
-                    print(ml.context)
+                    #print(ml.data)
+                    #print(ml.context)
 
                     self.steps_txt.set("")
                     self.step1_txt.set("")

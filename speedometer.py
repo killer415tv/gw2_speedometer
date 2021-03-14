@@ -24,7 +24,7 @@ np.seterr(divide='ignore', invalid='ignore')
 #  CONFIGURATION VARIABLES
 #-----------------------------
 #measure the speed in 3 dimensions or ignore the altitude axis
-speed_in_3D = 0 # 1 = on , 0 = off
+speed_in_3D = 1 # 1 = on , 0 = off
 #WIDGET POSITION 
 # this variable adjust the position of the gauge +250 for bottom position or -250 for upper position , 0 is default and center on screen
 position_up_down_offset = -250
@@ -38,7 +38,7 @@ live_reset='k' #key binded for reset
 #Log all the timed splits to file CSV
 log = 1  # 1 = on , 0 = off
 #Play checkpoint.mp3 file when you open the program and when you go through a checkpoint
-audio = 1  # 1 = on , 0 = off
+audio = 0  # 1 = on , 0 = off
 #Angle meter, shows angles between velocity and mouse camera , and velocity and avatar angle 
 hud_angles = 1 # 1 = on , 0 = off
 hud_angles_bubbles = 0 # 1 = on , 0 = off
@@ -48,13 +48,23 @@ hud_acceleration = 1 # 1 = on , 0 = off
 hud_gauge = 1 # 1 = on , 0 = off
 # show timer
 hud_timer = 1 # 1 = on , 0 = off
+hud_distance = 1 # 1 = on , 0 = off
 
 #-----------------------------
 #  END CONFIGURATION VARIABLES
 #-----------------------------
 
+#-----------------------------
+#  RACING VARIABLES
+#-----------------------------
 
+session_id = ""
+username = ""
+timestamps = []
 
+#-----------------------------
+#  END RACING VARIABLES
+#-----------------------------
 
 #toma de datos inicial
 #ml = MumbleLink()
@@ -205,8 +215,6 @@ class Meter(tk.Frame):
         self.var = tk.IntVar(self, 0)
         self.var100 = tk.IntVar(self, 0)
 
-
-
         self.canvas = tk.Canvas(self, width=winw+800, height=winh-150,
                                 borderwidth=0, highlightthickness=0,
                                 bg='#666666')
@@ -261,7 +269,9 @@ class Meter(tk.Frame):
 
         if hud_timer:
             self.vartime = tk.StringVar(self, "")
-            self.timenum = tk.Label(self, textvariable = self.vartime, fg = "#aaaaaa", bg="#666666", font=("Lucida Console", 20, "bold")).place(x = 103, y = 145)
+            self.timenum = tk.Label(self, textvariable = self.vartime, fg = "#aaaaaa", bg="#666666", font=("Lucida Console", 20, "bold")).place(x = 124, y = 145)
+            self.distance = tk.StringVar(self, "")
+            self.timenum = tk.Label(self, textvariable = self.distance, fg = "#aaaaaa", bg="#666666", font=("Lucida Console", 15)).place(x = 124, y = 170)
             self.steps_txt = tk.StringVar(self, "")
             self.steps0 = tk.Label(self, textvariable = self.steps_txt, fg = "white", bg="#666666", font=("Lucida Console", 15, "bold")).place(x = 395, y = 0)
             self.step1_txt = tk.StringVar(self, "")
@@ -318,6 +328,8 @@ class Meter(tk.Frame):
 
         global total_distance
 
+        global username
+
 
         def checkTP(coords):
 
@@ -349,6 +361,7 @@ class Meter(tk.Frame):
                 self.steps_txt.set("")
                 self.step1_txt.set("")
                 self.vartime.set("")
+                self.distance.set("")
 
 
         def checkpoint(step, coords):
@@ -364,7 +377,6 @@ class Meter(tk.Frame):
             global filename_timer
             global total_distance
 
-            total_distance = 0
             step0 = coords
             arraystep0 = (ctypes.c_float * len(step0))(*step0)
             
@@ -385,6 +397,7 @@ class Meter(tk.Frame):
                     self.steps_txt.set("")
                     self.step1_txt.set("")
                     self.vartime.set("")
+                    self.distance.set("")
                     total_distance = 0
                     if log:
                         filename = guildhall_name.get() + "_log_" + str(_time) + ".csv"
@@ -401,7 +414,7 @@ class Meter(tk.Frame):
                 if step == "end":
                 
                     if filename != "":
-                        datefinish = datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(_time - filename_timer), "%M:%S:%f")
+                        datefinish = datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(_time - filename_timer), "%M:%S:%f")[:-3]
                         if enable_livesplit_hotkey == 1:
                             keyboard.press(live_start)
                             keyboard.release(live_start)
@@ -433,13 +446,13 @@ class Meter(tk.Frame):
                         keyboard.release(live_start)
                     pressedQ = 2 # 10 SEGUNDOS
                     print("----------------------------------")
-                    print("CHECKPOINT " + str(step) + ": " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(_time - filename_timer), "%M:%S:%f"))
+                    print("CHECKPOINT " + str(step) + ": " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(_time - filename_timer), "%M:%S:%f")[:-3])
                     print("----------------------------------")
                     self.steps_txt.set(guildhall_name.get() + " Times")
                     newline = self.step1_txt.get() + "\n "
                     if step == 1:
                         newline = " "
-                    self.step1_txt.set(newline + "T" + str(step) + " " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(_time - filename_timer), "%M:%S:%f"))
+                    self.step1_txt.set(newline + "T" + str(step) + " " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(_time - filename_timer), "%M:%S:%f")[:-3])
                     if audio:
                         playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "checkpoint.mp3", block=False)
                     
@@ -448,6 +461,9 @@ class Meter(tk.Frame):
         #print("actualiza", flush=True)
         #toma de datos nueva
         ml.read()
+
+        #username = json.loads(ml.data.identity)["name"]
+
         _tick = ml.data.uiTick
         _time = time.time()
 
@@ -655,7 +671,9 @@ class Meter(tk.Frame):
                     writer.seek(0,2)
                     writer.writelines("\r")
                     writer.writelines( (',').join([str(_3Dpos[0]),str(_3Dpos[1]),str(_3Dpos[2]),str(round((velocity*100/10000)*99/72)),str(angle_between_res1),str(angle_between_res2), str(_time - filename_timer), str(acceleration)]))
-                    self.vartime.set(datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(_time - filename_timer), "%M:%S:%f"))
+                    self.vartime.set(datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(_time - filename_timer), "%M:%S:%f")[:-3])
+                    if hud_distance:
+                        self.distance.set(str(round(total_distance)) + "m.")
 
                 #print(velocity, flush=True)
                 if velocity > 0:
@@ -694,7 +712,7 @@ if __name__ == '__main__':
     guildhall_name = StringVar(root)
     guildhall_name.set('SELECT GUILDHALL')
 
-    tk.Label(root, text="""Choose guildhall for the checkpoints\nYou can close this window once selected""", justify = tk.CENTER, padx = 20).pack()
+    tk.Label(root, text="""Speedometer v3.14\nChoose guildhall for the checkpoints\nYou can close this window once selected""", justify = tk.CENTER, padx = 20).pack()
     w = OptionMenu(root, guildhall_name, *choices)
     w.pack(); 
 

@@ -17,6 +17,15 @@ from datetime import date
 import json
 import pandas as pd
 
+import random
+
+import paho.mqtt.client as mqtt #import the client1
+import time
+
+import threading
+import queue
+
+
 np.seterr(divide='ignore', invalid='ignore')
 
 
@@ -24,7 +33,7 @@ np.seterr(divide='ignore', invalid='ignore')
 #  CONFIGURATION VARIABLES
 #-----------------------------
 #measure the speed in 3 dimensions or ignore the altitude axis
-speed_in_3D = 1 # 1 = on , 0 = off
+speed_in_3D = 0 # 1 = on , 0 = off
 #WIDGET POSITION 
 # this variable adjust the position of the gauge +250 for bottom position or -250 for upper position , 0 is default and center on screen
 position_up_down_offset = -250
@@ -37,8 +46,8 @@ live_start='l' #key binded for start/split
 live_reset='k' #key binded for reset
 #Log all the timed splits to file CSV
 log = 1  # 1 = on , 0 = off
-#Play checkpoint.mp3 file when you open the program and when you go through a checkpoint
-audio = 0  # 1 = on , 0 = off
+#Play dong.mp3 file when you open the program and when you go through a checkpoint
+audio = 1  # 1 = on , 0 = off
 #Angle meter, shows angles between velocity and mouse camera , and velocity and avatar angle 
 hud_angles = 1 # 1 = on , 0 = off
 hud_angles_bubbles = 0 # 1 = on , 0 = off
@@ -54,13 +63,13 @@ hud_distance = 1 # 1 = on , 0 = off
 #  END CONFIGURATION VARIABLES
 #-----------------------------
 
+
+
 #-----------------------------
 #  RACING VARIABLES
 #-----------------------------
 
-session_id = ""
-username = ""
-timestamps = []
+client = ""
 
 #-----------------------------
 #  END RACING VARIABLES
@@ -97,7 +106,7 @@ total_distance = 0
 
 #test audio on start
 if audio:
-    playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "checkpoint.mp3", block=False)
+    playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "dong.mp3", block=False)
 
 
 class Link(ctypes.Structure):
@@ -238,7 +247,7 @@ class Meter(tk.Frame):
         
         
         if hud_angles:
-            self.angletext = tk.Label(self, text="v-m   v-b", fg = "white", bg="#666666", font=("Lucida Console", 7)).place(x = 146, y = 46)
+            self.angletext = tk.Label(self, text="Cam   Beetle", fg = "white", bg="#666666", font=("Lucida Console", 7)).place(x = 146, y = 46)
             self.anglenum = tk.Label(self, textvariable = self.anglevar, fg = "white", bg="#666666", font=("Lucida Console", 8, "bold")).place(x = 145, y = 57)
         
         if hud_acceleration:
@@ -328,7 +337,7 @@ class Meter(tk.Frame):
 
         global total_distance
 
-        global username
+        global guildhall_name
 
 
         def checkTP(coords):
@@ -377,13 +386,15 @@ class Meter(tk.Frame):
             global filename_timer
             global total_distance
 
+            global racer
+
             step0 = coords
             arraystep0 = (ctypes.c_float * len(step0))(*step0)
             
             if distance.euclidean(_3Dpos, arraystep0) < 15 and pressedQ == 0:
                 if step == "start":
                     if audio:
-                        playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "checkpoint.mp3", block=False)
+                        playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "dong.mp3", block=False)
                     if enable_livesplit_hotkey == 1:
                         keyboard.press(live_start)
                         keyboard.release(live_start)
@@ -399,9 +410,9 @@ class Meter(tk.Frame):
                     self.vartime.set("")
                     self.distance.set("")
                     total_distance = 0
+                    filename_timer = _time
                     if log:
                         filename = guildhall_name.get() + "_log_" + str(_time) + ".csv"
-                        filename_timer = _time
                         print("----------------------------------")
                         print("NEW LOG FILE - " + filename)
                         print("----------------------------------")
@@ -409,12 +420,18 @@ class Meter(tk.Frame):
                         writer = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + filename,'a',newline='', encoding='utf-8')
                         writer.seek(0,2)
                         writer.writelines( (',').join(["X","Y","Z","SPEED","ANGLE_CAM", "ANGLE_BEETLE","TIME", "ACCELERATION"]))
+                    
+                    if racer.session_id:
+                        #mqtt se manda el tiempo como inicio
+                        racer.sendMQTT({"option": "s", "time" : 0, "user": racer.username.get()})
 
 
                 if step == "end":
                 
+                    steptime = _time - filename_timer
+
                     if filename != "":
-                        datefinish = datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(_time - filename_timer), "%M:%S:%f")[:-3]
+                        datefinish = datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime), "%M:%S:%f")[:-3]
                         if enable_livesplit_hotkey == 1:
                             keyboard.press(live_start)
                             keyboard.release(live_start)
@@ -437,24 +454,33 @@ class Meter(tk.Frame):
                             writer.writelines( (',').join([datefinish, today_date, json.loads(ml.data.identity)["name"]]))
                         
                         if audio:
-                            playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "checkpoint.mp3", block=False)
+                            playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "dong.mp3", block=False)
+
+                        if racer.session_id:
+                            #mqtt se manda el tiempo como inicio
+                            racer.sendMQTT({"option": "f", "time": steptime, "user": racer.username.get()})
 
                 if str(step).isnumeric() == True:
                     
+                    steptime = _time - filename_timer
+
                     if enable_livesplit_hotkey == 1:
                         keyboard.press(live_start)
                         keyboard.release(live_start)
                     pressedQ = 2 # 10 SEGUNDOS
                     print("----------------------------------")
-                    print("CHECKPOINT " + str(step) + ": " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(_time - filename_timer), "%M:%S:%f")[:-3])
+                    print("CHECKPOINT " + str(step) + ": " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime), "%M:%S:%f")[:-3])
                     print("----------------------------------")
                     self.steps_txt.set(guildhall_name.get() + " Times")
                     newline = self.step1_txt.get() + "\n "
                     if step == 1:
                         newline = " "
-                    self.step1_txt.set(newline + "T" + str(step) + " " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(_time - filename_timer), "%M:%S:%f")[:-3])
+                    self.step1_txt.set(newline + "T" + str(step) + " " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime), "%M:%S:%f")[:-3])
                     if audio:
-                        playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "checkpoint.mp3", block=False)
+                        playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "dong.mp3", block=False)
+                    if racer.session_id:
+                        #mqtt se manda el tiempo como inicio
+                        racer.sendMQTT({"option": "c", "step": step, "time": steptime, "user": racer.username.get()})
                     
 
         """Fade over time"""
@@ -462,10 +488,13 @@ class Meter(tk.Frame):
         #toma de datos nueva
         ml.read()
 
-        #username = json.loads(ml.data.identity)["name"]
-
         _tick = ml.data.uiTick
         _time = time.time()
+        
+        if ml.data.identity != "":
+            racer.username.set(json.loads(ml.data.identity).get("name"))
+        else: 
+            racer.username.set("anon")
 
         _3Dpos = ml.data.fAvatarPosition
 
@@ -701,20 +730,208 @@ class Meter(tk.Frame):
             _lastTick = _tick
         self.after(20, self.updateMeterTimer)
 
+class Racer():
+
+    def on_message(self, client, userdata, message):
+
+        #print("message received " ,json.loads(str(message.payload.decode("utf-8"))))
+        received = json.loads(str(message.payload.decode("utf-8")))
+    
+        if received.get('option') == "s":
+            #print("first checkpoint for!!", received.get('user'))
+            user = received.get('user')
+            time = received.get('time')
+            self.timestamps.append({"user": user, "time": time, "step": 0})
+            self.thread_queue.put("Race positions")
+            # guardar tiempo de user para inicio
+            # falta mostrar por pantalla el ranking de partida
+        if received.get('option') == "f":
+            #print("finish!!", received.get('user'))
+
+            user = received.get('user')
+            time = received.get('time')
+            self.timestamps.append({"user": user, "time": time, "step": 999})
+            self.thread_queue.put("Race finished\nPositions:")
+
+            # guardar tiempo de user de fin de carrera
+            # falta mostrar por pantalla el ranking de partida
+        if received.get('option') == "c":
+            #print("checkpoint ", received.get('step') ," for!!", received.get('user'))
+
+            user = received.get('user')
+            time = received.get('time')
+            step = received.get('step')
+
+            self.timestamps.append({"user": user, "time": time, "step": step})
+            #self.thread_queue.put("checkpoint " + str(step))
+
+            # guardar tiempo de checkpoint
+            # falta mostrar por pantalla el ranking de partida
+        if received.get('option') == "321GO-3":
+            #print("3!!")
+            self.thread_queue.put("3...")
+            playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "ding.mp3", block=False)
+            # limpiar ranking de partida
+            # falta mostrar por pantalla el 3 2 1
+        if received.get('option') == "321GO-2":
+            #print("2!!")
+            self.thread_queue.put("2...")
+            playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "ding.mp3", block=False)
+            # limpiar ranking de partida
+            # falta mostrar por pantalla el 3 2 1
+        if received.get('option') == "321GO-1":
+            #print("1!!")
+            self.thread_queue.put("1...")
+            playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "ding.mp3", block=False)
+            # limpiar ranking de partida
+            # falta mostrar por pantalla el 3 2 1
+        if received.get('option') == "321GO-GO":
+            #print("GO GO GO!!")
+            self.thread_queue.put("GOGOGOGO")
+            playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "dong.mp3", block=False)
+            self.timestamps = []
+            # limpiar ranking de partida
+            # falta mostrar por pantalla el 3 2 1
+
+    def sendMQTT(self, data):
+        global client
+        client.publish(self.prefix_topic + self.session_id.get(), json.dumps(data))
+
+    def newRaceThread(self):
+        t = threading.Thread(target=self.newRace())
+        t.start()
+
+    def newRace(self ):
+        print("START A NEW RACE")
+        
+        #mandar el 3 2 1 a todos los subscritos
+        self.sendMQTT({"option": "321GO-3"})
+        time.sleep(1)
+        self.sendMQTT({"option": "321GO-2"})
+        time.sleep(1)
+        self.sendMQTT({"option": "321GO-1"})
+        time.sleep(1.4)
+        self.sendMQTT({"option": "321GO-GO"})
+        
+
+    def joinRace(self):
+        global client
+
+        self.status.set("JOINED!")
+        self.race_status.set("Waiting to start...")
+        #print(self.username.get() + " JOINED RACE: " + self.session_id.get())
+        #subscribición al topico
+        broker_address="test.mosquitto.org"
+        #broker_address="iot.eclipse.org"
+        #print("creating new instance")
+        client = mqtt.Client(self.username.get() + str(random.random())) #create new instance
+        client.on_message=self.on_message #attach function to callback
+        #print("connecting to broker")
+        client.connect(broker_address) #connect to broker
+        client.loop_start() #start the loop
+        #print("Subscribing to topic",self.prefix_topic + str(self.session_id.get()))
+        client.subscribe(self.prefix_topic + str(self.session_id.get()))
+        
+        #self.thread_queue.put('Waiting for start.')
+        
+
+    def __init__(self):
+        
+        global guildhall_name
+
+        self.one_name_list = []
+        self.dic = {}
+
+        self.root = Tk()
+        self.root.call('wm', 'attributes', '.', '-topmost', '1')
+        self.root.title("Guildhall logs & challenger")
+        self.root.geometry("320x350")
+
+        self.thread_queue = queue.Queue()
+
+        self.root.after(100, self.listen_for_result)
+
+        self.choices = ['None, im free!', 'GWTC', 'RACE', 'EQE', 'SoTD', 'LRS', 'HUR']
+        guildhall_name = StringVar(self.root)
+        guildhall_name.set('SELECT GUILDHALL')
+
+        tk.Label(self.root, text="""Speedometer v1.3.15""", justify = tk.CENTER, padx = 20, font=('Helvetica', 10, 'bold')).pack()
+        tk.Label(self.root, text="""Choose guildhall for the checkpoints\nYou can close this window once selected""", justify = tk.CENTER, padx = 20).pack()
+        w = OptionMenu(self.root, guildhall_name, *self.choices)
+        w.pack(); 
+
+        self.status = StringVar(self.root)
+        self.status.set("JOIN A RACE")
+
+        self.race_status = StringVar(self.root)
+        self.race_status.set("No race")
+        self.ranking = StringVar(self.root)
+        self.ranking.set("Positions")
+
+        self.session_id = StringVar(self.root)
+        self.prefix_topic = "/gw2/speedometer/race/"
+        self.username = StringVar(self.root)
+        self.timestamps = []
+
+        tk.Label(self.root, text="""Want to challenge someone?""", justify = tk.CENTER, padx = 20, font=('Helvetica', 10, 'bold')).pack()
+        tk.Label(self.root, text="""Join race:""", justify = tk.CENTER, padx = 20).pack()
+        
+        entry1 = tk.Entry(self.root,textvariable=self.session_id).pack()
+
+        tk.Button(self.root, textvariable=self.status, command=self.joinRace).pack()
+        
+        tk.Label(self.root, text="""Create new race:""", justify = tk.CENTER, padx = 20).pack()
+        tk.Button(self.root, text='START THE RACE', command=lambda:self.newRaceThread()).pack()
+        tk.Label(self.root, text="""-------------""", justify = tk.CENTER, padx = 20).pack()
+        tk.Label(self.root, textvariable=self.race_status, justify = tk.CENTER, padx = 20).pack()
+        tk.Label(self.root, textvariable=self.ranking, justify = tk.LEFT, padx = 20).pack()
+
+
+    def listen_for_result(self):
+        #update the timestamp result
+
+        #self.timestamps = [{"name": "uno", "time": "2.1", "step": "1"},{"name": "dos", "time": "2.2", "step": "1"},{"name": "uno", "time": "4", "step": "2"}]
+
+        values = []
+        uniqueNames = []
+        top_times = []
+
+        for i in self.timestamps:
+            
+            if(i["user"] not in uniqueNames):
+                uniqueNames.append(i["user"]);
+                values.append(i)
+        for n in uniqueNames:
+            filtered_list = list(filter(lambda x: x['user'] in n, self.timestamps))   
+            top_time = sorted(filtered_list, key=lambda k: (-int(k['step']), k['time']))
+            top_times.append(top_time[0])
+
+        top_times = sorted(top_times, key=lambda k: (-int(k['step']), float(k['time'])))
+
+        rankingtxt = ""
+        rankingindex = 1
+        for u in top_times:
+            steptime = datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(u['time']), "%M:%S:%f")[:-3]
+            if str(u['step']) == '999':
+                rankingtxt = rankingtxt + str(rankingindex) + ": " + str(steptime) + " - FINISH > " + str(u['user']) + "\n"
+            else:
+                rankingtxt = rankingtxt + str(rankingindex) + ": " + str(steptime) + " - T" + str(u['step']) + " > " + str(u['user']) + "\n"
+
+            rankingindex = rankingindex + 1
+        
+        self.ranking.set(rankingtxt)
+
+        try:
+            self.res = self.thread_queue.get(0)
+            #self._print(self.res)
+            self.race_status.set(self.res)
+            self.root.after(100, self.listen_for_result)
+
+        except queue.Empty:
+            self.root.after(100, self.listen_for_result)
+
 
 if __name__ == '__main__':
-
-    root = Tk()
-
-    root.title("Guildhall logs")
-
-    choices = ['None, im free!', 'GWTC', 'RACE', 'EQE', 'SoTD', 'LRS', 'HUR']
-    guildhall_name = StringVar(root)
-    guildhall_name.set('SELECT GUILDHALL')
-
-    tk.Label(root, text="""Speedometer v3.14\nChoose guildhall for the checkpoints\nYou can close this window once selected""", justify = tk.CENTER, padx = 20).pack()
-    w = OptionMenu(root, guildhall_name, *choices)
-    w.pack(); 
 
     #root.mainloop() 
 
@@ -736,6 +953,7 @@ if __name__ == '__main__':
     window.attributes('-topmost', 1)
     #Whatever buttons, etc 
 
+    racer = Racer()
 
     meter = Meter(window)
     meter.pack(fill = tk.BOTH, expand = 1)

@@ -1,7 +1,8 @@
-playsound
-numpy
 pandas
 plotly
+playsound
 scipy
 pynput
+numpy
 paho_mqtt
+

@@ -225,7 +225,7 @@ class Meter():
         self.root.attributes('-topmost', 1)
         self.root.configure(bg='#f0f0f0')
         def disable_event():
-            pass
+            self.toggleTrans()
         self.root.protocol("WM_DELETE_WINDOW", disable_event)
 
         if hud_angles:
@@ -905,6 +905,9 @@ class Racer():
         self.root.wm_attributes("-transparentcolor", "#666666")
         self.root.configure(bg='#f0f0f0')
 
+        def disable_event():
+            self.toggleTrans()
+        self.root.protocol("WM_DELETE_WINDOW", disable_event)
 
         self.fg = StringVar(self.root)
         self.bg = StringVar(self.root)
@@ -1045,8 +1048,14 @@ if __name__ == '__main__':
     meter = Meter()
 
     def toggleAll():
-        meter.toggleTrans()
-        racer.toggleTrans()
+        if meter.move == racer.move:
+            meter.toggleTrans()
+            racer.toggleTrans()
+        else:
+            if meter.move:
+                racer.toggleTrans()
+            else:
+                meter.toggleTrans()
 
     t_11 = tk.Button(root, text='Move Speedometer windows', command=lambda:toggleAll() ,fg="white", bg="#222222", relief='flat')
     t_11.pack(anchor="ne")

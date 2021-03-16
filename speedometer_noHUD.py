@@ -49,15 +49,15 @@ log = 1  # 1 = on , 0 = off
 #Play dong.mp3 file when you open the program and when you go through a checkpoint
 audio = 1  # 1 = on , 0 = off
 #Angle meter, shows angles between velocity and mouse camera , and velocity and avatar angle 
-hud_angles = 1 # 1 = on , 0 = off
+hud_angles = 0 # 1 = on , 0 = off
 hud_angles_bubbles = 0 # 1 = on , 0 = off
 #Show acceleration, shows the acceleration number on hud
-hud_acceleration = 1 # 1 = on , 0 = off
+hud_acceleration = 0 # 1 = on , 0 = off
 # show velocity
-hud_gauge = 1 # 1 = on , 0 = off
+hud_gauge = 0 # 1 = on , 0 = off
 # show timer
 hud_timer = 1 # 1 = on , 0 = off
-hud_distance = 1 # 1 = on , 0 = off
+hud_distance = 0 # 1 = on , 0 = off
 
 #-----------------------------
 #  END CONFIGURATION VARIABLES

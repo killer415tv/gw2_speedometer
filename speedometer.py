@@ -834,8 +834,6 @@ class Racer():
         #self.thread_queue.put('Waiting for start.')
         
     def toggleTrans(self):
-        print(self.move)
-        #self.root.wm_attributes("-transparentcolor", "#f0f0f0")
         if (self.move):
             self.root.overrideredirect(1)
             self.t_1.configure(fg=self.color_trans_fg); self.t_1.configure(bg=self.color_trans_bg)

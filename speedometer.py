@@ -140,7 +140,6 @@ class Link(ctypes.Structure):
         # ("description", ctypes.c_byte * 2048),  # 2048 bytes, always empty
     ]
 
-
 class Context(ctypes.Structure):
     def __str__(self): 
         return  ""\
@@ -178,7 +177,6 @@ class Context(ctypes.Structure):
         ("mapScale", ctypes.c_float),             # 4 bytes
     ]
 
-
 class MumbleLink:
     data: Link
     context: Context
@@ -208,23 +206,37 @@ class MumbleLink:
         ctype_instance = ctypes.cast(ctypes.pointer(cstring), ctypes.POINTER(ctype)).contents
         return ctype_instance
 
-class Meter(tk.Frame):
+class Meter():
 
     def __init__(self, master=None, **kw):
         global fundo
         global winw
         global winh
-        tk.Frame.__init__(self, master, **kw)
+        
+        self.root = Tk()
+        windowWidth = self.root.winfo_reqwidth()
+        windowHeight = self.root.winfo_reqheight()
+        positionRight = int(root.winfo_screenwidth()/2 - windowWidth/2) + position_right_left_offset
+        positionDown = int(root.winfo_screenheight()/2 - windowHeight/2) + position_up_down_offset
+        self.root.title("Speedometer")
+        self.root.geometry("650x300+{}+{}".format(positionRight, positionDown)) #Whatever size
+        self.root.overrideredirect(1) #Remove border
+        self.root.wm_attributes("-transparentcolor", "#666666")
+        self.root.attributes('-topmost', 1)
+        self.root.configure(bg='#f0f0f0')
+        def disable_event():
+            pass
+        self.root.protocol("WM_DELETE_WINDOW", disable_event)
 
         if hud_angles:
-            self.anglevar = tk.StringVar(self,0)
+            self.anglevar = tk.StringVar(self.root,0)
         if hud_acceleration:
-            self.accelvar = tk.StringVar(self,0)
+            self.accelvar = tk.StringVar(self.root,0)
 
-        self.var = tk.IntVar(self, 0)
-        self.var100 = tk.IntVar(self, 0)
+        self.var = tk.IntVar(self.root, 0)
+        self.var100 = tk.IntVar(self.root, 0)
 
-        self.canvas = tk.Canvas(self, width=winw+800, height=winh-150,
+        self.canvas = tk.Canvas(self.root, width=winw+800, height=winh-150,
                                 borderwidth=0, highlightthickness=0,
                                 bg='#666666')
 
@@ -243,19 +255,19 @@ class Meter(tk.Frame):
             self.canvas.create_circle(200, 300, 2, fill="#666", outline="white", width=1, tags="right_50_angle")
 
 
-        #self.scale = tk.Scale(self, orient='horizontal', from_=0, to=100, variable=self.var)
+        #self.scale = tk.Scale(self.root, orient='horizontal', from_=0, to=100, variable=self.var)
         
         
         if hud_angles:
-            self.angletext = tk.Label(self, text="Cam   Beetle", fg = "white", bg="#666666", font=("Lucida Console", 7)).place(x = 146, y = 46)
-            self.anglenum = tk.Label(self, textvariable = self.anglevar, fg = "white", bg="#666666", font=("Lucida Console", 8, "bold")).place(x = 145, y = 57)
+            self.angletext = tk.Label(self.root, text="Cam   Beetle", fg = "white", bg="#666666", font=("Lucida Console", 7)).place(x = 146, y = 46)
+            self.anglenum = tk.Label(self.root, textvariable = self.anglevar, fg = "white", bg="#666666", font=("Lucida Console", 8, "bold")).place(x = 145, y = 57)
         
         if hud_acceleration:
-            self.acceltext = tk.Label(self, text="Accel.", fg = "white", bg="#666666", font=("Lucida Console", 7)).place(x = 231, y = 46)
-            self.accelnum = tk.Label(self, textvariable = self.accelvar, fg = "white", bg="#666666", font=("Lucida Console", 8, "bold")).place(x = 230, y = 57)
+            self.acceltext = tk.Label(self.root, text="Accel.", fg = "white", bg="#666666", font=("Lucida Console", 7)).place(x = 231, y = 46)
+            self.accelnum = tk.Label(self.root, textvariable = self.accelvar, fg = "white", bg="#666666", font=("Lucida Console", 8, "bold")).place(x = 230, y = 57)
 
         if hud_gauge:
-            self.numero = tk.Label(self, textvariable = self.var100, fg = "white", bg="#666666", font=("Lucida Console", 44, "bold")).place(x = 165, y = 75)
+            self.numero = tk.Label(self.root, textvariable = self.var100, fg = "white", bg="#666666", font=("Lucida Console", 44, "bold")).place(x = 165, y = 75)
             self.canvas.create_arc(2*10, 2*15, 2*winw-10, 2*winw-10, extent=108, start=36,style='arc', outline="#666666", width="40", tags="arc")
             self.canvas.create_arc(2*10, 2*15, 2*winw-10, 2*winw-10, extent=108, start=36,style='arc', outline="white", width="16", tags="arcbg")
             self.canvas.create_arc(2*10, 2*15, 2*winw-10, 2*winw-10, extent=108, start=36,style='arc', outline="#666666", width="14", tags="arcbg")
@@ -277,21 +289,29 @@ class Meter(tk.Frame):
             self.var.trace_add('write', self.updateMeter)  # if this line raises an error, change it to the old way of adding a trace: self.var.trace('w', self.updateMeter)
 
         if hud_timer:
-            self.vartime = tk.StringVar(self, "")
-            self.timenum = tk.Label(self, textvariable = self.vartime, fg = "#aaaaaa", bg="#666666", font=("Lucida Console", 20, "bold")).place(x = 124, y = 145)
-            self.distance = tk.StringVar(self, "")
-            self.timenum = tk.Label(self, textvariable = self.distance, fg = "#aaaaaa", bg="#666666", font=("Lucida Console", 15)).place(x = 124, y = 170)
-            self.steps_txt = tk.StringVar(self, "")
-            self.steps0 = tk.Label(self, textvariable = self.steps_txt, fg = "white", bg="#666666", font=("Lucida Console", 15, "bold")).place(x = 395, y = 0)
-            self.step1_txt = tk.StringVar(self, "")
-            self.steps1 = tk.Label(self, textvariable = self.step1_txt, fg = "white", bg="#666666", font=("Lucida Console", 10)).place(x = 395+10, y = 15+10)
+            self.vartime = tk.StringVar(self.root, "")
+            self.timenum = tk.Label(self.root, textvariable = self.vartime, fg = "#aaaaaa", bg="#666666", font=("Lucida Console", 20, "bold")).place(x = 124, y = 145)
+            self.distance = tk.StringVar(self.root, "")
+            self.timenum = tk.Label(self.root, textvariable = self.distance, fg = "#aaaaaa", bg="#666666", font=("Lucida Console", 15)).place(x = 124, y = 170)
+            self.steps_txt = tk.StringVar(self.root, "")
+            self.steps0 = tk.Label(self.root, textvariable = self.steps_txt, fg = "white", bg="#666666", font=("Lucida Console", 15, "bold")).place(x = 395, y = 0)
+            self.step1_txt = tk.StringVar(self.root, "")
+            self.steps1 = tk.Label(self.root, textvariable = self.step1_txt, fg = "white", bg="#666666", font=("Lucida Console", 10)).place(x = 395+10, y = 15+10)
 
 
         self.canvas.create_circle(204, 202, 171, fill="#666", outline="#666666", width=4)
 
         self.canvas.pack(side='top', fill='both', expand='yes')
+
+        self.move = False
         #self.scale.pack()
 
+    def toggleTrans(self):
+        if (self.move):
+            self.root.overrideredirect(1)
+        else:
+            self.root.overrideredirect(0)
+        self.move = not self.move
 
     def updateMeterLine(self, a):
         """Draw a meter line"""
@@ -727,7 +747,8 @@ class Meter(tk.Frame):
             _lastPos = _pos
             _lastVel = velocity
             _lastTick = _tick
-        self.after(20, self.updateMeterTimer)
+
+        self.root.after(20, self.updateMeterTimer)
 
 class Racer():
 
@@ -812,7 +833,6 @@ class Racer():
         time.sleep(1.4)
         self.sendMQTT({"option": "321GO-GO"})
         
-
     def joinRace(self):
         global client
 
@@ -843,11 +863,12 @@ class Racer():
             self.t_5.configure(fg=self.color_trans_fg); self.t_5.configure(bg="#222222")
             self.t_6.configure(fg=self.color_trans_fg); self.t_6.configure(bg="#222222")
             self.t_7.configure(fg=self.color_trans_fg); self.t_7.configure(bg="#222222")
+            self.t_3_5.configure(fg=self.color_trans_fg); self.t_3_5.configure(bg="#222222")
             self.t_8.configure(fg=self.color_trans_fg); self.t_8.configure(bg=self.color_trans_bg)
             self.t_9.configure(fg=self.color_trans_fg); self.t_9.configure(bg=self.color_trans_bg)
             self.t_10.configure(fg=self.color_trans_fg); self.t_10.configure(bg=self.color_trans_bg)
             self.root.configure(bg=self.color_trans_bg)
-            self.t_11.configure(text="move")
+            
         else:
             self.root.overrideredirect(0)
             self.t_1.configure(fg=self.color_normal_fg); self.t_1.configure(bg=self.color_normal_bg)
@@ -857,16 +878,18 @@ class Racer():
             self.t_5.configure(fg=self.color_normal_fg); self.t_5.configure(bg=self.color_normal_bg)
             self.t_6.configure(fg=self.color_normal_fg); self.t_6.configure(bg=self.color_normal_bg)
             self.t_7.configure(fg=self.color_normal_fg); self.t_7.configure(bg=self.color_normal_bg)
+            self.t_3_5.configure(fg=self.color_normal_fg); self.t_3_5.configure(bg=self.color_normal_bg)
             self.t_8.configure(fg=self.color_normal_fg); self.t_8.configure(bg=self.color_normal_bg)
             self.t_9.configure(fg=self.color_normal_fg); self.t_9.configure(bg=self.color_normal_bg)
             self.t_10.configure(fg=self.color_normal_fg); self.t_10.configure(bg=self.color_normal_bg)
             self.root.configure(bg=self.color_normal_bg)
-            self.t_11.configure(text="hide")
+            
         self.move = not self.move
 
     def __init__(self):
         
         global guildhall_name
+        global guildhall_laps
 
         self.move = True
 
@@ -878,9 +901,10 @@ class Racer():
         self.root = Tk()
         self.root.call('wm', 'attributes', '.', '-topmost', '1')
         self.root.title("Guildhall logs & challenger")
-        self.root.geometry("350x350")
+        self.root.geometry("350x350+0+400")
         self.root.wm_attributes("-transparentcolor", "#666666")
         self.root.configure(bg='#f0f0f0')
+
 
         self.fg = StringVar(self.root)
         self.bg = StringVar(self.root)
@@ -899,13 +923,19 @@ class Racer():
         self.choices = ['None, im free!', 'GWTC', 'RACE', 'EQE', 'SoTD', 'LRS', 'HUR']
         guildhall_name = StringVar(self.root)
         guildhall_name.set('SELECT GUILDHALL')
+        guildhall_laps = StringVar(self.root)
+        guildhall_laps.set("1 lap")
 
         self.t_1 = tk.Label(self.root, text="""Speedometer v1.3.15""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
         self.t_1.place(x=0, y=10)
         self.t_2 = tk.Label(self.root, text="""Choose guildhall for the checkpoints\nYou can close this window once selected""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_2.place(x=0, y=40)
         self.t_3 = OptionMenu(self.root, guildhall_name, *self.choices)
-        self.t_3.place(x=19, y=70)
+        self.t_3.place(x=19, y=70, width=150)
+
+        self.laps = ['1 lap', '2 laps', '3 laps', '4 laps', '5 laps', '6 laps', '7 laps']
+        self.t_3_5 = OptionMenu(self.root, guildhall_laps, *self.laps)
+        #self.t_3_5.place(x=167, y=70, width=100)
 
         self.status = StringVar(self.root)
         self.status.set("JOIN A RACE")
@@ -940,8 +970,9 @@ class Racer():
         self.t_10 = tk.Label(self.root, textvariable=self.ranking, justify = tk.LEFT, padx = 20,fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_10.place(x=0, y=200)
 
-        self.t_11 = tk.Button(self.root, text='hide', command=lambda:self.toggleTrans() ,fg="white", bg="#222222")
-        self.t_11.pack(anchor="ne")
+        
+
+        self.toggleTrans()
 
 
     def listen_for_result(self):
@@ -994,26 +1025,32 @@ if __name__ == '__main__':
 
     root = tk.Tk()
     root.call('wm', 'attributes', '.', '-topmost', '1')
-    root.withdraw()
+
+    windowWidth = root.winfo_screenwidth()
+    windowHeight = root.winfo_screenheight()
+    root.title("Move Speedometer windows")
+    root.geometry("170x50+{}+{}".format(windowWidth - 170, 0)) #Whatever size
+    root.overrideredirect(1) #Remove border
+    root.wm_attributes("-transparentcolor", "#666666")
+    root.attributes('-topmost', 1)
+    root.configure(bg='#666666')
+
+    #root.withdraw()
 
     ml = MumbleLink()
 
-    windowWidth = root.winfo_reqwidth()
-    windowHeight = root.winfo_reqheight()
-
-    window = tk.Toplevel(root)
-    positionRight = int(root.winfo_screenwidth()/2 - windowWidth/2) + position_right_left_offset
-    positionDown = int(root.winfo_screenheight()/2 - windowHeight/2) + position_up_down_offset
-    window.geometry("650x400+{}+{}".format(positionRight, positionDown)) #Whatever size
-    window.overrideredirect(1) #Remove border
-    window.wm_attributes("-transparentcolor", "#666666")
-    window.attributes('-topmost', 1)
     #Whatever buttons, etc 
 
     racer = Racer()
+    meter = Meter()
 
-    meter = Meter(window)
-    meter.pack(fill = tk.BOTH, expand = 1)
+    def toggleAll():
+        meter.toggleTrans()
+        racer.toggleTrans()
+
+    t_11 = tk.Button(root, text='Move Speedometer windows', command=lambda:toggleAll() ,fg="white", bg="#222222", relief='flat')
+    t_11.pack(anchor="ne")
+
     meter.updateMeterTimer()
 
     root.mainloop()

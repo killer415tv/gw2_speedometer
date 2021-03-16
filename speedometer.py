@@ -821,6 +821,9 @@ class Racer():
         t = threading.Thread(target=self.newRace())
         t.start()
 
+    def surrender(self):
+        self.sendMQTT({"option": "c", "step": 1000, "time": 0, "user": self.username.get()})
+
     def newRace(self ):
         print("START A NEW RACE")
         
@@ -863,6 +866,7 @@ class Racer():
             self.t_5.configure(fg=self.color_trans_fg); self.t_5.configure(bg="#222222")
             self.t_6.configure(fg=self.color_trans_fg); self.t_6.configure(bg="#222222")
             self.t_7.configure(fg=self.color_trans_fg); self.t_7.configure(bg="#222222")
+            self.t_7_1.configure(fg=self.color_trans_fg); self.t_7_1.configure(bg="#222222")
             self.t_3_5.configure(fg=self.color_trans_fg); self.t_3_5.configure(bg="#222222")
             self.t_8.configure(fg=self.color_trans_fg); self.t_8.configure(bg=self.color_trans_bg)
             self.t_9.configure(fg=self.color_trans_fg); self.t_9.configure(bg=self.color_trans_bg)
@@ -878,6 +882,7 @@ class Racer():
             self.t_5.configure(fg=self.color_normal_fg); self.t_5.configure(bg=self.color_normal_bg)
             self.t_6.configure(fg=self.color_normal_fg); self.t_6.configure(bg=self.color_normal_bg)
             self.t_7.configure(fg=self.color_normal_fg); self.t_7.configure(bg=self.color_normal_bg)
+            self.t_7_1.configure(fg=self.color_normal_fg); self.t_7_1.configure(bg=self.color_normal_bg)
             self.t_3_5.configure(fg=self.color_normal_fg); self.t_3_5.configure(bg=self.color_normal_bg)
             self.t_8.configure(fg=self.color_normal_fg); self.t_8.configure(bg=self.color_normal_bg)
             self.t_9.configure(fg=self.color_normal_fg); self.t_9.configure(bg=self.color_normal_bg)
@@ -947,6 +952,8 @@ class Racer():
         self.race_status.set("No race")
         self.ranking = StringVar(self.root)
         self.ranking.set("Positions")
+        self.out_ranking = StringVar(self.root)
+        self.out_ranking.set("Positions")
 
         self.session_id = StringVar(self.root)
         self.prefix_topic = "/gw2/speedometer/race/"
@@ -960,18 +967,19 @@ class Racer():
         self.t_5 = tk.Entry(self.root,textvariable=self.session_id)
         self.t_5.place(x=20, y=120, height=25)
         self.t_6 = tk.Button(self.root, textvariable=self.status, command=self.joinRace)
-        self.t_6.place(x=120, y=120)
+        self.t_6.place(x=120, y=120, width=80)
 
-        
         #tk.Label(self.root, text="""Create new race:""", justify = tk.CENTER, padx = 20,fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10)).pack()
         self.t_7 = tk.Button(self.root, text='START THE RACE', command=lambda:self.newRaceThread())
-        self.t_7.place(x=200, y=120)
+        self.t_7.place(x=200, y=120, width=100)
+        self.t_7_1 = tk.Button(self.root, text='SURRENDER', command=lambda:self.surrender())
+        self.t_7_1.place(x=200, y=175, width=100)
         self.t_8 = tk.Label(self.root, text="""-------------""", justify = tk.CENTER, padx = 20,fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_8.place(x=0, y=150)
         self.t_9 = tk.Label(self.root, textvariable=self.race_status, justify = tk.CENTER, padx = 20,fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_9.place(x=0, y=175)
         self.t_10 = tk.Label(self.root, textvariable=self.ranking, justify = tk.LEFT, padx = 20,fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.t_10.place(x=0, y=200)
+        self.t_10.place(x=0, y=210)
 
         
 
@@ -986,17 +994,22 @@ class Racer():
         values = []
         uniqueNames = []
         top_times = []
+        out_times = []
 
         for i in self.timestamps:
-            
             if(i["user"] not in uniqueNames):
                 uniqueNames.append(i["user"]);
                 values.append(i)
         for n in uniqueNames:
             filtered_list = list(filter(lambda x: x['user'] in n, self.timestamps))   
             top_time = sorted(filtered_list, key=lambda k: (-int(k['step']), k['time']))
-            top_times.append(top_time[0])
 
+            out = [x for x in top_time if int(x['step']) >= 1000]
+            if len(out) > 0:
+                out_times.append(top_time[0])
+            else:
+                top_times.append(top_time[0])
+                
         top_times = sorted(top_times, key=lambda k: (-int(k['step']), float(k['time'])))
 
         rankingtxt = ""
@@ -1010,7 +1023,16 @@ class Racer():
 
             rankingindex = rankingindex + 1
         
-        self.ranking.set(rankingtxt)
+        out_rankingtxt = ""
+        out_rankingindex = 1
+        for u in out_times:
+            steptime = datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(u['time']), "%M:%S:%f")[:-3]
+            if str(u['step']) == '1000':
+                out_rankingtxt = out_rankingtxt + " OUT > " + str(u['user']) + "\n"
+                
+            out_rankingindex = out_rankingindex + 1
+        
+        self.ranking.set(rankingtxt + "---------\n" + out_rankingtxt )
 
         try:
             self.res = self.thread_queue.get(0)

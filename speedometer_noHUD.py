@@ -833,20 +833,66 @@ class Racer():
         
         #self.thread_queue.put('Waiting for start.')
         
+    def toggleTrans(self):
+        print(self.move)
+        #self.root.wm_attributes("-transparentcolor", "#f0f0f0")
+        if (self.move):
+            self.root.overrideredirect(1)
+            self.t_1.configure(fg=self.color_trans_fg); self.t_1.configure(bg=self.color_trans_bg)
+            self.t_2.configure(fg=self.color_trans_fg); self.t_2.configure(bg=self.color_trans_bg)
+            self.t_3.configure(fg=self.color_trans_fg); self.t_3.configure(bg="#222222")
+            self.t_4.configure(fg=self.color_trans_fg); self.t_4.configure(bg=self.color_trans_bg)
+            self.t_5.configure(fg=self.color_trans_fg); self.t_5.configure(bg="#222222")
+            self.t_6.configure(fg=self.color_trans_fg); self.t_6.configure(bg="#222222")
+            self.t_7.configure(fg=self.color_trans_fg); self.t_7.configure(bg="#222222")
+            self.t_8.configure(fg=self.color_trans_fg); self.t_8.configure(bg=self.color_trans_bg)
+            self.t_9.configure(fg=self.color_trans_fg); self.t_9.configure(bg=self.color_trans_bg)
+            self.t_10.configure(fg=self.color_trans_fg); self.t_10.configure(bg=self.color_trans_bg)
+            self.root.configure(bg=self.color_trans_bg)
+            self.t_11.configure(text="move")
+        else:
+            self.root.overrideredirect(0)
+            self.t_1.configure(fg=self.color_normal_fg); self.t_1.configure(bg=self.color_normal_bg)
+            self.t_2.configure(fg=self.color_normal_fg); self.t_2.configure(bg=self.color_normal_bg)
+            self.t_3.configure(fg=self.color_normal_fg); self.t_3.configure(bg=self.color_normal_bg)
+            self.t_4.configure(fg=self.color_normal_fg); self.t_4.configure(bg=self.color_normal_bg)
+            self.t_5.configure(fg=self.color_normal_fg); self.t_5.configure(bg=self.color_normal_bg)
+            self.t_6.configure(fg=self.color_normal_fg); self.t_6.configure(bg=self.color_normal_bg)
+            self.t_7.configure(fg=self.color_normal_fg); self.t_7.configure(bg=self.color_normal_bg)
+            self.t_8.configure(fg=self.color_normal_fg); self.t_8.configure(bg=self.color_normal_bg)
+            self.t_9.configure(fg=self.color_normal_fg); self.t_9.configure(bg=self.color_normal_bg)
+            self.t_10.configure(fg=self.color_normal_fg); self.t_10.configure(bg=self.color_normal_bg)
+            self.root.configure(bg=self.color_normal_bg)
+            self.t_11.configure(text="hide")
+        self.move = not self.move
 
     def __init__(self):
         
         global guildhall_name
 
-        self.one_name_list = []
-        self.dic = {}
+        self.move = True
+
+        self.color_trans_fg= "white"
+        self.color_trans_bg= "#666666"
+        self.color_normal_fg= "black"
+        self.color_normal_bg= "#f0f0f0"
 
         self.root = Tk()
         self.root.call('wm', 'attributes', '.', '-topmost', '1')
         self.root.title("Guildhall logs & challenger")
-        self.root.geometry("320x350")
-        #self.root.wm_attributes("-transparentcolor", "#666666")
+        self.root.geometry("350x350")
+        self.root.wm_attributes("-transparentcolor", "#666666")
         self.root.configure(bg='#f0f0f0')
+
+        self.fg = StringVar(self.root)
+        self.bg = StringVar(self.root)
+        self.fg.set(self.color_normal_fg)
+        self.bg.set(self.color_normal_bg)
+            
+
+        self.one_name_list = []
+        self.dic = {}
+
 
         self.thread_queue = queue.Queue()
 
@@ -856,10 +902,12 @@ class Racer():
         guildhall_name = StringVar(self.root)
         guildhall_name.set('SELECT GUILDHALL')
 
-        tk.Label(self.root, text="""Speedometer v1.3.15""", justify = tk.CENTER, padx = 20, fg = "black", bg="#f0f0f0", font=("Lucida Console", 15)).pack()
-        tk.Label(self.root, text="""Choose guildhall for the checkpoints\nYou can close this window once selected""", justify = tk.CENTER, padx = 20, fg = "black", bg="#f0f0f0", font=("Lucida Console", 10)).pack()
-        w = OptionMenu(self.root, guildhall_name, *self.choices)
-        w.pack(); 
+        self.t_1 = tk.Label(self.root, text="""Speedometer v1.3.15""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
+        self.t_1.place(x=0, y=10)
+        self.t_2 = tk.Label(self.root, text="""Choose guildhall for the checkpoints\nYou can close this window once selected""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
+        self.t_2.place(x=0, y=40)
+        self.t_3 = OptionMenu(self.root, guildhall_name, *self.choices)
+        self.t_3.place(x=19, y=70)
 
         self.status = StringVar(self.root)
         self.status.set("JOIN A RACE")
@@ -874,18 +922,28 @@ class Racer():
         self.username = StringVar(self.root)
         self.timestamps = []
 
-        tk.Label(self.root, text="""Want to challenge someone?""", justify = tk.CENTER, padx = 20, fg = "black", bg="#f0f0f0", font=("Lucida Console", 10)).pack()
-        tk.Label(self.root, text="""Join race:""", justify = tk.CENTER, padx = 20,fg = "black", bg="#f0f0f0", font=("Lucida Console", 10)).pack()
+        self.t_4 = tk.Label(self.root, text="""Want to challenge someone?""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
+        self.t_4.place(x=0, y=100)
+        #tk.Label(self.root, text="""Join race:""", justify = tk.CENTER, padx = 20,fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10)).place(x=0, y=110)
         
-        entry1 = tk.Entry(self.root,textvariable=self.session_id).pack()
+        self.t_5 = tk.Entry(self.root,textvariable=self.session_id)
+        self.t_5.place(x=20, y=120, height=25)
+        self.t_6 = tk.Button(self.root, textvariable=self.status, command=self.joinRace)
+        self.t_6.place(x=120, y=120)
 
-        tk.Button(self.root, textvariable=self.status, command=self.joinRace).pack()
         
-        tk.Label(self.root, text="""Create new race:""", justify = tk.CENTER, padx = 20,fg = "black", bg="#f0f0f0", font=("Lucida Console", 10)).pack()
-        tk.Button(self.root, text='START THE RACE', command=lambda:self.newRaceThread()).pack()
-        tk.Label(self.root, text="""-------------""", justify = tk.CENTER, padx = 20,fg = "black", bg="#f0f0f0", font=("Lucida Console", 10)).pack()
-        tk.Label(self.root, textvariable=self.race_status, justify = tk.CENTER, padx = 20,fg = "black", bg="#f0f0f0", font=("Lucida Console", 10)).pack()
-        tk.Label(self.root, textvariable=self.ranking, justify = tk.LEFT, padx = 20,fg = "black", bg="#f0f0f0", font=("Lucida Console", 10)).pack()
+        #tk.Label(self.root, text="""Create new race:""", justify = tk.CENTER, padx = 20,fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10)).pack()
+        self.t_7 = tk.Button(self.root, text='START THE RACE', command=lambda:self.newRaceThread())
+        self.t_7.place(x=200, y=120)
+        self.t_8 = tk.Label(self.root, text="""-------------""", justify = tk.CENTER, padx = 20,fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
+        self.t_8.place(x=0, y=150)
+        self.t_9 = tk.Label(self.root, textvariable=self.race_status, justify = tk.CENTER, padx = 20,fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
+        self.t_9.place(x=0, y=175)
+        self.t_10 = tk.Label(self.root, textvariable=self.ranking, justify = tk.LEFT, padx = 20,fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
+        self.t_10.place(x=0, y=200)
+
+        self.t_11 = tk.Button(self.root, text='hide', command=lambda:self.toggleTrans() ,fg="white", bg="#222222")
+        self.t_11.pack(anchor="ne")
 
 
     def listen_for_result(self):

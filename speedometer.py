@@ -36,7 +36,7 @@ np.seterr(divide='ignore', invalid='ignore')
 speed_in_3D = 0 # 1 = on , 0 = off
 #WIDGET POSITION 
 # this variable adjust the position of the gauge +250 for bottom position or -250 for upper position , 0 is default and center on screen
-position_up_down_offset = 250
+position_up_down_offset = -250
 # this variable adjust the position of the gauge +250 for right position or -250 for left position , 0 is default and center on screen
 position_right_left_offset = -100
 #Want to press any key to make livesplit program work automatically on checkpoints?

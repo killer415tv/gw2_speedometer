@@ -58,7 +58,6 @@ hud_gauge = 0 # 1 = on , 0 = off
 # show timer
 hud_timer = 1 # 1 = on , 0 = off
 hud_distance = 0 # 1 = on , 0 = off
-
 #-----------------------------
 #  END CONFIGURATION VARIABLES
 #-----------------------------
@@ -106,7 +105,7 @@ total_distance = 0
 
 #test audio on start
 if audio:
-    playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "dong.mp3", block=False)
+    playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "dong.wav", block=False)
 
 
 class Link(ctypes.Structure):
@@ -414,7 +413,7 @@ class Meter():
             if distance.euclidean(_3Dpos, arraystep0) < 15 and pressedQ == 0:
                 if step == "start":
                     if audio:
-                        playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "dong.mp3", block=False)
+                        playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "dong.wav", block=False)
                     if enable_livesplit_hotkey == 1:
                         keyboard.press(live_start)
                         keyboard.release(live_start)
@@ -473,7 +472,7 @@ class Meter():
                             writer.writelines( (',').join([datefinish, today_date, json.loads(ml.data.identity)["name"]]))
                         
                         if audio:
-                            playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "dong.mp3", block=False)
+                            playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "dong.wav", block=False)
 
                         if racer.session_id.get() != "":
                             #mqtt se manda el tiempo como inicio
@@ -496,7 +495,7 @@ class Meter():
                         newline = " "
                     self.step1_txt.set(newline + "T" + str(step) + " " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime), "%M:%S:%f")[:-3])
                     if audio:
-                        playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "dong.mp3", block=False)
+                        playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "dong.wav", block=False)
                     if racer.session_id.get() != "":
                         #mqtt se manda el tiempo como inicio
                         racer.sendMQTT({"option": "c", "step": step, "time": steptime, "user": racer.username.get()})
@@ -790,25 +789,25 @@ class Racer():
         if received.get('option') == "321GO-3":
             #print("3!!")
             self.thread_queue.put("3...")
-            playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "ding.mp3", block=False)
+            playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "ding.wav", block=False)
             # limpiar ranking de partida
             # falta mostrar por pantalla el 3 2 1
         if received.get('option') == "321GO-2":
             #print("2!!")
             self.thread_queue.put("2...")
-            playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "ding.mp3", block=False)
+            playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "ding.wav", block=False)
             # limpiar ranking de partida
             # falta mostrar por pantalla el 3 2 1
         if received.get('option') == "321GO-1":
             #print("1!!")
             self.thread_queue.put("1...")
-            playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "ding.mp3", block=False)
+            playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "ding.wav", block=False)
             # limpiar ranking de partida
             # falta mostrar por pantalla el 3 2 1
         if received.get('option') == "321GO-GO":
             #print("GO GO GO!!")
             self.thread_queue.put("GOGOGOGO")
-            playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "dong.mp3", block=False)
+            playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "dong.wav", block=False)
             self.timestamps = []
             # limpiar ranking de partida
             # falta mostrar por pantalla el 3 2 1

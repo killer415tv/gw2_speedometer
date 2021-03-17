@@ -8,6 +8,7 @@ Speedometer for beetle races in guildwars2 using mumblelink API
  - Acceleration meter
  - Log and checkpoints system
  - Race against another players with instant position
+ - Multi lap supported
  - Log file to 3D map converter
 
 #demo

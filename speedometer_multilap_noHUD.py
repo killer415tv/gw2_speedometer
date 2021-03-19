@@ -36,9 +36,9 @@ np.seterr(divide='ignore', invalid='ignore')
 speed_in_3D = 0 # 1 = on , 0 = off
 #WIDGET POSITION 
 # this variable adjust the position of the gauge +250 for bottom position or -250 for upper position , 0 is default and center on screen
-position_up_down_offset = -250
+position_up_down_offset = 250
 # this variable adjust the position of the gauge +250 for right position or -250 for left position , 0 is default and center on screen
-position_right_left_offset = -130
+position_right_left_offset = -100
 #Want to press any key to make livesplit program work automatically on checkpoints?
 enable_livesplit_hotkey = 0 # 1 = on , 0 = off
 #livesplit keys
@@ -46,18 +46,19 @@ live_start='l' #key binded for start/split
 live_reset='k' #key binded for reset
 #Log all the timed splits to file CSV
 log = 1  # 1 = on , 0 = off
-#Play dong.wav file when you open the program and when you go through a checkpoint
+#Play dong.mp3 file when you open the program and when you go through a checkpoint
 audio = 1  # 1 = on , 0 = off
 #Angle meter, shows angles between velocity and mouse camera , and velocity and avatar angle 
-hud_angles = 1 # 1 = on , 0 = off
+hud_angles = 0 # 1 = on , 0 = off
 hud_angles_bubbles = 0 # 1 = on , 0 = off
 #Show acceleration, shows the acceleration number on hud
-hud_acceleration = 1 # 1 = on , 0 = off
+hud_acceleration = 0 # 1 = on , 0 = off
 # show velocity
-hud_gauge = 1 # 1 = on , 0 = off
+hud_gauge = 0 # 1 = on , 0 = off
 # show timer
 hud_timer = 1 # 1 = on , 0 = off
-hud_distance = 1 # 1 = on , 0 = off
+hud_distance = 0 # 1 = on , 0 = off
+
 
 #-----------------------------
 #  END CONFIGURATION VARIABLES

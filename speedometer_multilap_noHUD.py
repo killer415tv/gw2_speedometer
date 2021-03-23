@@ -36,9 +36,9 @@ np.seterr(divide='ignore', invalid='ignore')
 speed_in_3D = 0 # 1 = on , 0 = off
 #WIDGET POSITION 
 # this variable adjust the position of the gauge +250 for bottom position or -250 for upper position , 0 is default and center on screen
-position_up_down_offset = 250
+position_up_down_offset = -250
 # this variable adjust the position of the gauge +250 for right position or -250 for left position , 0 is default and center on screen
-position_right_left_offset = -100
+position_right_left_offset = -130
 #Want to press any key to make livesplit program work automatically on checkpoints?
 enable_livesplit_hotkey = 0 # 1 = on , 0 = off
 #livesplit keys
@@ -46,7 +46,7 @@ live_start='l' #key binded for start/split
 live_reset='k' #key binded for reset
 #Log all the timed splits to file CSV
 log = 1  # 1 = on , 0 = off
-#Play dong.mp3 file when you open the program and when you go through a checkpoint
+#Play dong.wav file when you open the program and when you go through a checkpoint
 audio = 1  # 1 = on , 0 = off
 #Angle meter, shows angles between velocity and mouse camera , and velocity and avatar angle 
 hud_angles = 0 # 1 = on , 0 = off
@@ -58,7 +58,6 @@ hud_gauge = 0 # 1 = on , 0 = off
 # show timer
 hud_timer = 1 # 1 = on , 0 = off
 hud_distance = 0 # 1 = on , 0 = off
-
 
 #-----------------------------
 #  END CONFIGURATION VARIABLES
@@ -96,7 +95,7 @@ _tick = 0
 timer = 0.01
 color = "white"
 
-delaytimer = 2
+delaytimer = 1
 pressedQ = 0
 keyboard = Controller()
 
@@ -217,6 +216,7 @@ class Meter():
         global winh
         
         self.root = Tk()
+        self.root.config(cursor="none")
         windowWidth = self.root.winfo_reqwidth()
         windowHeight = self.root.winfo_reqheight()
         positionRight = int(root.winfo_screenwidth()/2 - windowWidth/2) + position_right_left_offset
@@ -390,9 +390,9 @@ class Meter():
                 #cerrar fichero si hubiera una sesión anterior
                 filename = ""
                 filename_timer = _time
-                print("----------------------------------")
-                print("GOING TO MAP TP = RESET RUN ")
-                print("----------------------------------")
+                #print("----------------------------------")
+                #print("GOING TO MAP TP = RESET RUN ")
+                #print("----------------------------------")
                 self.steps_txt.set("")
                 self.step1_txt.set("")
                 self.vartime.set("")
@@ -447,9 +447,9 @@ class Meter():
                         filename_timer = _time
                         if log:
                             filename = guildhall_name.get() + "_log_" + str(_time) + ".csv"
-                            print("----------------------------------")
-                            print("NEW LOG FILE - " + filename)
-                            print("----------------------------------")
+                            #print("----------------------------------")
+                            #print("NEW LOG FILE - " + filename)
+                            #print("----------------------------------")
                             self.steps_txt.set("")
                             writer = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + filename,'a',newline='', encoding='utf-8')
                             writer.seek(0,2)
@@ -482,9 +482,9 @@ class Meter():
                                 keyboard.press(live_start)
                                 keyboard.release(live_start)
                             filename = ""
-                            print("----------------------------------")
-                            print("CHECKPOINT FINAL RACE: " + datefinish)
-                            print("----------------------------------")
+                            #print("----------------------------------")
+                            #print("CHECKPOINT FINAL RACE: " + datefinish)
+                            #print("----------------------------------")
                             newline = self.step1_txt.get() + "\n"
                             self.step1_txt.set(newline + str(lap) + "/"+ str(total_laps) + " TF " + datefinish)
                             self.vartime.set(datefinish)
@@ -509,9 +509,9 @@ class Meter():
                             steptime = _time - filename_timer
                             #cross the start on second lap
                             newline = self.step1_txt.get() + "\n "
-                            print("----------------------------------")
-                            print("CHECKPOINT FINAL LAP : " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime), "%M:%S:%f")[:-3])
-                            print("----------------------------------")
+                            #print("----------------------------------")
+                            #print("CHECKPOINT FINAL LAP : " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime), "%M:%S:%f")[:-3])
+                            #print("----------------------------------")
                             self.step1_txt.set(newline + str(lap) + "/"+ str(total_laps) + " TF " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime), "%M:%S:%f")[:-3])
 
                             if racer.session_id.get() != "":
@@ -528,9 +528,9 @@ class Meter():
                         keyboard.press(live_start)
                         keyboard.release(live_start)
                     pressedQ = 2 # 10 SEGUNDOS
-                    print("----------------------------------")
-                    print("CHECKPOINT " + str(step) + ": " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime), "%M:%S:%f")[:-3])
-                    print("----------------------------------")
+                    #print("----------------------------------")
+                    #print("CHECKPOINT " + str(step) + ": " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime), "%M:%S:%f")[:-3])
+                    #print("----------------------------------")
                     self.steps_txt.set(guildhall_name.get() + " Times")
                     newline = self.step1_txt.get() + "\n "
                     if step == 1 and lap == 1:
@@ -551,10 +551,11 @@ class Meter():
         _tick = ml.data.uiTick
         _time = time.time()
         
-        if ml.data.identity != "":
-            racer.username.set(json.loads(ml.data.identity).get("name"))
-        else: 
-            racer.username.set("anon")
+        if 'racer' in globals():  
+            if ml.data.identity != "":
+                racer.username.set(json.loads(ml.data.identity).get("name"))
+            else: 
+                racer.username.set("anon")
 
         _3Dpos = ml.data.fAvatarPosition
 
@@ -627,6 +628,19 @@ class Meter():
                 checkpoint(4, [113.59, 154.99, -62.03])
                 checkpoint(5, [97.33, 221.3, 278.31])
                 checkpoint("end", [42.5, 103.87, -187.45])
+
+            if guildhall_name.get() == "TYRIA INF.LEAP":
+                checkpoint("start", [172.968, 5.71193, -548.169])
+                checkpoint(2, [-46.6852, 62.7075, -106.757])
+                checkpoint(3, [-425.45, 52.2022, -118.072])
+                checkpoint(4, [-69.0608, 43.4203, -192.177])
+                checkpoint("end", [166.077, 1.25356, -488.581])
+
+            if guildhall_name.get() == "OLLO":
+                checkTP([114, 9,37]) # use this position when you take te map TP , to stop log file
+                checkpoint("start", [176, 12, 89])
+                checkpoint("end", [134, 12, -20])
+                
 
             #DEBUG
             #print(list(_pos) , flush=True)
@@ -741,17 +755,18 @@ class Meter():
                                 self.canvas.coords(avatar_circle, 200 + 190 * float(uaf[0])-11,  195 + 190 * float(uaf[1])-11 , 200 + 190 * float(uaf[0])+11 ,  195 + 190 * float(uaf[1])+11 )
 
                 #calculamos la aceleración
-                acceleration = round(((velocity - _lastVel) / (_time - _lastTime)))*100/1000 
+                acceleration = 0
+                if hud_acceleration:
+                    acceleration = round(((velocity - _lastVel) / (_time - _lastTime)))*100/1000 
 
-                if acceleration > 900:
-                    acceleration = 900
-                
-                if acceleration < -900:
-                    acceleration = -900
+                    if acceleration > 900:
+                        acceleration = 900
+                    
+                    if acceleration < -900:
+                        acceleration = -900
 
-                if acceleration < 900 and acceleration > -900:
-                    if hud_acceleration:
-                        self.accelvar.set(acceleration);
+                    if acceleration < 900 and acceleration > -900:
+                            self.accelvar.set(acceleration);
                     
                 #escribir velocidad,tiempo,x,y,z en fichero, solo si está abierto el fichero y si está habilitado el log
                 if log and filename != "" and round((velocity*100/10000)*99/72) < 150:
@@ -789,7 +804,7 @@ class Meter():
             _lastVel = velocity
             _lastTick = _tick
 
-        self.root.after(20, self.updateMeterTimer)
+        self.root.after(10, self.updateMeterTimer)
 
 class Racer():
 
@@ -1011,12 +1026,12 @@ class Racer():
         guildhall_laps = StringVar(self.root)
         guildhall_laps.set("1 lap")
 
-        self.t_1 = tk.Label(self.root, text="""Speedometer v1.3.17""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
+        self.t_1 = tk.Label(self.root, text="""Speedometer v1.3.23""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
         self.t_1.place(x=0, y=10)
         self.t_2 = tk.Label(self.root, text="""Choose guildhall for the checkpoints""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_2.place(x=0, y=40)
         
-        self.choices = ['None, im free!', 'GWTC', 'RACE', 'EQE', 'SoTD', 'LRS', 'HUR']
+        self.choices = ['None, im free!', 'GWTC', 'RACE', 'EQE', 'SoTD', 'LRS', 'HUR', "TYRIA INF.LEAP", "OLLO"]
         self.t_3 = OptionMenu(self.root, guildhall_name, *self.choices)
         self.t_3["highlightthickness"] = 0
         self.t_3["activebackground"] = "#222222"
@@ -1201,7 +1216,50 @@ class Countdown():
             self.root.after(500, self.checkCountdowntxt)
 
 
+class Ghost():
+    def __init__(self):
+        
+        global ghost
 
+        self.move = True
+
+        self.root = Tk()
+        self.root.config(cursor="none")
+        self.root.call('wm', 'attributes', '.', '-topmost', '1')
+
+        self.color_trans_fg= "white"
+        self.color_trans_bg= "#666666"
+        self.color_normal_fg= "black"
+        self.color_normal_bg= "#f0f0f0"
+
+        self.fg = StringVar(self.root)
+        self.bg = StringVar(self.root)
+        self.fg.set(self.color_normal_fg)
+        self.bg.set(self.color_normal_bg)
+
+        windowWidth = self.root.winfo_reqwidth()
+        windowHeight = self.root.winfo_reqheight()
+        positionRight = int(root.winfo_screenwidth()/2 - windowWidth/2) 
+        positionDown = int(root.winfo_screenheight()/2 - windowHeight/2) 
+        self.root.title("Ghost")
+        self.root.geometry("{}x{}+{}+{}".format(int(root.winfo_screenwidth()), int(root.winfo_screenheight()), 0, 0)) #Whatever size
+
+        self.root.wm_attributes("-transparentcolor", "#666666")
+        self.root.configure(bg='#666666')
+        
+        self.localcountdown = tk.StringVar(self.root,"0")
+
+        self.time = tk.Label(self.root, textvariable=self.localcountdown, justify = tk.CENTER, padx = 20, fg = self.color_trans_fg, bg=self.color_trans_bg, font=("Lucida Console", 80, "bold"))
+        self.time.place(x=0, y=0)
+
+        self.updateGhostPosition()
+
+    
+    def updateGhostPosition(self):
+        global ghost
+        ghost = "0"
+        
+        self.root.after(2500, self.updateGhostPosition)
 
 if __name__ == '__main__':
 
@@ -1228,6 +1286,7 @@ if __name__ == '__main__':
     meter = Meter()
     racer = Racer()
     countdownWidget = Countdown()
+    #gh = Ghost()
 
     def toggleAll():
         if meter.move == racer.move:

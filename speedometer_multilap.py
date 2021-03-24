@@ -636,10 +636,15 @@ class Meter():
                 checkpoint(4, [-69.0608, 43.4203, -192.177])
                 checkpoint("end", [166.077, 1.25356, -488.581])
 
-            if guildhall_name.get() == "OLLO":
+            if guildhall_name.get() == "OLLO SmallLoop":
                 checkTP([114, 9,37]) # use this position when you take te map TP , to stop log file
                 checkpoint("start", [176, 12, 89])
                 checkpoint("end", [134, 12, -20])
+
+            if guildhall_name.get() == "OLLO SpeedLine":
+                checkTP([114, 9,37]) # use this position when you take te map TP , to stop log file
+                checkpoint("start", [319, 997, -379])
+                checkpoint("end", [-358, 996, -379])
                 
 
             #DEBUG
@@ -725,11 +730,11 @@ class Meter():
                             #uc = [cos(angle_between_res1),sin(angle_between_res1)]
 
                             if hud_angles_bubbles:
-                                theta = np.radians(50/2)
+                                theta = np.radians(47/2)
                                 c, s = np.cos(theta), np.sin(theta)
                                 R = np.array(((c,-s), (s, c)))
                                 r50v = np.dot(R, uv)
-                                theta = np.radians(-50/2)
+                                theta = np.radians(-47/2)
                                 c, s = np.cos(theta), np.sin(theta)
                                 R = np.array(((c,-s), (s, c)))
                                 l50v = np.dot(R, uv)
@@ -1026,12 +1031,12 @@ class Racer():
         guildhall_laps = StringVar(self.root)
         guildhall_laps.set("1 lap")
 
-        self.t_1 = tk.Label(self.root, text="""Speedometer v1.3.23""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
+        self.t_1 = tk.Label(self.root, text="""Speedometer v1.3.24""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
         self.t_1.place(x=0, y=10)
         self.t_2 = tk.Label(self.root, text="""Choose guildhall for the checkpoints""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_2.place(x=0, y=40)
         
-        self.choices = ['None, im free!', 'GWTC', 'RACE', 'EQE', 'SoTD', 'LRS', 'HUR', "TYRIA INF.LEAP", "OLLO"]
+        self.choices = ['None, im free!', 'GWTC', 'RACE', 'EQE', 'SoTD', 'LRS', 'HUR', "TYRIA INF.LEAP", "OLLO SmallLoop", "OLLO SpeedLine"]
         self.t_3 = OptionMenu(self.root, guildhall_name, *self.choices)
         self.t_3["highlightthickness"] = 0
         self.t_3["activebackground"] = "#222222"

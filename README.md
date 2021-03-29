@@ -23,6 +23,12 @@ https://www.youtube.com/watch?v=_npJtLIhm4U
 3. Open guildwars2 game
 4. Execute speedometer file with double click or right click and open with python
 
-
+#play multiplayer with friends
+1. Select your map and laps 
+2. Write the same code as your friends in the textbox, for example 1111 or 12345 , or whatever you want
+3. Press join
+4. Press ready to check if your friends see you, you can spam free ready and surrender buttons
+5. One person press the start race, this button only makes a countdown at all racers
+ 
 
 

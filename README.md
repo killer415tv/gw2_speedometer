@@ -2,7 +2,7 @@
 Speedometer for beetle races in guildwars2 using mumblelink API
 Ghost mode for beetle races in guildwars2 using mumblelink API
 
-# features
+# Features
  - Speed meter
  - Angle meter
  - Distance meter
@@ -13,17 +13,19 @@ Ghost mode for beetle races in guildwars2 using mumblelink API
  - 3D log visualizer
  - Ghost mode to replay your best logfile
 
-# demo
+# Demo
 
 To watch how is it ingame:
+
 https://www.youtube.com/watch?v=LxknXO3uT70
 
 https://www.youtube.com/watch?v=_npJtLIhm4U
 
 Little info in spanish:
+
 https://www.youtube.com/watch?v=_6Pdw_SvgXc
 
-# install
+# Install
 
 1. Install python for windows (min version 3.9.2) with **add to PATH checked** (https://www.python.org/downloads/) 
 2. Did you check **add to PATH** option when you installed python? check that or you cant continue
@@ -33,7 +35,7 @@ https://www.youtube.com/watch?v=_6Pdw_SvgXc
 6. Execute speedometer_multilap.py file with double click or right click and open with python
 7. Execute ghost3d.py file with double click also to run the ghostmode
 
-# play multiplayer with friends
+# Play multiplayer with friends
 1. On speedometer window, select your map and laps 
 2. Write the same code as your friends in the textbox, for example 1111 or 12345 , or whatever you want
 3. Press join

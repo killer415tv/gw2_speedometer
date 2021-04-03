@@ -1,8 +1,10 @@
-pandas
-plotly
+pyqtgraph
 playsound
+opensimplex
+numpy
 scipy
 pynput
-numpy
+pandas
 paho_mqtt
-
+PySide2
+pyopengl

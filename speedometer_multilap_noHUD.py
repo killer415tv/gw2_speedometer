@@ -36,9 +36,9 @@ np.seterr(divide='ignore', invalid='ignore')
 speed_in_3D = 0 # 1 = on , 0 = off
 #WIDGET POSITION 
 # this variable adjust the position of the gauge +250 for bottom position or -250 for upper position , 0 is default and center on screen
-position_up_down_offset = -250
+position_up_down_offset = +270
 # this variable adjust the position of the gauge +250 for right position or -250 for left position , 0 is default and center on screen
-position_right_left_offset = -130
+position_right_left_offset = -105
 #Want to press any key to make livesplit program work automatically on checkpoints?
 enable_livesplit_hotkey = 0 # 1 = on , 0 = off
 #livesplit keys
@@ -51,6 +51,7 @@ audio = 1  # 1 = on , 0 = off
 #Angle meter, shows angles between velocity and mouse camera , and velocity and avatar angle 
 hud_angles = 0 # 1 = on , 0 = off
 hud_angles_bubbles = 0 # 1 = on , 0 = off
+magic_angle = 48 # angle for hud_angles_bubbles, to show a visual guide of the magic angle
 #Show acceleration, shows the acceleration number on hud
 hud_acceleration = 0 # 1 = on , 0 = off
 # show velocity
@@ -58,6 +59,13 @@ hud_gauge = 0 # 1 = on , 0 = off
 # show timer
 hud_timer = 1 # 1 = on , 0 = off
 hud_distance = 0 # 1 = on , 0 = off
+#ghost_mode
+enable_ghost_keys = 1
+ghost_start = 't'
+recalculate_ghost = 'y'
+
+show_checkpoints_window = 1
+
 
 #-----------------------------
 #  END CONFIGURATION VARIABLES
@@ -97,14 +105,17 @@ color = "white"
 
 delaytimer = 1
 pressedQ = 0
+last_checkpoint_position = [0,0,0]
 keyboard = Controller()
 
 filename = "" 
-filename_timer = 0
+total_timer = 0
+lap_timer = 0
 
 total_distance = 0
 lap = 1
 countdowntxt = ""
+
 
 #test audio on start
 if audio:
@@ -352,19 +363,29 @@ class Meter():
 
         global log
         global filename
-        global filename_timer
+        global total_timer
 
         global live_start
         global live_reset
         global enable_livesplit_hotkey
+
+        global enable_ghost_keys
+        global ghost_start
+        global recalculate_ghost
 
         global total_distance
 
         global guildhall_name
         global guildhall_laps
 
+        def different(v1,v2):
+            if ( v1[0] == v2[0] and v1[1] == v2[1] and v1[2] == v2[2] ):
+                return False
+            else:
+                return True
 
         def checkTP(coords):
+            global last_checkpoint_position
 
             global _3Dpos
             global _time
@@ -373,7 +394,8 @@ class Meter():
             global keyboard
             global delaytimer
             global filename
-            global filename_timer
+            global total_timer
+            global lap_timer
             global total_distance
 
             global lap
@@ -382,14 +404,16 @@ class Meter():
             step = coords
             arraystep = (ctypes.c_float * len(step))(*step)
             #la distancia de 5 es como si fuera una esfera de tamaño similar a una esfera de carreras de tiria
-            if distance.euclidean(_3Dpos, arraystep) < 5 and pressedQ == 0:
+            if distance.euclidean(_3Dpos, arraystep) < 5 and (pressedQ == 0 or different(last_checkpoint_position, arraystep)):
+                last_checkpoint_position = arraystep
                 if enable_livesplit_hotkey == 1:
                     keyboard.press(live_reset)
                     keyboard.release(live_reset)
                 pressedQ = 0.5
                 #cerrar fichero si hubiera una sesión anterior
                 filename = ""
-                filename_timer = _time
+                total_timer = _time
+                lap_timer = _time
                 #print("----------------------------------")
                 #print("GOING TO MAP TP = RESET RUN ")
                 #print("----------------------------------")
@@ -399,9 +423,8 @@ class Meter():
                 self.distance.set("")
                 lap = 1
 
-
         def checkpoint(step, coords):
-
+            global last_checkpoint_position
             global _3Dpos
             global _time
             global guildhall_name
@@ -411,9 +434,12 @@ class Meter():
             global keyboard
             global delaytimer
             global filename
-            global filename_timer
+            global total_timer
+            global lap_timer
             global total_distance
             global lap
+
+            global magic_angle
 
             global racer
 
@@ -421,8 +447,8 @@ class Meter():
 
             step0 = coords
             arraystep0 = (ctypes.c_float * len(step0))(*step0)
-            
-            if distance.euclidean(_3Dpos, arraystep0) < 15 and pressedQ == 0:
+            if distance.euclidean(_3Dpos, arraystep0) < 15 and (pressedQ == 0 or different(last_checkpoint_position, arraystep0)):
+                last_checkpoint_position = arraystep0
                 if step == "start":
 
                     if audio:
@@ -430,6 +456,10 @@ class Meter():
                     if enable_livesplit_hotkey == 1:
                         keyboard.press(live_start)
                         keyboard.release(live_start)
+                    #first time we start
+                    if enable_ghost_keys:
+                        keyboard.press(ghost_start)
+                        keyboard.release(ghost_start)
                     pressedQ = delaytimer
                     #cerrar fichero si hubiera una sesión anterior
                     
@@ -438,46 +468,62 @@ class Meter():
                     #print(ml.context)
 
                     if int(lap) == 1:
-                        #first time we start
+                        
                         self.steps_txt.set("")
                         self.step1_txt.set("")
                         self.vartime.set("")
                         self.distance.set("")
                         total_distance = 0
-                        filename_timer = _time
+                        total_timer = _time
+                        lap_timer = _time
+                        filename = guildhall_name.get() + "_log_" + str(_time) + ".csv"
+                        self.steps_txt.set("")
                         if log:
-                            filename = guildhall_name.get() + "_log_" + str(_time) + ".csv"
                             #print("----------------------------------")
                             #print("NEW LOG FILE - " + filename)
                             #print("----------------------------------")
-                            self.steps_txt.set("")
                             writer = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + filename,'a',newline='', encoding='utf-8')
                             writer.seek(0,2)
                             writer.writelines( (',').join(["X","Y","Z","SPEED","ANGLE_CAM", "ANGLE_BEETLE","TIME", "ACCELERATION"]))
-                        if racer.session_id.get() != "":
+                        if show_checkpoints_window and racer.session_id.get() != "":
                             #mqtt se manda el tiempo como inicio
                             racer.sendMQTT({"option": "s", "lap": lap, "time" : 0, "user": racer.username.get()})
                     else:
-                        steptime = _time - filename_timer
+                        lap_timer = _time
+                        steptime = _time - lap_timer
                         #cross the start on second lap
                         newline = ""
                         
                         self.step1_txt.set(newline + str(lap) + "/"+ str(total_laps) + " TS" + " " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime), "%M:%S:%f")[:-3])
 
-                        if racer.session_id.get() != "":
+                        filename = guildhall_name.get() + "_log_" + str(_time) + ".csv"
+                        self.steps_txt.set("")
+                        if log:
+                            #print("----------------------------------")
+                            #print("NEW LOG FILE - " + filename)
+                            #print("----------------------------------")
+                            writer = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + filename,'a',newline='', encoding='utf-8')
+                            writer.seek(0,2)
+                            writer.writelines( (',').join(["X","Y","Z","SPEED","ANGLE_CAM", "ANGLE_BEETLE","TIME", "ACCELERATION"]))
+                        if show_checkpoints_window and racer.session_id.get() != "":
                             #mqtt se manda el tiempo como inicio
                             racer.sendMQTT({"option": "s", "lap": lap, "step": 0, "time" : steptime, "user": racer.username.get()})
 
 
                 if step == "end":
-                    steptime = _time - filename_timer
+                    steptime = _time - total_timer
+                    steptime_lap = _time - lap_timer
                     pressedQ = 0.5
+                    if enable_ghost_keys:
+                        keyboard.press(recalculate_ghost)
+                        keyboard.release(recalculate_ghost)
 
                     if filename != "":
                         if audio:
                             playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "dong.wav", block=False)
+
                         if int(lap) == int(total_laps):
-                            datefinish = datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime), "%M:%S:%f")[:-3]
+                            datefinish = datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime_lap), "%M:%S:%f")[:-3]
                             if enable_livesplit_hotkey == 1:
                                 keyboard.press(live_start)
                                 keyboard.release(live_start)
@@ -499,30 +545,48 @@ class Meter():
                                 writer.writelines("\r")
                                 writer.writelines( (',').join([datefinish, today_date, json.loads(ml.data.identity)["name"]]))
 
-                            if racer.session_id.get() != "":
+                            if show_checkpoints_window and racer.session_id.get() != "":
                                 #mqtt se manda el tiempo como inicio
                                 racer.sendMQTT({"option": "f", "lap":lap, "time": steptime, "step": 999, "user": racer.username.get()})
                             
                             lap = 1
                             
                         else:
-                            steptime = _time - filename_timer
+                            steptime = _time - total_timer
+                            steptime_lap = _time - lap_timer
                             #cross the start on second lap
                             newline = self.step1_txt.get() + "\n "
                             #print("----------------------------------")
                             #print("CHECKPOINT FINAL LAP : " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime), "%M:%S:%f")[:-3])
                             #print("----------------------------------")
-                            self.step1_txt.set(newline + str(lap) + "/"+ str(total_laps) + " TF " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime), "%M:%S:%f")[:-3])
+                            self.step1_txt.set(newline + str(lap) + "/"+ str(total_laps) + " TF " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime_lap), "%M:%S:%f")[:-3])
 
-                            if racer.session_id.get() != "":
+                            if show_checkpoints_window and racer.session_id.get() != "":
                                 #mqtt se manda el tiempo como inicio
                                 racer.sendMQTT({"option": "f", "lap": lap, "step": 998, "time" : steptime, "user": racer.username.get()})
                             
                             lap = lap + 1
 
+                        """ 
+                        #stores in counterDone.txt number of total laps done
+                        file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "counterDone.txt")
+                        global numero_contador
+                        line = file.read()
+                        if line == '':
+                            line = "1"
+                        numero_contador = int(line.strip()) + 1
+                        print (numero_contador)
+                        file.close()
+                        file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "counterDone.txt", "w")
+                        file.write(str(numero_contador))
+                        file.close()
+                        """
+
                 if str(step).isnumeric() == True:
                     
-                    steptime = _time - filename_timer
+                    steptime = _time - total_timer
+                    steptime_lap = _time - lap_timer
+
 
                     if enable_livesplit_hotkey == 1:
                         keyboard.press(live_start)
@@ -535,10 +599,10 @@ class Meter():
                     newline = self.step1_txt.get() + "\n "
                     if step == 1 and lap == 1:
                         newline = " "
-                    self.step1_txt.set(newline + str(lap) + "/"+ str(total_laps) + " T" + str(step) + " " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime), "%M:%S:%f")[:-3])
+                    self.step1_txt.set(newline + str(lap) + "/"+ str(total_laps) + " T" + str(step) + " " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime_lap), "%M:%S:%f")[:-3])
                     if audio:
                         playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "dong.wav", block=False)
-                    if racer.session_id.get() != "":
+                    if show_checkpoints_window and racer.session_id.get() != "":
                         #mqtt se manda el tiempo como inicio
                         racer.sendMQTT({"option": "c", "step": step, "lap": lap, "time": steptime, "user": racer.username.get()})
                     
@@ -551,12 +615,6 @@ class Meter():
         _tick = ml.data.uiTick
         _time = time.time()
         
-        if 'racer' in globals():  
-            if ml.data.identity != "":
-                racer.username.set(json.loads(ml.data.identity).get("name"))
-            else: 
-                racer.username.set("anon")
-
         _3Dpos = ml.data.fAvatarPosition
 
         if speed_in_3D:
@@ -564,89 +622,123 @@ class Meter():
         else:
             _pos = [ml.data.fAvatarPosition[0],ml.data.fAvatarPosition[2]]
 
+        if show_checkpoints_window and 'racer' in globals():  
+            if ml.data.identity != "":
+                racer.username.set(json.loads(ml.data.identity).get("name"))
+            else: 
+                racer.username.set("anon")
 
         if _lastTime + timer <= _time and _tick != _lastTick and _pos != _lastPos :
             pressedQ = max(pressedQ - timer, 0)
-            if guildhall_name.get() == "GWTC":
-                #GWTC Checkpoints
-                checkTP([3.18, 61.32, -35.58]) # use this position when you take te map TP , to stop log file
-                checkpoint("start", [49.9, 564.5, 31.9])
-                checkpoint(1, [-30.5, 495.9, 219.6])
-                checkpoint(2, [-156, 363.1, 157.4])
-                checkpoint(3, [359, 245.7, 84])
-                checkpoint(4, [-142.9, 140.2, -57.6])
-                checkpoint(5, [4.6, 56, 191.6])
-                checkpoint("end", [-37.9, 1.74, -26.7])
 
-            if guildhall_name.get() == "RACE":
-                #race Checkpoints
-                checkTP([35.67, 111.35, -7.02]) # use this position when you take te map TP , to stop log file
-                checkpoint("start", [37.53, 462.32, 138.97])
-                checkpoint(1, [-58.18, 332.07, 16.30])
-                checkpoint(2, [161.18, 236.89, 188.38])
-                checkpoint(3, [303.86, 123.30, -272.41])
-                checkpoint(4, [-0.77, 116.96, -198.97])
-                checkpoint(5, [79.211, 19.69, -76.009])
-                checkpoint("end", [-276.66, 42.59, -320.23])
+            if show_checkpoints_window: 
 
-            if guildhall_name.get() == "EQE":
-                #eqe Checkpoints
-                checkTP([114.48, 9.07, 37.47]) # use this position when you take te map TP , to stop log file
-                checkpoint("start", [186.02, 140.6, 198.7])
-                checkpoint(1, [-78.8, 23.9, -94.5])
-                checkpoint(2, [104, 142.6, -44])
-                checkpoint(3, [-207, 122, -41])
-                checkpoint("end", [117, 158, 256])
+                if guildhall_name.get() == "GWTC":
+                    #GWTC Checkpoints
+                    checkTP([3.18, 61.32, -35.58]) # use this position when you take te map TP , to stop log file
+                    checkpoint("start", [49.9, 564.5, 31.9])
+                    checkpoint(1, [-30.5, 495.9, 219.6])
+                    checkpoint(2, [-156, 363.1, 157.4])
+                    checkpoint(3, [359, 245.7, 84])
+                    checkpoint(4, [-142.9, 140.2, -57.6])
+                    checkpoint(5, [4.6, 56, 191.6])
+                    checkpoint("end", [-37.9, 1.74, -26.7])
 
-            if guildhall_name.get() == "SoTD":
-                #SoTD Checkpoints
-                checkTP([3.18, 61.32, -35.58]) # use this position when you take te map TP , to stop log file
-                checkpoint("start", [93.41, 512.07, -6.85])
-                checkpoint(1, [-39.83, -0.34, 74.95])
-                checkpoint(2, [5.39, 88.43, 170.73])
-                checkpoint(3, [-62.09, 242.28, -251.58])
-                checkpoint(4, [369.351, 396.35, 91.34])
-                checkpoint("end", [61.96, 512.09, -58.64])
+                if guildhall_name.get() == "RACE":
+                    #race Checkpoints
+                    checkTP([35.67, 111.35, -7.02]) # use this position when you take te map TP , to stop log file
+                    checkpoint("start", [37.53, 462.32, 138.97])
+                    checkpoint(1, [-58.18, 332.07, 16.30])
+                    checkpoint(2, [161.18, 236.89, 188.38])
+                    checkpoint(3, [303.86, 123.30, -272.41])
+                    checkpoint(4, [-0.77, 116.96, -198.97])
+                    checkpoint(5, [79.211, 19.69, -76.009])
+                    checkpoint("end", [-276.66, 42.59, -320.23])
 
-            if guildhall_name.get() == "LRS":
-                #SoTD Checkpoints
-                checkTP([3.18, 61.32, -35.58]) # use this position when you take te map TP , to stop log file
-                checkpoint("start", [25.83, 575.20, -14.51])
-                checkpoint(1, [182.53, 488.21, 59.85])
-                checkpoint(2, [203.48, 261.82, -96.09])
-                checkpoint(3, [-0.6, 19.45, -254.91])
-                checkpoint(4, [-101.72, 53.04, 244.96])
-                checkpoint("end", [-26.74, 0.55, -51.33])
+                if guildhall_name.get() == "EQE":
+                    #eqe Checkpoints
+                    checkTP([114.48, 9.07, 37.47]) # use this position when you take te map TP , to stop log file
+                    checkpoint("start", [186.02, 140.6, 198.7])
+                    checkpoint(1, [-78.8, 23.9, -94.5])
+                    checkpoint(2, [104, 142.6, -44])
+                    checkpoint(3, [-207, 122, -41])
+                    checkpoint("end", [117, 158, 256])
 
-            if guildhall_name.get() == "HUR":
-                #HUR Checkpoints
-                checkTP([35.67, 111.35, -7.02]) # use this position when you take te map TP , to stop log file
-                checkpoint("start", [42.57, 103.83, -282.71])
-                checkpoint(1, [-253.95, 162.94, 284.7])
-                checkpoint(2, [81.8, 0.56, -323.83])
-                checkpoint(3, [293.64, 60.74, -49.93])
-                checkpoint(4, [113.59, 154.99, -62.03])
-                checkpoint(5, [97.33, 221.3, 278.31])
-                checkpoint("end", [42.5, 103.87, -187.45])
+                if guildhall_name.get() == "SoTD":
+                    #SoTD Checkpoints
+                    checkTP([3.18, 61.32, -35.58]) # use this position when you take te map TP , to stop log file
+                    checkpoint("start", [93.41, 512.07, -6.85])
+                    checkpoint(1, [-39.83, -0.34, 74.95])
+                    checkpoint(2, [5.39, 88.43, 170.73])
+                    checkpoint(3, [-62.09, 242.28, -251.58])
+                    checkpoint(4, [369.351, 396.35, 91.34])
+                    checkpoint("end", [61.96, 512.09, -58.64])
 
-            if guildhall_name.get() == "TYRIA INF.LEAP":
-                checkpoint("start", [172.968, 5.71193, -548.169])
-                checkpoint(2, [-46.6852, 62.7075, -106.757])
-                checkpoint(3, [-425.45, 52.2022, -118.072])
-                checkpoint(4, [-69.0608, 43.4203, -192.177])
-                checkpoint("end", [166.077, 1.25356, -488.581])
+                if guildhall_name.get() == "LRS":
+                    #SoTD Checkpoints
+                    checkTP([3.18, 61.32, -35.58]) # use this position when you take te map TP , to stop log file
+                    checkpoint("start", [25.83, 575.20, -14.51])
+                    checkpoint(1, [182.53, 488.21, 59.85])
+                    checkpoint(2, [203.48, 261.82, -96.09])
+                    checkpoint(3, [-0.6, 19.45, -254.91])
+                    checkpoint(4, [-101.72, 53.04, 244.96])
+                    checkpoint("end", [-26.74, 0.55, -51.33])
 
-            if guildhall_name.get() == "OLLO SmallLoop":
-                checkTP([114, 9,37]) # use this position when you take te map TP , to stop log file
-                checkpoint("start", [176, 12, 89])
-                checkpoint("end", [134, 12, -20])
+                if guildhall_name.get() == "HUR":
+                    #HUR Checkpoints
+                    checkTP([35.67, 111.35, -7.02]) # use this position when you take te map TP , to stop log file
+                    checkpoint("start", [42.57, 103.83, -282.71])
+                    checkpoint(1, [-253.95, 162.94, 284.7])
+                    checkpoint(2, [81.8, 0.56, -323.83])
+                    checkpoint(3, [293.64, 60.74, -49.93])
+                    checkpoint(4, [113.59, 154.99, -62.03])
+                    checkpoint(5, [97.33, 221.3, 278.31])
+                    checkpoint("end", [42.5, 103.87, -187.45])
 
-            if guildhall_name.get() == "OLLO SpeedLine":
-                checkTP([114, 9,37]) # use this position when you take te map TP , to stop log file
-                checkpoint("start", [319, 997, -379])
-                checkpoint("end", [-358, 996, -379])
+                if guildhall_name.get() == "TYRIA INF.LEAP":
+                    checkTP([240.4, 2.7, -549.4])
+                    checkpoint("start", [172.968, 5.71193, -548.169])
+                    checkpoint(2, [-46.6852, 62.7075, -106.757])
+                    checkpoint(3, [-425.45, 52.2022, -118.072])
+                    checkpoint(4, [-69.0608, 43.4203, -192.177])
+                    checkpoint("end", [166.077, 1.25356, -488.581])
+
+                if guildhall_name.get() == "TYRIA DIESSA PLATEAU":
+                    checkTP([-135.9, 30.3, -530.7])
+                    checkpoint("start", [-102.2, 27.2, -529.1])
+                    checkpoint("end", [-166.1, 30.8, -505.5])
+
+                if guildhall_name.get() == "TYRIA SNOWDEN DRIFTS":
+                    checkTP([256.5, 33.8, -70.9])
+                    checkpoint("start", [234.6, 20.4, -133.7])
+                    checkpoint("end", [302.6, 35.05, -38.4])
+
+                if guildhall_name.get() == "TYRIA GENDARRAN":
+                    checkTP([308.67, 35.4, 515.4])
+                    checkpoint("start", [225.7, 7.5, 480.2])
+                    checkpoint("end", [283.9, 12.9, 463.9])
+
+                if guildhall_name.get() == "TYRIA BRISBAN WILD.":
+                    checkTP([-843.3, 65.4, 385.3])
+                    checkpoint("start", [-796.7, 65.3, 347.1])
+                    checkpoint("end", [-820.6, 66.1, 454.4])
+
+                if guildhall_name.get() == "TYRIA GROTHMAR VALLEY":
+                    checkTP([486.4, 19.8, 164.5])
+                    checkTP([516.6, 20.7, 151.03])
+                    checkpoint("start", [461.03, 27.4, 261.8])
+                    checkpoint("end", [511.1, 16.2, 191.8])
+
+                if guildhall_name.get() == "OLLO SmallLoop":
+                    checkTP([114, 9,37]) # use this position when you take te map TP , to stop log file
+                    checkpoint("start", [176, 12, 89])
+                    checkpoint("end", [134, 12, -20])
+
+                if guildhall_name.get() == "OLLO SpeedLine":
+                    checkTP([114, 9,37]) # use this position when you take te map TP , to stop log file
+                    checkpoint("start", [319, 997, -379])
+                    checkpoint("end", [-358, 996, -379])
                 
-
             #DEBUG
             #print(list(_pos) , flush=True)
             #dst = distance.euclidean(_pos, _lastPos)
@@ -730,11 +822,11 @@ class Meter():
                             #uc = [cos(angle_between_res1),sin(angle_between_res1)]
 
                             if hud_angles_bubbles:
-                                theta = np.radians(47/2)
+                                theta = np.radians(magic_angle/2)
                                 c, s = np.cos(theta), np.sin(theta)
                                 R = np.array(((c,-s), (s, c)))
                                 r50v = np.dot(R, uv)
-                                theta = np.radians(-47/2)
+                                theta = np.radians(-magic_angle/2)
                                 c, s = np.cos(theta), np.sin(theta)
                                 R = np.array(((c,-s), (s, c)))
                                 l50v = np.dot(R, uv)
@@ -774,15 +866,16 @@ class Meter():
                             self.accelvar.set(acceleration);
                     
                 #escribir velocidad,tiempo,x,y,z en fichero, solo si está abierto el fichero y si está habilitado el log
-                if log and filename != "" and round((velocity*100/10000)*99/72) < 150:
-                    #print([filename,str(_pos[0]),str(_pos[1]),str(_pos[2]),str(velocity), str(_time - filename_timer)])
-                    writer = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + filename,'a',newline='', encoding='utf-8')
-                    writer.seek(0,2)
-                    writer.writelines("\r")
-                    writer.writelines( (',').join([str(_3Dpos[0]),str(_3Dpos[1]),str(_3Dpos[2]),str(round((velocity*100/10000)*99/72)),str(angle_between_res1),str(angle_between_res2), str(_time - filename_timer), str(acceleration)]))
-                    self.vartime.set(datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(_time - filename_timer), "%M:%S:%f")[:-3])
+                if filename != "" and round((velocity*100/10000)*99/72) < 150:
+                    #print([filename,str(_pos[0]),str(_pos[1]),str(_pos[2]),str(velocity), str(_time - total_timer)])
+                    self.vartime.set(datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(_time - total_timer), "%M:%S:%f")[:-3])
                     if hud_distance:
                         self.distance.set(str(round(total_distance)) + "m.")
+                    if log:
+                        writer = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + filename,'a',newline='', encoding='utf-8')
+                        writer.seek(0,2)
+                        writer.writelines("\r")
+                        writer.writelines( (',').join([str(_3Dpos[0]),str(_3Dpos[1]),str(_3Dpos[2]),str(round((velocity*100/10000)*99/72)),str(angle_between_res1),str(angle_between_res2), str(_time - lap_timer), str(acceleration)]))
 
                 #print(velocity, flush=True)
                 if velocity > 0:
@@ -953,7 +1046,43 @@ class Racer():
         client.subscribe(self.prefix_topic + str(self.session_id.get()))
         
         #self.thread_queue.put('Waiting for start.')
-        
+
+    def reset(self):
+
+        global _3Dpos
+        global _time
+
+        global keyboard
+        global filename
+        global total_timer
+        global lap_timer
+        global total_distance
+
+        global lap
+        global meter
+
+        if enable_livesplit_hotkey == 1:
+            keyboard.press(live_reset)
+            keyboard.release(live_reset)
+        if enable_ghost_keys:
+            keyboard.press(recalculate_ghost)
+            keyboard.release(recalculate_ghost)
+        #cerrar fichero si hubiera una sesión anterior
+        filename = ""
+        total_timer = _time
+        lap_timer = _time
+        #print("----------------------------------")
+        #print("GOING TO MAP TP = RESET RUN ")
+        #print("----------------------------------")
+        meter.steps_txt.set("")
+        meter.step1_txt.set("")
+        meter.vartime.set("")
+        meter.distance.set("")
+
+        lap = 1
+        total_distance = 0
+
+
     def toggleTrans(self):
         if (self.move):
             self.root.overrideredirect(1)
@@ -961,12 +1090,15 @@ class Racer():
             self.t_2.configure(fg=self.color_trans_fg); self.t_2.configure(bg=self.color_trans_bg)
             self.t_3.configure(fg=self.color_trans_fg); self.t_3.configure(bg="#222222")
             self.t_4.configure(fg=self.color_trans_fg); self.t_4.configure(bg=self.color_trans_bg)
+            self.t_4_4.configure(fg=self.color_trans_fg); self.t_4_4.configure(bg=self.color_trans_bg)
+            self.t_4_5.configure(fg="black"); self.t_4_5.configure(bg=self.color_trans_bg)
             self.t_5.configure(fg=self.color_trans_fg); self.t_5.configure(bg="#222222")
             self.t_6.configure(fg=self.color_trans_fg); self.t_6.configure(bg="#222222")
             self.t_7.configure(fg=self.color_trans_fg); self.t_7.configure(bg="#222222")
             self.t_7_1.configure(fg=self.color_trans_fg); self.t_7_1.configure(bg="#222222")
             self.t_7_2.configure(fg=self.color_trans_fg); self.t_7_2.configure(bg="#222222")
             self.t_3_5.configure(fg=self.color_trans_fg); self.t_3_5.configure(bg="#222222")
+            self.t_3_6.configure(fg=self.color_trans_fg); self.t_3_6.configure(bg="#222222")
             self.t_8.configure(fg=self.color_trans_fg); self.t_8.configure(bg=self.color_trans_bg)
             self.t_9.configure(fg=self.color_trans_fg); self.t_9.configure(bg=self.color_trans_bg)
             self.t_10.configure(fg=self.color_trans_fg); self.t_10.configure(bg=self.color_trans_bg)
@@ -978,12 +1110,15 @@ class Racer():
             self.t_2.configure(fg=self.color_normal_fg); self.t_2.configure(bg=self.color_normal_bg)
             self.t_3.configure(fg=self.color_normal_fg); self.t_3.configure(bg=self.color_normal_bg)
             self.t_4.configure(fg=self.color_normal_fg); self.t_4.configure(bg=self.color_normal_bg)
+            self.t_4_4.configure(fg=self.color_normal_fg); self.t_4_4.configure(bg=self.color_normal_bg)
+            self.t_4_5.configure(fg=self.color_normal_fg); self.t_4_5.configure(bg=self.color_normal_bg)
             self.t_5.configure(fg=self.color_normal_fg); self.t_5.configure(bg=self.color_normal_bg)
             self.t_6.configure(fg=self.color_normal_fg); self.t_6.configure(bg=self.color_normal_bg)
             self.t_7.configure(fg=self.color_normal_fg); self.t_7.configure(bg=self.color_normal_bg)
             self.t_7_1.configure(fg=self.color_normal_fg); self.t_7_1.configure(bg=self.color_normal_bg)
             self.t_7_2.configure(fg=self.color_normal_fg); self.t_7_2.configure(bg=self.color_normal_bg)
             self.t_3_5.configure(fg=self.color_normal_fg); self.t_3_5.configure(bg=self.color_normal_bg)
+            self.t_3_6.configure(fg=self.color_normal_fg); self.t_3_6.configure(bg=self.color_normal_bg)
             self.t_8.configure(fg=self.color_normal_fg); self.t_8.configure(bg=self.color_normal_bg)
             self.t_9.configure(fg=self.color_normal_fg); self.t_9.configure(bg=self.color_normal_bg)
             self.t_10.configure(fg=self.color_normal_fg); self.t_10.configure(bg=self.color_normal_bg)
@@ -1006,7 +1141,7 @@ class Racer():
         self.root = Tk()
         self.root.call('wm', 'attributes', '.', '-topmost', '1')
         self.root.title("Guildhall logs & challenger")
-        self.root.geometry("350x350+0+400")
+        self.root.geometry("350x450+0+400")
         self.root.wm_attributes("-transparentcolor", "#666666")
         self.root.configure(bg='#f0f0f0')
 
@@ -1027,28 +1162,43 @@ class Racer():
         self.root.after(100, self.listen_for_result)
 
         guildhall_name = StringVar(self.root)
-        guildhall_name.set('SELECT GUILDHALL')
+        guildhall_name.set('SELECT MAP')
         guildhall_laps = StringVar(self.root)
         guildhall_laps.set("1 lap")
 
-        self.t_1 = tk.Label(self.root, text="""Speedometer v1.3.24""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
+        def saveGuildhall(self):
+            #stores in counterDone.txt number of total laps done
+            global guildhall_name
+        
+            file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "guildhall.txt", "w")
+            file.write(str(guildhall_name.get()))
+            file.close()
+            if enable_ghost_keys:
+                keyboard.press(recalculate_ghost)
+                keyboard.release(recalculate_ghost)
+
+        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.4.3""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
         self.t_1.place(x=0, y=10)
-        self.t_2 = tk.Label(self.root, text="""Choose guildhall for the checkpoints""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
+        self.t_2 = tk.Label(self.root, text="""Choose map to race""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_2.place(x=0, y=40)
         
-        self.choices = ['None, im free!', 'GWTC', 'RACE', 'EQE', 'SoTD', 'LRS', 'HUR', "TYRIA INF.LEAP", "OLLO SmallLoop", "OLLO SpeedLine"]
-        self.t_3 = OptionMenu(self.root, guildhall_name, *self.choices)
+        self.choices = ['None, im free!', 'GWTC', 'RACE', 'EQE', 'SoTD', 'LRS', 'HUR', "TYRIA INF.LEAP", "TYRIA DIESSA PLATEAU", "TYRIA SNOWDEN DRIFTS", "TYRIA GENDARRAN", "TYRIA BRISBAN WILD.", "TYRIA GROTHMAR VALLEY", "OLLO SmallLoop", "OLLO SpeedLine"]
+        self.t_3 = OptionMenu(self.root, guildhall_name, *self.choices, command = saveGuildhall)
         self.t_3["highlightthickness"] = 0
         self.t_3["activebackground"] = "#222222"
         self.t_3["activeforeground"] = "white" 
         self.t_3.place(x=19, y=60, width=150)
+        
 
         self.laps = ['1 lap', '2 laps', '3 laps', '4 laps', '5 laps', '6 laps', '7 laps']
         self.t_3_5 = OptionMenu(self.root, guildhall_laps, *self.laps)
         self.t_3_5["highlightthickness"] = 0
         self.t_3_5["activebackground"] = "#222222"
         self.t_3_5["activeforeground"] = "white"
-        self.t_3_5.place(x=169, y=60, width=100)
+        self.t_3_5.place(x=169, y=60, width=70)
+
+        self.t_3_6 = tk.Button(self.root, text='RESET', command=lambda:self.reset())
+        self.t_3_6.place(x=239, y=60, width=60, height=27)
 
         self.status = StringVar(self.root)
         self.status.set("JOIN A RACE")
@@ -1067,6 +1217,11 @@ class Racer():
 
         self.t_4 = tk.Label(self.root, text="""Want to challenge someone?""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_4.place(x=0, y=100)
+        self.t_4_4 = tk.Label(self.root, text="""Yes""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
+        self.t_4_4.place(x=243, y=100)
+        
+
+
         #tk.Label(self.root, text="""Join race:""", justify = tk.CENTER, padx = 20,fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10)).place(x=0, y=110)
         
         self.t_5 = tk.Entry(self.root,textvariable=self.session_id)
@@ -1087,6 +1242,50 @@ class Racer():
         self.t_9.place(x=0, y=175)
         self.t_10 = tk.Label(self.root, textvariable=self.ranking, justify = tk.LEFT, padx = 20,fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_10.place(x=0, y=210)
+
+
+        def changeMultiVisibility(hide):
+            if hide == 0:
+                #mostrarlo
+                self.t_6.place(x=120, y=120, width=80)
+                self.t_5.place(x=20, y=120, height=25)
+                self.t_7.place(x=200, y=120, width=100)
+                self.t_7_1.place(x=200, y=176, width=100)
+                self.t_7_2.place(x=200, y=148, width=100)
+                self.t_8.place(x=0, y=150)
+                self.t_9.place(x=0, y=175)
+                self.t_10.place(x=0, y=210)
+
+
+            else:
+                #ocultarlo
+                self.t_6.place_forget()
+                self.t_5.place_forget()
+                self.t_7.place_forget()
+                self.t_7_1.place_forget()
+                self.t_7_2.place_forget()
+                self.t_8.place_forget()
+                self.t_9.place_forget()
+                self.t_10.place_forget()
+
+        self.multiplayer = IntVar(value=0)
+        changeMultiVisibility(1)
+
+        def onClick():
+            if self.multiplayer.get() == 1:
+                changeMultiVisibility(1)
+                self.multiplayer.set(0)
+                
+            else:
+                changeMultiVisibility(0)
+                self.multiplayer.set(1)
+
+        self.t_4_5 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
+            text = "",
+            variable=self.multiplayer,
+            borderwidth=0, command=onClick)
+        self.t_4_5.place(x=240, y=100)
+
 
         self.toggleTrans()
 
@@ -1289,20 +1488,29 @@ if __name__ == '__main__':
     #Whatever buttons, etc 
 
     meter = Meter()
-    racer = Racer()
-    countdownWidget = Countdown()
+
+    if show_checkpoints_window:
+        racer = Racer()
+        countdownWidget = Countdown()
+    
     #gh = Ghost()
 
     def toggleAll():
-        if meter.move == racer.move:
-            meter.toggleTrans()
-            racer.toggleTrans()
-            countdownWidget.toggleTrans()
-        else:
-            if meter.move:
-                racer.toggleTrans()
-            else:
+
+        if not show_checkpoints_window:
                 meter.toggleTrans()
+        else:
+            if meter.move == racer.move:
+                meter.toggleTrans()
+                racer.toggleTrans()
+                countdownWidget.toggleTrans()
+            else:
+                if meter.move:
+                    racer.toggleTrans()
+                else:
+                    meter.toggleTrans()
+
+        
 
     t_11 = tk.Button(root, text='Move Speedometer windows', command=lambda:toggleAll() ,fg="white", bg="#222222", relief='flat')
     t_11.pack(anchor="ne")

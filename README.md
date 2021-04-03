@@ -13,6 +13,26 @@ Ghost mode for beetle races in guildwars2 using mumblelink API
  - 3D log visualizer
  - Ghost mode to replay your best logfile
 
+# Available maps
+
+## Guildhalls
+ - GWTC
+ - RACE
+ - EQE
+ - SoTD
+ - LRS
+ - HUR
+ - OLLO SmallLoop
+ - OLLO SpeedLine
+## Tyria
+ - TYRIA INF.LEAP
+ - TYRIA DIESSA PLATEAU
+ - TYRIA SNOWDEN DRIFTS
+ - TYRIA GENDARRAN
+ - TYRIA BRISBAN WILD.
+ - TYRIA GROTHMAR VALLEY
+
+
 # Demo
 
 To watch how is it ingame:

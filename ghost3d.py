@@ -217,55 +217,65 @@ class Ghost3d(object):
                 #print(list(data.values[-1]))
                 last_elem = [list(data.values[-1])[0],list(data.values[-1])[1],list(data.values[-1])[2]]
                 #print(last_elem)
-                last_elem_array = (ctypes.c_float * len(last_elem))(*last_elem)
+                try:
+                    last_elem_array = (ctypes.c_float * len(last_elem))(*last_elem)
 
+                    #CHECK POSITION TO RESTART THE GHOST
+                    endpoint = [0,0,0]
+                    if guildhall_name == "GWTC":
+                        endpoint = [-37.9, 1.74, -26.7]
+                    elif guildhall_name == "RACE":
+                        endpoint = [-276.66, 42.59, -320.23]
+                    elif guildhall_name == "EQE":
+                        endpoint = [117, 158, 256]
+                    elif guildhall_name == "SoTD":
+                        endpoint = [61.96, 512.09, -58.64]
+                    elif guildhall_name == "LRS":
+                        endpoint = [-26.74, 0.55, -51.33]
+                    elif guildhall_name == "HUR":
+                        endpoint = [42.5, 103.87, -187.45]
+                    elif guildhall_name == "TYRIA INF.LEAP":
+                        endpoint = [166.077, 1.25356, -488.581]
+                    elif guildhall_name == "TYRIA DIESSA PLATEAU":
+                        endpoint = [-166.1, 30.8, -505.5]
+                    elif guildhall_name == "TYRIA SNOWDEN DRIFTS":
+                        endpoint = [302.6, 35.05, -38.4]
+                    elif guildhall_name == "TYRIA GENDARRAN":
+                        endpoint = [283.9, 12.9, 463.9]
+                    elif guildhall_name == "TYRIA BRISBAN WILD.":
+                        endpoint = [-820.6, 66.1, 454.4]
+                    elif guildhall_name == "TYRIA GROTHMAR VALLEY":
+                        endpoint = [511.1, 16.2, 191.8]
+                    elif guildhall_name == "OLLO SmallLoop":
+                        endpoint = [134, 12, -20]
+                    elif guildhall_name == "OLLO SpeedLine":
+                        endpoint = [-358, 996, -379]
+                
+                    try:
+                        if distance.euclidean(endpoint, last_elem_array) < 20:
+                            #candidato a válido
+                            time = list(data.values[-1])[6]
+                            if time < min_time:
+                                min_time = time
+                                self.best_file = x
+                    except:
+                        print("File",x,"is corrupted, you can delete it")
 
-                #CHECK POSITION TO RESTART THE GHOST
-                endpoint = [0,0,0]
-                if guildhall_name == "GWTC":
-                    endpoint = [-37.9, 1.74, -26.7]
-                elif guildhall_name == "RACE":
-                    endpoint = [-276.66, 42.59, -320.23]
-                elif guildhall_name == "EQE":
-                    endpoint = [117, 158, 256]
-                elif guildhall_name == "SoTD":
-                    endpoint = [61.96, 512.09, -58.64]
-                elif guildhall_name == "LRS":
-                    endpoint = [-26.74, 0.55, -51.33]
-                elif guildhall_name == "HUR":
-                    endpoint = [42.5, 103.87, -187.45]
-                elif guildhall_name == "TYRIA INF.LEAP":
-                    endpoint = [166.077, 1.25356, -488.581]
-                elif guildhall_name == "TYRIA DIESSA PLATEAU":
-                    endpoint = [-166.1, 30.8, -505.5]
-                elif guildhall_name == "TYRIA SNOWDEN DRIFTS":
-                    endpoint = [302.6, 35.05, -38.4]
-                elif guildhall_name == "TYRIA GENDARRAN":
-                    endpoint = [283.9, 12.9, 463.9]
-                elif guildhall_name == "TYRIA BRISBAN WILD.":
-                    endpoint = [-820.6, 66.1, 454.4]
-                elif guildhall_name == "TYRIA GROTHMAR VALLEY":
-                    endpoint = [511.1, 16.2, 191.8]
-                elif guildhall_name == "OLLO SmallLoop":
-                    endpoint = [134, 12, -20]
-                elif guildhall_name == "OLLO SpeedLine":
-                    endpoint = [-358, 996, -379]
+                except:
+                    print("File",x,"is corrupted, you can delete it")
 
-                if distance.euclidean(endpoint, last_elem_array) < 20:
-                    #candidato a válido
-                    time = list(data.values[-1])[6]
-                    if time < min_time:
-                        min_time = time
-                        self.best_file = x
-
-
-            print("-----------------------------------------------")
-            print("- YOUR BEST TIME IS" , datetime.strftime(datetime.utcfromtimestamp(min_time), "%M:%S:%f")[:-3] )
-            print("- LOG FILE" , self.best_file )
-            print("- PRESS KEY 'T' TO REPLAY THAT FILE")
-            print("- PRESS KEY 'Y' TO RECALCULATE THE BEST FILE")
-            print("- Speedometer program will automatically press 't' and 'y' each time you start or finish a timed track")
-            print("-----------------------------------------------")
+            if min_time = 99999:
+                print("-----------------------------------------------")
+                print("- NO TIMES YET, YOU NEED TO RACE WITH SPEEDOMETER TO CREATE NEW ONE" )
+                print("-----------------------------------------------")
+            else:            
+                print("-----------------------------------------------")
+                print("- YOUR BEST TIME IS" , datetime.strftime(datetime.utcfromtimestamp(min_time), "%M:%S:%f")[:-3] )
+                print("- LOG FILE" , self.best_file )
+                print("- PRESS KEY 'T' TO REPLAY THAT FILE")
+                print("- PRESS KEY 'Y' TO RECALCULATE THE BEST FILE")
+                print("- Speedometer program will automatically press 't' and 'y' each time you start or finish a timed track")
+                print("-----------------------------------------------")
         else:
             print("THERE IS NO LOG FILES YET")
 

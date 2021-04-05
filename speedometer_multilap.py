@@ -490,11 +490,12 @@ class Meter():
                             racer.sendMQTT({"option": "s", "lap": lap, "time" : 0, "user": racer.username.get()})
                     else:
                         lap_timer = _time
-                        steptime = _time - lap_timer
+                        steptime_lap = _time - lap_timer
+                        steptime = _time - total_timer
                         #cross the start on second lap
                         newline = ""
                         
-                        self.step1_txt.set(newline + str(lap) + "/"+ str(total_laps) + " TS" + " " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime), "%M:%S:%f")[:-3])
+                        self.step1_txt.set(newline + str(lap) + "/"+ str(total_laps) + " TS" + " " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime_lap), "%M:%S:%f")[:-3])
 
                         filename = guildhall_name.get() + "_log_" + str(_time) + ".csv"
                         self.steps_txt.set("")
@@ -1420,51 +1421,6 @@ class Countdown():
             self.root.after(500, self.checkCountdowntxt)
 
 
-class Ghost():
-    def __init__(self):
-        
-        global ghost
-
-        self.move = True
-
-        self.root = Tk()
-        self.root.config(cursor="none")
-        self.root.call('wm', 'attributes', '.', '-topmost', '1')
-
-        self.color_trans_fg= "white"
-        self.color_trans_bg= "#666666"
-        self.color_normal_fg= "black"
-        self.color_normal_bg= "#f0f0f0"
-
-        self.fg = StringVar(self.root)
-        self.bg = StringVar(self.root)
-        self.fg.set(self.color_normal_fg)
-        self.bg.set(self.color_normal_bg)
-
-        windowWidth = self.root.winfo_reqwidth()
-        windowHeight = self.root.winfo_reqheight()
-        positionRight = int(root.winfo_screenwidth()/2 - windowWidth/2) 
-        positionDown = int(root.winfo_screenheight()/2 - windowHeight/2) 
-        self.root.title("Ghost")
-        self.root.geometry("{}x{}+{}+{}".format(int(root.winfo_screenwidth()), int(root.winfo_screenheight()), 0, 0)) #Whatever size
-
-        self.root.wm_attributes("-transparentcolor", "#666666")
-        self.root.configure(bg='#666666')
-        
-        self.localcountdown = tk.StringVar(self.root,"0")
-
-        self.time = tk.Label(self.root, textvariable=self.localcountdown, justify = tk.CENTER, padx = 20, fg = self.color_trans_fg, bg=self.color_trans_bg, font=("Lucida Console", 80, "bold"))
-        self.time.place(x=0, y=0)
-
-        self.updateGhostPosition()
-
-    
-    def updateGhostPosition(self):
-        global ghost
-        ghost = "0"
-        
-        self.root.after(2500, self.updateGhostPosition)
-
 if __name__ == '__main__':
 
     #root.mainloop() 
@@ -1493,7 +1449,6 @@ if __name__ == '__main__':
         racer = Racer()
         countdownWidget = Countdown()
     
-    #gh = Ghost()
 
     def toggleAll():
 

@@ -3,6 +3,8 @@ Speedometer for beetle races in guildwars2 using mumblelink API
 
 Ghost mode for beetle races in guildwars2 using mumblelink API
 
+3D Plotter for make 3D representation of log files
+
 # Features
  - Speed meter
  - Angle meter

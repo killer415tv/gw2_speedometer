@@ -264,7 +264,7 @@ class Ghost3d(object):
                 except:
                     print("File",x,"is corrupted, you can delete it")
 
-            if min_time = 99999:
+            if min_time == 99999:
                 print("-----------------------------------------------")
                 print("- NO TIMES YET, YOU NEED TO RACE WITH SPEEDOMETER TO CREATE NEW ONE" )
                 print("-----------------------------------------------")

@@ -699,9 +699,9 @@ class Meter():
                 if guildhall_name.get() == "TYRIA INF.LEAP":
                     checkTP([240.4, 2.7, -549.4])
                     checkpoint("start", [172.968, 5.71193, -548.169])
-                    checkpoint(2, [-46.6852, 62.7075, -106.757])
-                    checkpoint(3, [-425.45, 52.2022, -118.072])
-                    checkpoint(4, [-69.0608, 43.4203, -192.177])
+                    checkpoint(1, [-46.6852, 62.7075, -106.757])
+                    checkpoint(2, [-425.45, 52.2022, -118.072])
+                    checkpoint(3, [-69.0608, 43.4203, -192.177])
                     checkpoint("end", [166.077, 1.25356, -488.581])
 
                 if guildhall_name.get() == "TYRIA DIESSA PLATEAU":
@@ -733,6 +733,7 @@ class Meter():
                 if guildhall_name.get() == "OLLO Akina":
                     checkTP([114, 9,37]) # use this position when you take te map TP , to stop log file
                     checkpoint("start", [-387, 997, -273.4])
+                    checkpoint(1, [97.3, 842.8, -75])
                     checkpoint("end", [-314, 997, -378.2])
 
 

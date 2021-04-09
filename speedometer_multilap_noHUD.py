@@ -730,15 +730,12 @@ class Meter():
                     checkpoint("start", [461.03, 27.4, 261.8])
                     checkpoint("end", [511.1, 16.2, 191.8])
 
-                if guildhall_name.get() == "OLLO SmallLoop":
+                if guildhall_name.get() == "OLLO Akina":
                     checkTP([114, 9,37]) # use this position when you take te map TP , to stop log file
-                    checkpoint("start", [176, 12, 89])
-                    checkpoint("end", [134, 12, -20])
+                    checkpoint("start", [-387, 997, -273.4])
+                    checkpoint("end", [-314, 997, -378.2])
 
-                if guildhall_name.get() == "OLLO SpeedLine":
-                    checkTP([114, 9,37]) # use this position when you take te map TP , to stop log file
-                    checkpoint("start", [319, 997, -379])
-                    checkpoint("end", [-358, 996, -379])
+
                 
             #DEBUG
             #print(list(_pos) , flush=True)
@@ -1178,12 +1175,12 @@ class Racer():
                 keyboard.press(recalculate_ghost)
                 keyboard.release(recalculate_ghost)
 
-        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.4.5""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
+        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.4.9""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
         self.t_1.place(x=0, y=10)
         self.t_2 = tk.Label(self.root, text="""Choose map to race""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_2.place(x=0, y=40)
         
-        self.choices = ['None, im free!', 'GWTC', 'RACE', 'EQE', 'SoTD', 'LRS', 'HUR', "TYRIA INF.LEAP", "TYRIA DIESSA PLATEAU", "TYRIA SNOWDEN DRIFTS", "TYRIA GENDARRAN", "TYRIA BRISBAN WILD.", "TYRIA GROTHMAR VALLEY", "OLLO SmallLoop", "OLLO SpeedLine"]
+        self.choices = ['None, im free!', 'GWTC', 'RACE', 'EQE', 'SoTD', 'LRS', 'HUR', "TYRIA INF.LEAP", "TYRIA DIESSA PLATEAU", "TYRIA SNOWDEN DRIFTS", "TYRIA GENDARRAN", "TYRIA BRISBAN WILD.", "TYRIA GROTHMAR VALLEY", "OLLO Akina"]
         self.t_3 = OptionMenu(self.root, guildhall_name, *self.choices, command = saveGuildhall)
         self.t_3["highlightthickness"] = 0
         self.t_3["activebackground"] = "#222222"

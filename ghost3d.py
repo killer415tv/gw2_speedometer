@@ -246,10 +246,8 @@ class Ghost3d(object):
                         endpoint = [-820.6, 66.1, 454.4]
                     elif guildhall_name == "TYRIA GROTHMAR VALLEY":
                         endpoint = [511.1, 16.2, 191.8]
-                    elif guildhall_name == "OLLO SmallLoop":
-                        endpoint = [134, 12, -20]
-                    elif guildhall_name == "OLLO SpeedLine":
-                        endpoint = [-358, 996, -379]
+                    elif guildhall_name == "OLLO Akina":
+                        endpoint = [-314, 997, -378.2]
                 
                     try:
                         if distance.euclidean(endpoint, last_elem_array) < 20:
@@ -333,17 +331,14 @@ class Ghost3d(object):
         self.animation()
 
 
-    def update(self):
-
+    def updateCam(self):
+        
         global fAvatarPosition
         global timer
         global ghost_number
         global filename_timer
 
         ml.read()
-
-        #print(ml.data)
-        #print(ml.context)
 
         if ml.data.uiVersion == 0:
             return
@@ -367,6 +362,14 @@ class Ghost3d(object):
         self.w.opts['center'] = Vector(fAvatarPosition[0],fAvatarPosition[2],fAvatarPosition[1])
         self.w.opts['fov'] = (fov * 56 / 1.2) + 29 
         self.w.pan(0,0,3)
+
+        #self.loop = self.root.after(1, self.updateCam)
+
+    def update(self):
+
+        global timer
+        global ghost_number
+        global filename_timer
 
         timer = time.perf_counter() - filename_timer
 
@@ -429,7 +432,7 @@ class Ghost3d(object):
 
                 self.last_balls_positions[file] = [posx,posz,posy]
 
-        self.loop = self.root.after(1, self.update)
+        #self.loop = self.root.after(1, self.update)
 
 
     def start(self):
@@ -444,8 +447,12 @@ class Ghost3d(object):
         calls the update method to run in a loop
         """
         timer = QtCore.QTimer()
-        timer.timeout.connect(self.update)
-        timer.start(10)
+        timer.timeout.connect(self.updateCam)
+        timer.start(0.5)
+
+        timer2 = QtCore.QTimer()
+        timer2.timeout.connect(self.update)
+        timer2.start(1)
 
         self.start()
 

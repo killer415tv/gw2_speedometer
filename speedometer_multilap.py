@@ -1176,7 +1176,7 @@ class Racer():
                 keyboard.press(recalculate_ghost)
                 keyboard.release(recalculate_ghost)
 
-        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.4.9""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
+        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.4.12""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
         self.t_1.place(x=0, y=10)
         self.t_2 = tk.Label(self.root, text="""Choose map to race""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_2.place(x=0, y=40)

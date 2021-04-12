@@ -5,6 +5,9 @@ Ghost mode for beetle races in guildwars2 using mumblelink API
 
 3D Plotter for make 3D representation of log files
 
+Upload your times to website, for ranking
+http://beetlerank.bounceme.net/
+
 # Features
  - Speed meter
  - Angle meter

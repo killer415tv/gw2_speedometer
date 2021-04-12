@@ -25,6 +25,8 @@ import time
 import threading
 import queue
 
+import requests
+
 
 np.seterr(divide='ignore', invalid='ignore')
 
@@ -441,6 +443,8 @@ class Meter():
 
             global magic_angle
 
+            global upload
+
             global racer
 
             total_laps = int(guildhall_laps.get()[:1])
@@ -523,11 +527,17 @@ class Meter():
                         if audio:
                             playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "dong.wav", block=False)
 
+                        #upload log to 
+                        print("upload?" + str(upload.get()))
+                        if upload.get() == 1:
+                            response = requests.post('http://beetlerank.bounceme.net/upload-log',data={'user': json.loads(ml.data.identity)["name"], 'guildhall': guildhall_name.get()}, files={'file': open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + filename,'rb')})
+
                         if int(lap) == int(total_laps):
                             datefinish = datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime_lap), "%M:%S:%f")[:-3]
                             if enable_livesplit_hotkey == 1:
                                 keyboard.press(live_start)
                                 keyboard.release(live_start)
+
                             filename = ""
                             #print("----------------------------------")
                             #print("CHECKPOINT FINAL RACE: " + datefinish)
@@ -712,7 +722,7 @@ class Meter():
                 if guildhall_name.get() == "TYRIA SNOWDEN DRIFTS":
                     checkTP([256.5, 33.8, -70.9])
                     checkpoint("start", [234.6, 20.4, -133.7])
-                    checkpoint("end", [302.6, 35.05, -38.4])
+                    checkpoint("end", [253.2, 26.6, -98])
 
                 if guildhall_name.get() == "TYRIA GENDARRAN":
                     checkTP([308.67, 35.4, 515.4])
@@ -993,18 +1003,21 @@ class Racer():
             client.publish(self.prefix_topic + self.session_id.get(), json.dumps(data))
 
     def newRaceThread(self):
+        self.root.focus_set()
         self.countdown = 4
         self.newRace()
         #t = threading.Thread(target=self.newRace())
         #t.start()
 
     def surrender(self):
+        self.root.focus_set()
         global countdowntxt
         global lap
         self.sendMQTT({"option": "c", "step": 1000, "time": 0 ,"lap": 1, "user": self.username.get()})
         lap = 1
         countdowntxt = ""
     def ready(self):
+        self.root.focus_set()
         global lap
         global countdowntxt
         self.sendMQTT({"option": "c", "step": 1001, "time": 0 ,"lap": 1, "user": self.username.get()})
@@ -1025,6 +1038,7 @@ class Racer():
 
     def joinRace(self):
         global client
+        self.root.focus_set()
         #ignore old channel
         if client != "":
             client.on_message=self.ignore_message 
@@ -1047,6 +1061,8 @@ class Racer():
         #self.thread_queue.put('Waiting for start.')
 
     def reset(self):
+
+        self.root.focus_set()
 
         global _3Dpos
         global _time
@@ -1091,6 +1107,7 @@ class Racer():
             self.t_4.configure(fg=self.color_trans_fg); self.t_4.configure(bg=self.color_trans_bg)
             self.t_4_4.configure(fg=self.color_trans_fg); self.t_4_4.configure(bg=self.color_trans_bg)
             self.t_4_5.configure(fg="black"); self.t_4_5.configure(bg=self.color_trans_bg)
+            self.t_4_6.configure(fg="black"); self.t_4_6.configure(bg=self.color_trans_bg)
             self.t_5.configure(fg=self.color_trans_fg); self.t_5.configure(bg="#222222")
             self.t_6.configure(fg=self.color_trans_fg); self.t_6.configure(bg="#222222")
             self.t_7.configure(fg=self.color_trans_fg); self.t_7.configure(bg="#222222")
@@ -1111,6 +1128,7 @@ class Racer():
             self.t_4.configure(fg=self.color_normal_fg); self.t_4.configure(bg=self.color_normal_bg)
             self.t_4_4.configure(fg=self.color_normal_fg); self.t_4_4.configure(bg=self.color_normal_bg)
             self.t_4_5.configure(fg=self.color_normal_fg); self.t_4_5.configure(bg=self.color_normal_bg)
+            self.t_4_6.configure(fg=self.color_normal_fg); self.t_4_6.configure(bg=self.color_normal_bg)
             self.t_5.configure(fg=self.color_normal_fg); self.t_5.configure(bg=self.color_normal_bg)
             self.t_6.configure(fg=self.color_normal_fg); self.t_6.configure(bg=self.color_normal_bg)
             self.t_7.configure(fg=self.color_normal_fg); self.t_7.configure(bg=self.color_normal_bg)
@@ -1129,6 +1147,7 @@ class Racer():
         
         global guildhall_name
         global guildhall_laps
+        global upload
 
         self.move = True
 
@@ -1165,9 +1184,11 @@ class Racer():
         guildhall_laps = StringVar(self.root)
         guildhall_laps.set("1 lap")
 
-        def saveGuildhall(self):
+        def saveGuildhall(value):
             #stores in counterDone.txt number of total laps done
             global guildhall_name
+
+            self.root.focus_set()
         
             file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "guildhall.txt", "w")
             file.write(str(guildhall_name.get()))
@@ -1214,10 +1235,10 @@ class Racer():
         self.username = StringVar(self.root)
         self.timestamps = []
 
-        self.t_4 = tk.Label(self.root, text="""Want to challenge someone?""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.t_4.place(x=0, y=100)
-        self.t_4_4 = tk.Label(self.root, text="""Yes""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.t_4_4.place(x=243, y=100)
+        self.t_4 = tk.Label(self.root, text="""Upload to ranking""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
+        self.t_4.place(x=141, y=100)
+        self.t_4_4 = tk.Label(self.root, text="""Multiplayer""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
+        self.t_4_4.place(x=20, y=100)
         
 
 
@@ -1268,7 +1289,14 @@ class Racer():
                 self.t_10.place_forget()
 
         self.multiplayer = IntVar(value=0)
+        upload = IntVar(value=0)
         changeMultiVisibility(1)
+
+        def onClickUpload():
+            if upload.get() == 1:
+                upload.set(0)
+            else:
+                upload.set(1)
 
         def onClick():
             if self.multiplayer.get() == 1:
@@ -1283,7 +1311,13 @@ class Racer():
             text = "",
             variable=self.multiplayer,
             borderwidth=0, command=onClick)
-        self.t_4_5.place(x=240, y=100)
+        self.t_4_5.place(x=17, y=100)
+
+        self.t_4_6 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
+            text = "",
+            variable=upload, command=onClickUpload,
+            borderwidth=0)
+        self.t_4_6.place(x=139, y=100)
 
 
         self.toggleTrans()

@@ -28,8 +28,7 @@ http://beetlerank.bounceme.net/
  - SoTD
  - LRS
  - HUR
- - OLLO SmallLoop
- - OLLO SpeedLine
+ - OLLO Akina
 ## Tyria
  - TYRIA INF.LEAP
  - TYRIA DIESSA PLATEAU

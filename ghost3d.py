@@ -189,93 +189,115 @@ class Ghost3d(object):
     def searchGhost(self):
         
         global guildhall_name
-        #actualizamos el nombre del guildhall o mapa
-        file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "guildhall.txt")
-        guildhall_name = file.read()
-        
-        print("-----------------------------------------------")
-        print("---------- ZONE:", guildhall_name, "------------")
-                
-        #obtener los ficheros de replay
-        path = os.path.dirname(os.path.abspath(sys.argv[0])) + "/"                  
-        self.all_files = glob.glob(os.path.join(path, guildhall_name+"_log*.csv"))
 
-        if len(self.all_files) > 0:
+        forceFile = False
+        #force file to the one you drag an drop on the script
+        if len(sys.argv) > 1:
+            forceFile = True
+            file_ = sys.argv[1]
+
+        if forceFile:
             self.df = pd.DataFrame()
-            for file_ in self.all_files:
-                file_df = pd.read_csv(file_)
-                file_df['file_name'] = file_
-                self.df = self.df.append(file_df)
-
-            #aquí tenemos que quedarnos solo con el mejor tiempo
-
+            file_df = pd.read_csv(file_)
+            file_df['file_name'] = file_
+            self.df = self.df.append(file_df)
             min_time = 99999
-            self.best_file = ''
+            self.best_file = file_
+            print("-----------------------------------------------")
+            print("- FORCE LOAD LOG FILE" , self.best_file )
+            print("- PRESS KEY 'T' TO REPLAY THAT FILE")
+            print("- PRESS KEY 'Y' TO STOP THE GHOST AT START")
+            print("-----------------------------------------------")
 
-            for x in self.all_files:
-                data = self.df[(self.df['file_name'] == x)]
-                #print(list(data.values[-1]))
-                last_elem = [list(data.values[-1])[0],list(data.values[-1])[1],list(data.values[-1])[2]]
-                #print(last_elem)
-                try:
-                    last_elem_array = (ctypes.c_float * len(last_elem))(*last_elem)
+        else:
 
-                    #CHECK POSITION TO RESTART THE GHOST
-                    endpoint = [0,0,0]
-                    if guildhall_name == "GWTC":
-                        endpoint = [-37.9, 1.74, -26.7]
-                    elif guildhall_name == "RACE":
-                        endpoint = [-276.66, 42.59, -320.23]
-                    elif guildhall_name == "EQE":
-                        endpoint = [117, 158, 256]
-                    elif guildhall_name == "SoTD":
-                        endpoint = [61.96, 512.09, -58.64]
-                    elif guildhall_name == "LRS":
-                        endpoint = [-26.74, 0.55, -51.33]
-                    elif guildhall_name == "HUR":
-                        endpoint = [42.5, 103.87, -187.45]
-                    elif guildhall_name == "TYRIA INF.LEAP":
-                        endpoint = [166.077, 1.25356, -488.581]
-                    elif guildhall_name == "TYRIA DIESSA PLATEAU":
-                        endpoint = [-166.1, 30.8, -505.5]
-                    elif guildhall_name == "TYRIA SNOWDEN DRIFTS":
-                        endpoint = [302.6, 35.05, -38.4]
-                    elif guildhall_name == "TYRIA GENDARRAN":
-                        endpoint = [283.9, 12.9, 463.9]
-                    elif guildhall_name == "TYRIA BRISBAN WILD.":
-                        endpoint = [-820.6, 66.1, 454.4]
-                    elif guildhall_name == "TYRIA GROTHMAR VALLEY":
-                        endpoint = [511.1, 16.2, 191.8]
-                    elif guildhall_name == "OLLO Akina":
-                        endpoint = [-314, 997, -378.2]
-                
+            #actualizamos el nombre del guildhall o mapa
+            file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "guildhall.txt")
+            guildhall_name = file.read()
+            
+            print("-----------------------------------------------")
+            print("---------- ZONE:", guildhall_name, "------------")
+                    
+            #obtener los ficheros de replay
+            path = os.path.dirname(os.path.abspath(sys.argv[0])) + "/"                  
+            self.all_files = glob.glob(os.path.join(path, guildhall_name+"_log*.csv"))
+
+            if len(self.all_files) > 0:
+                self.df = pd.DataFrame()
+                for file_ in self.all_files:
+                    file_df = pd.read_csv(file_)
+                    file_df['file_name'] = file_
+                    self.df = self.df.append(file_df)
+
+                #aquí tenemos que quedarnos solo con el mejor tiempo
+
+                min_time = 99999
+                self.best_file = ''
+
+                for x in self.all_files:
+                    data = self.df[(self.df['file_name'] == x)]
+                    #print(list(data.values[-1]))
+                    last_elem = [list(data.values[-1])[0],list(data.values[-1])[1],list(data.values[-1])[2]]
+                    #print(last_elem)
                     try:
-                        if distance.euclidean(endpoint, last_elem_array) < 20:
-                            #candidato a válido
-                            time = list(data.values[-1])[6]
-                            if time < min_time:
-                                min_time = time
-                                self.best_file = x
+                        last_elem_array = (ctypes.c_float * len(last_elem))(*last_elem)
+
+                        #CHECK POSITION TO RESTART THE GHOST
+                        endpoint = [0,0,0]
+                        if guildhall_name == "GWTC":
+                            endpoint = [-37.9, 1.74, -26.7]
+                        elif guildhall_name == "RACE":
+                            endpoint = [-276.66, 42.59, -320.23]
+                        elif guildhall_name == "EQE":
+                            endpoint = [117, 158, 256]
+                        elif guildhall_name == "SoTD":
+                            endpoint = [61.96, 512.09, -58.64]
+                        elif guildhall_name == "LRS":
+                            endpoint = [-26.74, 0.55, -51.33]
+                        elif guildhall_name == "HUR":
+                            endpoint = [42.5, 103.87, -187.45]
+                        elif guildhall_name == "TYRIA INF.LEAP":
+                            endpoint = [166.077, 1.25356, -488.581]
+                        elif guildhall_name == "TYRIA DIESSA PLATEAU":
+                            endpoint = [-166.1, 30.8, -505.5]
+                        elif guildhall_name == "TYRIA SNOWDEN DRIFTS":
+                            endpoint = [302.6, 35.05, -38.4]
+                        elif guildhall_name == "TYRIA GENDARRAN":
+                            endpoint = [283.9, 12.9, 463.9]
+                        elif guildhall_name == "TYRIA BRISBAN WILD.":
+                            endpoint = [-820.6, 66.1, 454.4]
+                        elif guildhall_name == "TYRIA GROTHMAR VALLEY":
+                            endpoint = [511.1, 16.2, 191.8]
+                        elif guildhall_name == "OLLO Akina":
+                            endpoint = [-314, 997, -378.2]
+                    
+                        try:
+                            if distance.euclidean(endpoint, last_elem_array) < 20:
+                                #candidato a válido
+                                time = list(data.values[-1])[6]
+                                if time < min_time:
+                                    min_time = time
+                                    self.best_file = x
+                        except:
+                            print("File",x,"is corrupted, you can delete it")
+
                     except:
                         print("File",x,"is corrupted, you can delete it")
 
-                except:
-                    print("File",x,"is corrupted, you can delete it")
-
-            if min_time == 99999:
-                print("-----------------------------------------------")
-                print("- NO TIMES YET, YOU NEED TO RACE WITH SPEEDOMETER TO CREATE NEW ONE" )
-                print("-----------------------------------------------")
-            else:            
-                print("-----------------------------------------------")
-                print("- YOUR BEST TIME IS" , datetime.strftime(datetime.utcfromtimestamp(min_time), "%M:%S:%f")[:-3] )
-                print("- LOG FILE" , self.best_file )
-                print("- PRESS KEY 'T' TO REPLAY THAT FILE")
-                print("- PRESS KEY 'Y' TO RECALCULATE THE BEST FILE")
-                print("- Speedometer program will automatically press 't' and 'y' each time you start or finish a timed track")
-                print("-----------------------------------------------")
-        else:
-            print("THERE IS NO LOG FILES YET")
+                if min_time == 99999:
+                    print("-----------------------------------------------")
+                    print("- NO TIMES YET, YOU NEED TO RACE WITH SPEEDOMETER TO CREATE NEW ONE" )
+                    print("-----------------------------------------------")
+                else:            
+                    print("-----------------------------------------------")
+                    print("- YOUR BEST TIME IS" , datetime.strftime(datetime.utcfromtimestamp(min_time), "%M:%S:%f")[:-3] )
+                    print("- LOG FILE" , self.best_file )
+                    print("- PRESS KEY 'T' TO REPLAY THAT FILE")
+                    print("- PRESS KEY 'Y' TO RECALCULATE THE BEST FILE")
+                    print("- Speedometer program will automatically press 't' and 'y' each time you start or finish a timed track")
+                    print("-----------------------------------------------")
+            else:
+                print("THERE IS NO LOG FILES YET")
 
     def __init__(self):
 
@@ -296,8 +318,7 @@ class Ghost3d(object):
         
         self.w = gl.GLViewWidget()
         windowWidth = self.root.winfo_screenwidth()
-        windowHeight = self.root.winfo_screenheight()
-        print(windowWidth,windowHeight)
+        windowHeight = self.root.winfo_screenheight() -10
         self.w.setGeometry(0, 0, windowWidth, windowHeight)
         self.w.setWindowTitle('GhooOOoosst')
         self.w.setCameraPosition(distance=100, elevation=8, azimuth=42)
@@ -468,7 +489,7 @@ if __name__ == '__main__':
     root.call('wm', 'attributes', '.', '-topmost', '1')
 
     windowWidth = root.winfo_screenwidth()
-    windowHeight = root.winfo_screenheight()
+    windowHeight = root.winfo_screenheight() - 10
     root.title("Move Speedometer windows")
     root.geometry("170x50+{}+{}".format(windowWidth - 470, 0)) #Whatever vel
     root.overrideredirect(1) #Remove border

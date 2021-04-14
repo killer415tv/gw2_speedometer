@@ -295,7 +295,10 @@ class Ghost3d(object):
         self.app = QtGui.QApplication(sys.argv)
         
         self.w = gl.GLViewWidget()
-        self.w.setGeometry(0, 0, 1920, 1040)
+        windowWidth = self.root.winfo_screenwidth()
+        windowHeight = self.root.winfo_screenheight()
+        print(windowWidth,windowHeight)
+        self.w.setGeometry(0, 0, windowWidth, windowHeight)
         self.w.setWindowTitle('GhooOOoosst')
         self.w.setCameraPosition(distance=100, elevation=8, azimuth=42)
         self.w.opts['center'] = Vector(0,0,0)

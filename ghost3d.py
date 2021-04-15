@@ -52,6 +52,7 @@ timer = 0
 guildhall_name = ""
 filename_timer = 99999
 ghost_number = 1
+forceFile = False
 
 
 
@@ -189,6 +190,7 @@ class Ghost3d(object):
     def searchGhost(self):
         
         global guildhall_name
+        global forceFile
 
         forceFile = False
         #force file to the one you drag an drop on the script
@@ -425,8 +427,11 @@ class Ghost3d(object):
                     speedcolor = [235, 55, 52]
 
                 #print(vel, speedcolor)
+                if forceFile:
+                    self.md = gl.MeshData.sphere(rows=2, cols=3)
+                else:
+                    self.md = gl.MeshData.sphere(rows=2, cols=6)
 
-                self.md = gl.MeshData.sphere(rows=2, cols=4)
                 colors = np.ones((self.md.faceCount(), 4), dtype=float)
                 colors[::1,0] = 1
                 colors[::1,1] = 0

@@ -37,6 +37,11 @@ from opensimplex import OpenSimplex
 from pyqtgraph import Vector
 from pynput import keyboard
 
+try:
+    ctypes.windll.shcore.SetProcessDpiAwareness(2) # if your windows version >= 8.1
+except:
+    ctypes.windll.user32.SetProcessDPIAware() # win 8.0 or less 
+
 
 np.seterr(divide='ignore', invalid='ignore')
 
@@ -321,6 +326,7 @@ class Ghost3d(object):
         self.w = gl.GLViewWidget()
         windowWidth = self.root.winfo_screenwidth()
         windowHeight = self.root.winfo_screenheight() -10
+        print("Screen resolution:",windowHeight+10,"x",windowWidth)
         self.w.setGeometry(0, 0, windowWidth, windowHeight)
         self.w.setWindowTitle('GhooOOoosst')
         self.w.setCameraPosition(distance=100, elevation=8, azimuth=42)

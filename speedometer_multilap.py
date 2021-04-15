@@ -746,6 +746,11 @@ class Meter():
                     checkpoint(1, [97.3, 842.8, -75])
                     checkpoint("end", [-314, 997, -378.2])
 
+                if guildhall_name.get() == "VAW":
+                    checkTP([114, 9,37]) # use this position when you take te map TP , to stop log file
+                    checkpoint("start", [-293.9,  525.1,  293.7])
+                    checkpoint("end", [-246.6, 3.8, 246.5])
+
 
                 
             #DEBUG
@@ -1202,7 +1207,7 @@ class Racer():
         self.t_2 = tk.Label(self.root, text="""Choose map to race""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_2.place(x=0, y=40)
         
-        self.choices = ['None, im free!', 'GWTC', 'RACE', 'EQE', 'SoTD', 'LRS', 'HUR', "TYRIA INF.LEAP", "TYRIA DIESSA PLATEAU", "TYRIA SNOWDEN DRIFTS", "TYRIA GENDARRAN", "TYRIA BRISBAN WILD.", "TYRIA GROTHMAR VALLEY", "OLLO Akina"]
+        self.choices = ['None, im free!','VAW', 'GWTC', 'RACE', 'EQE', 'SoTD', 'LRS', 'HUR', "TYRIA INF.LEAP", "TYRIA DIESSA PLATEAU", "TYRIA SNOWDEN DRIFTS", "TYRIA GENDARRAN", "TYRIA BRISBAN WILD.", "TYRIA GROTHMAR VALLEY", "OLLO Akina"]
         self.t_3 = OptionMenu(self.root, guildhall_name, *self.choices, command = saveGuildhall)
         self.t_3["highlightthickness"] = 0
         self.t_3["activebackground"] = "#222222"

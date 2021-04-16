@@ -32,6 +32,7 @@ import numpy as np
 import PySide2
 from pyqtgraph.Qt import QtCore, QtGui
 import pyqtgraph.opengl as gl
+
 import sys
 from opensimplex import OpenSimplex
 from pyqtgraph import Vector
@@ -251,6 +252,10 @@ class Ghost3d(object):
 
                         #CHECK POSITION TO RESTART THE GHOST
                         endpoint = [0,0,0]
+                        if guildhall_name == "VAW":
+                            endpoint = [-246.6, 3.8, 246.5]
+                        if guildhall_name == "GeeK":
+                            endpoint = [175.8, 62.9, 125.1]
                         if guildhall_name == "GWTC":
                             endpoint = [-37.9, 1.74, -26.7]
                         elif guildhall_name == "RACE":
@@ -268,7 +273,7 @@ class Ghost3d(object):
                         elif guildhall_name == "TYRIA DIESSA PLATEAU":
                             endpoint = [-166.1, 30.8, -505.5]
                         elif guildhall_name == "TYRIA SNOWDEN DRIFTS":
-                            endpoint = [302.6, 35.05, -38.4]
+                            endpoint = [253.2, 26.6, -98]
                         elif guildhall_name == "TYRIA GENDARRAN":
                             endpoint = [283.9, 12.9, 463.9]
                         elif guildhall_name == "TYRIA BRISBAN WILD.":
@@ -277,6 +282,7 @@ class Ghost3d(object):
                             endpoint = [511.1, 16.2, 191.8]
                         elif guildhall_name == "OLLO Akina":
                             endpoint = [-314, 997, -378.2]
+                        
                     
                         try:
                             if distance.euclidean(endpoint, last_elem_array) < 20:
@@ -306,6 +312,9 @@ class Ghost3d(object):
             else:
                 print("THERE IS NO LOG FILES YET")
 
+
+
+    
     def __init__(self):
 
         global fAvatarPosition
@@ -322,12 +331,42 @@ class Ghost3d(object):
 
         # setup the view window
         self.app = QtGui.QApplication(sys.argv)
-        
-        self.w = gl.GLViewWidget()
+
+        #time viewer
+        self.wtime = QtGui.QWidget()
+
+
+
+
         windowWidth = self.root.winfo_screenwidth()
-        windowHeight = self.root.winfo_screenheight() -10
+        windowHeight = 50
+        self.wtime.setGeometry(0, 0, windowWidth, windowHeight)
+        self.wtime.setWindowTitle('GhooOOoosst debug')
+
+        self.wtime.setWindowFlags(self.wtime.windowFlags() |
+            QtCore.Qt.WindowTransparentForInput |
+            QtCore.Qt.X11BypassWindowManagerHint |
+            QtCore.Qt.WindowStaysOnTopHint |
+            QtCore.Qt.FramelessWindowHint)
+        self.wtime.setAttribute(QtCore.Qt.WA_TranslucentBackground)
+        self.wtime.setWindowOpacity(0.7)
+        #self.wtime.setBackgroundColor(0,0,0,1)
+
+        def empty(ev):
+            return None
+        self.wtime.mouseMoveEvent = empty
+        self.wtime.wheelEvent = empty
+        
+        self.wtime.show()
+        
+        #3d viewer
+        self.w = gl.GLViewWidget()
+
+
+        windowWidth = self.root.winfo_screenwidth()
+        windowHeight = self.root.winfo_screenheight() -50
         print("Screen resolution:",windowHeight+10,"x",windowWidth)
-        self.w.setGeometry(0, 0, windowWidth, windowHeight)
+        self.w.setGeometry(0, 50, windowWidth, windowHeight)
         self.w.setWindowTitle('GhooOOoosst')
         self.w.setCameraPosition(distance=100, elevation=8, azimuth=42)
         self.w.opts['center'] = Vector(0,0,0)
@@ -338,7 +377,7 @@ class Ghost3d(object):
             QtCore.Qt.WindowStaysOnTopHint |
             QtCore.Qt.FramelessWindowHint)
         self.w.setAttribute(QtCore.Qt.WA_TranslucentBackground)
-        self.w.setWindowOpacity(0.85)
+        self.w.setWindowOpacity(0.9)
         self.w.setBackgroundColor(0,0,0,1)
 
         def empty(ev):
@@ -434,9 +473,9 @@ class Ghost3d(object):
 
                 #print(vel, speedcolor)
                 if forceFile:
-                    self.md = gl.MeshData.sphere(rows=2, cols=3)
+                    self.md = gl.MeshData.cylinder(rows=1, cols=4, radius=[0.8, 0.8], length=1.2)
                 else:
-                    self.md = gl.MeshData.sphere(rows=2, cols=6)
+                    self.md = gl.MeshData.sphere(rows=2, cols=4, radius=1.0)
 
                 colors = np.ones((self.md.faceCount(), 4), dtype=float)
                 colors[::1,0] = 1
@@ -462,6 +501,7 @@ class Ghost3d(object):
                 #self.balls[file].resetTransform()
                 self.balls[file].rotate(1,0,0,1,True)
                 self.balls[file].translate(transx,transy,transz)
+
                 
                 self.balls[file].setColor(QtGui.QColor(speedcolor[0], speedcolor[1], speedcolor[2]))
 
@@ -502,8 +542,8 @@ if __name__ == '__main__':
     windowWidth = root.winfo_screenwidth()
     windowHeight = root.winfo_screenheight() - 10
     root.title("Move Speedometer windows")
-    root.geometry("170x50+{}+{}".format(windowWidth - 470, 0)) #Whatever vel
-    root.overrideredirect(1) #Remove border
+    root.geometry("300x50+{}+{}".format(int(windowWidth/2) -150, 0)) #Whatever vel
+    root.overrideredirect(0) #Remove border
     root.wm_attributes("-transparentcolor", "#666666")
     root.attributes('-topmost', 1)
     root.configure(bg='#666666')
@@ -511,6 +551,5 @@ if __name__ == '__main__':
     ml = MumbleLink()
     
     t = Ghost3d()
-    ts = TrackSelector()
-
     root.mainloop()
+

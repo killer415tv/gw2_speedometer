@@ -753,8 +753,8 @@ class Meter():
 
                 if guildhall_name.get() == "GeeK":
                     checkTP([114, 9,37]) # use this position when you take te map TP , to stop log file
-                    checkpoint("start", [124, 50.4, 95])
-                    checkpoint("end", [175.8, 62.9, 125.1])
+                    checkpoint("start", [89, 50.4, 67.67])
+                    checkpoint("end", [206.5, 62.9, 141.5])
 
 
                 

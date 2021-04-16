@@ -255,7 +255,7 @@ class Ghost3d(object):
                         if guildhall_name == "VAW":
                             endpoint = [-246.6, 3.8, 246.5]
                         if guildhall_name == "GeeK":
-                            endpoint = [175.8, 62.9, 125.1]
+                            endpoint = [206.5, 62.9, 141.5]
                         if guildhall_name == "GWTC":
                             endpoint = [-37.9, 1.74, -26.7]
                         elif guildhall_name == "RACE":

@@ -1,4 +1,4 @@
-# RACE ASSISTANT v.1.4.15
+# RACE ASSISTANT v.1.4.16
 Speedometer for beetle races in guildwars2 using mumblelink API
 
 Ghost mode for beetle races in guildwars2 using mumblelink API

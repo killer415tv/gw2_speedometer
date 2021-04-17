@@ -27,6 +27,8 @@ import queue
 
 import requests
 
+from configparser import RawConfigParser
+
 
 np.seterr(divide='ignore', invalid='ignore')
 
@@ -34,13 +36,13 @@ np.seterr(divide='ignore', invalid='ignore')
 #-----------------------------
 #  CONFIGURATION VARIABLES
 #-----------------------------
-#measure the speed in 3 dimensions or ignore the altitude axis
-speed_in_3D = 0 # 1 = on , 0 = off
-#WIDGET POSITION 
 # this variable adjust the position of the gauge +250 for bottom position or -250 for upper position , 0 is default and center on screen
 position_up_down_offset = +270
 # this variable adjust the position of the gauge +250 for right position or -250 for left position , 0 is default and center on screen
 position_right_left_offset = -105
+#measure the speed in 3 dimensions or ignore the altitude axis
+speed_in_3D = 0 # 1 = on , 0 = off
+#WIDGET POSITION 
 #Want to press any key to make livesplit program work automatically on checkpoints?
 enable_livesplit_hotkey = 0 # 1 = on , 0 = off
 #livesplit keys
@@ -73,6 +75,113 @@ show_checkpoints_window = 1
 #  END CONFIGURATION VARIABLES
 #-----------------------------
 
+class Configuration():
+    def __init__(self, master=None, **kw):
+        self.loadConf()
+
+    def saveConf(self):
+        cfg = RawConfigParser()
+        global speed_in_3D
+        global enable_livesplit_hotkey
+        global live_start
+        global live_reset
+        global log
+        global audio
+        global hud_angles
+        global hud_angles_bubbles
+        global magic_angle
+        global hud_acceleration
+        global hud_gauge
+        global hud_timer
+        global hud_distance
+        global enable_ghost_keys
+        global ghost_start
+        global recalculate_ghost
+        global show_checkpoints_window
+        cfg.add_section("general")
+
+        cfg.set("general", "speed_in_3D", speed_in_3D)
+        cfg.set("general", "enable_livesplit_hotkey", enable_livesplit_hotkey)
+        cfg.set("general", "live_start", live_start)
+        cfg.set("general", "live_reset", live_reset)
+        cfg.set("general", "log", log)
+        cfg.set("general", "audio", audio)
+        cfg.set("general", "hud_angles", hud_angles)
+        cfg.set("general", "hud_angles_bubbles", hud_angles_bubbles)
+        cfg.set("general", "magic_angle", magic_angle)
+        cfg.set("general", "hud_acceleration", hud_acceleration)
+        cfg.set("general", "hud_gauge", hud_gauge)
+        cfg.set("general", "hud_timer", hud_timer)
+        cfg.set("general", "hud_distance", hud_distance)
+        cfg.set("general", "enable_ghost_keys", enable_ghost_keys)
+        cfg.set("general", "ghost_start", ghost_start)
+        cfg.set("general", "recalculate_ghost", recalculate_ghost)
+        cfg.set("general", "show_checkpoints_window", show_checkpoints_window)
+
+        f = open("./config.txt", "w")
+        cfg.write(f)
+        f.close()
+
+    def loadConf(self):
+        cfg = RawConfigParser()
+        global speed_in_3D
+        global enable_livesplit_hotkey
+        global live_start
+        global live_reset
+        global log
+        global audio
+        global hud_angles
+        global hud_angles_bubbles
+        global magic_angle
+        global hud_acceleration
+        global hud_gauge
+        global hud_timer
+        global hud_distance
+        global enable_ghost_keys
+        global ghost_start
+        global recalculate_ghost
+        global show_checkpoints_window
+
+        if (cfg.read(["./config.txt"])):
+
+            if (cfg.has_option("general", "speed_in_3D")):
+                speed_in_3D = int(cfg.get("general", "speed_in_3D"))
+            if (cfg.has_option("general", "enable_livesplit_hotkey")):
+                enable_livesplit_hotkey = int(cfg.get("general", "enable_livesplit_hotkey"))
+            if (cfg.has_option("general", "live_start")):
+                live_start = cfg.get("general", "live_start")
+            if (cfg.has_option("general", "live_reset")):
+                live_reset = cfg.get("general", "live_reset")
+            if (cfg.has_option("general", "log")):
+                log = int(cfg.get("general", "log"))
+            if (cfg.has_option("general", "audio")):
+                audio = int(cfg.get("general", "audio"))
+            if (cfg.has_option("general", "hud_angles")):
+                hud_angles = int(cfg.get("general", "hud_angles"))
+            if (cfg.has_option("general", "hud_angles_bubbles")):
+                hud_angles_bubbles = int(cfg.get("general", "hud_angles_bubbles"))
+            if (cfg.has_option("general", "magic_angle")):
+                magic_angle = int(cfg.get("general", "magic_angle"))
+            if (cfg.has_option("general", "hud_acceleration")):
+                hud_acceleration = int(cfg.get("general", "hud_acceleration"))
+            if (cfg.has_option("general", "hud_gauge")):
+                hud_gauge = int(cfg.get("general", "hud_gauge"))
+            if (cfg.has_option("general", "hud_timer")):
+                hud_timer = int(cfg.get("general", "hud_timer"))
+            if (cfg.has_option("general", "hud_distance")):
+                hud_distance = int(cfg.get("general", "hud_distance"))
+            if (cfg.has_option("general", "enable_ghost_keys")):
+                enable_ghost_keys = int(cfg.get("general", "enable_ghost_keys"))
+            if (cfg.has_option("general", "ghost_start")):
+                ghost_start = cfg.get("general", "ghost_start")
+            if (cfg.has_option("general", "recalculate_ghost")):
+                recalculate_ghost = cfg.get("general", "recalculate_ghost")
+            if (cfg.has_option("general", "show_checkpoints_window")):
+                show_checkpoints_window = int(cfg.get("general", "show_checkpoints_window"))
+
+        else:
+            # Generate a default config file with default values
+            self.saveConf()
 
 
 #-----------------------------
@@ -655,16 +764,23 @@ class Meter():
                     checkpoint(5, [4.6, 56, 191.6])
                     checkpoint("end", [-37.9, 1.74, -26.7])
 
-                if guildhall_name.get() == "RACE":
+                if guildhall_name.get() == "RACE Downhill":
                     #race Checkpoints
                     checkTP([35.67, 111.35, -7.02]) # use this position when you take te map TP , to stop log file
-                    checkpoint("start", [37.53, 462.32, 138.97])
-                    checkpoint(1, [-58.18, 332.07, 16.30])
-                    checkpoint(2, [161.18, 236.89, 188.38])
-                    checkpoint(3, [303.86, 123.30, -272.41])
-                    checkpoint(4, [-0.77, 116.96, -198.97])
-                    checkpoint(5, [79.211, 19.69, -76.009])
-                    checkpoint("end", [-276.66, 42.59, -320.23])
+                    checkpoint("start", [105, 453, 152])
+                    checkpoint(1, [75, 388, 132]) #el saltito
+                    checkpoint(2, [207, 278,-271]) #las dos aguilas
+                    checkpoint(3, [-271, 69, 43]) #estructura parecida al puente
+                    checkpoint("end", [-90, 6,-283])
+
+                if guildhall_name.get() == "RACE Hillclimb":
+                    #race Checkpoints
+                    checkTP([35.67, 111.35, -7.02]) # use this position when you take te map TP , to stop log file
+                    checkpoint("start", [-66, 6, -275])
+                    checkpoint(1, [-271, 69, 43]) #estructura parecida al puente
+                    checkpoint(2, [225, 285, -145]) #equivalente a las aguilas
+                    checkpoint(3, [-123, 385, 301]) #equivalente a las aguilas
+                    checkpoint("end", [68,453,110])
 
                 if guildhall_name.get() == "EQE":
                     #eqe Checkpoints
@@ -1207,12 +1323,12 @@ class Racer():
                 keyboard.press(recalculate_ghost)
                 keyboard.release(recalculate_ghost)
 
-        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.4.16""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
+        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.4.17""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
         self.t_1.place(x=0, y=10)
         self.t_2 = tk.Label(self.root, text="""Choose map to race""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_2.place(x=0, y=40)
         
-        self.choices = ['None, im free!','GeeK', 'VAW', 'GWTC', 'RACE', 'EQE', 'SoTD', 'LRS', 'HUR', "TYRIA INF.LEAP", "TYRIA DIESSA PLATEAU", "TYRIA SNOWDEN DRIFTS", "TYRIA GENDARRAN", "TYRIA BRISBAN WILD.", "TYRIA GROTHMAR VALLEY", "OLLO Akina"]
+        self.choices = ['None, im free!', "OLLO Akina", 'RACE Downhill', 'RACE Hillclimb', 'GeeK', 'VAW', 'GWTC', 'EQE', 'SoTD', 'LRS', 'HUR', "TYRIA INF.LEAP", "TYRIA DIESSA PLATEAU", "TYRIA SNOWDEN DRIFTS", "TYRIA GENDARRAN", "TYRIA BRISBAN WILD.", "TYRIA GROTHMAR VALLEY"]
         self.t_3 = OptionMenu(self.root, guildhall_name, *self.choices, command = saveGuildhall)
         self.t_3["highlightthickness"] = 0
         self.t_3["activebackground"] = "#222222"
@@ -1482,6 +1598,8 @@ if __name__ == '__main__':
     #root.withdraw()
 
     ml = MumbleLink()
+
+    conf = Configuration()
 
     #Whatever buttons, etc 
 

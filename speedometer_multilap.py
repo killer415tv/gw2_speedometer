@@ -9,6 +9,7 @@ import datetime
 import math
 from scipy.spatial import distance
 from pynput.keyboard import Key, Controller
+from pynput import keyboard
 import csv
 import sys, os
 import numpy as np
@@ -48,27 +49,39 @@ enable_livesplit_hotkey = 0 # 1 = on , 0 = off
 #livesplit keys
 live_start='l' #key binded for start/split
 live_reset='k' #key binded for reset
-#Log all the timed splits to file CSV
-log = 1  # 1 = on , 0 = off
+#Log all the timed splits to file CSV , needed for upload to ranking
+log = 1  # 1 = on , 0 = off 
 #Play dong.wav file when you open the program and when you go through a checkpoint
 audio = 1  # 1 = on , 0 = off
-#Angle meter, shows angles between velocity and mouse camera , and velocity and avatar angle 
-hud_angles = 0 # 1 = on , 0 = off
-hud_angles_bubbles = 0 # 1 = on , 0 = off
-magic_angle = 48 # angle for hud_angles_bubbles, to show a visual guide of the magic angle
-#Show acceleration, shows the acceleration number on hud
-hud_acceleration = 0 # 1 = on , 0 = off
-# show velocity
-hud_gauge = 1 # 1 = on , 0 = off
-# show timer
-hud_timer = 1 # 1 = on , 0 = off
-hud_distance = 0 # 1 = on , 0 = off
 #ghost_mode
 enable_ghost_keys = 1
 ghost_start = 't'
 recalculate_ghost = 'y'
 
-show_checkpoints_window = 1
+#show timer
+hud_timer = 1 # 1 = on , 0 = off
+
+#show log distance in metres
+hud_distance = 0 # 1 = on , 0 = off
+
+#show velocity and colorarc
+hud_gauge = 1 # 1 = on , 0 = off
+
+#show acceleration, shows the acceleration number on hud
+hud_acceleration = 0 # 1 = on , 0 = off
+
+#show Angle meter, shows angles between velocity and mouse camera , and velocity and avatar angle 
+hud_angles = 0 # 1 = on , 0 = off 
+hud_angles_bubbles = 1 # 1 = on , 0 = off
+magic_angle = 48 # angle for hud_angles_bubbles, to show a visual guide of the magic angle
+
+#show drift hold meter
+hud_drift_hold = 0
+drift_key = "'v'" # yes, double quoted but single quoted for special keys like 'Key.alt_l' more info https://pynput.readthedocs.io/en/latest/_modules/pynput/keyboard/_base.html#Key
+#show race assistant window, map selection and multiplayer
+show_checkpoints_window = 1 
+
+
 
 
 #-----------------------------
@@ -98,6 +111,8 @@ class Configuration():
         global ghost_start
         global recalculate_ghost
         global show_checkpoints_window
+        global hud_drift_hold
+        global drift_key
         cfg.add_section("general")
 
         cfg.set("general", "speed_in_3D", speed_in_3D)
@@ -117,6 +132,8 @@ class Configuration():
         cfg.set("general", "ghost_start", ghost_start)
         cfg.set("general", "recalculate_ghost", recalculate_ghost)
         cfg.set("general", "show_checkpoints_window", show_checkpoints_window)
+        cfg.set("general", "hud_drift_hold", hud_drift_hold)
+        cfg.set("general", "drift_key", drift_key)
 
         f = open("./config.txt", "w")
         cfg.write(f)
@@ -141,6 +158,8 @@ class Configuration():
         global ghost_start
         global recalculate_ghost
         global show_checkpoints_window
+        global hud_drift_hold
+        global drift_key
 
         if (cfg.read(["./config.txt"])):
 
@@ -178,6 +197,10 @@ class Configuration():
                 recalculate_ghost = cfg.get("general", "recalculate_ghost")
             if (cfg.has_option("general", "show_checkpoints_window")):
                 show_checkpoints_window = int(cfg.get("general", "show_checkpoints_window"))
+            if (cfg.has_option("general", "hud_drift_hold")):
+                hud_drift_hold = int(cfg.get("general", "hud_drift_hold"))
+            if (cfg.has_option("general", "drift_key")):
+                drift_key = (cfg.get("general", "drift_key"))
 
         else:
             # Generate a default config file with default values
@@ -217,7 +240,7 @@ color = "white"
 delaytimer = 1
 pressedQ = 0
 last_checkpoint_position = [0,0,0]
-keyboard = Controller()
+keyboard_ = Controller()
 
 filename = "" 
 total_timer = 0
@@ -332,11 +355,36 @@ class MumbleLink:
 
 class Meter():
 
+    def on_press(self,key):
+        global filename_timer
+        global drift_key
+        try:
+            if str(key) == drift_key:
+                if self.drifting == False:
+                    self.drift_time = time.perf_counter() 
+                self.drifting = True
+                
+            
+        except AttributeError:
+            None
+
+    def on_release(self,key):
+        global drift_key
+        try:
+            if str(key) == drift_key:
+                self.drift_time = time.perf_counter()
+                self.drifting = False
+           
+        except AttributeError:
+            None
+
+
     def __init__(self, master=None, **kw):
         global fundo
         global winw
         global winh
         
+
         self.root = Tk()
         self.root.config(cursor="none")
         windowWidth = self.root.winfo_reqwidth()
@@ -357,6 +405,11 @@ class Meter():
             self.anglevar = tk.StringVar(self.root,0)
         if hud_acceleration:
             self.accelvar = tk.StringVar(self.root,0)
+        if hud_drift_hold:
+            self.drifting = False
+            self.drift_time = 0.0
+            self.drift_time_tk = tk.IntVar(self.root, 0.0)
+
 
         self.var = tk.IntVar(self.root, 0)
         self.var100 = tk.IntVar(self.root, 0)
@@ -382,7 +435,16 @@ class Meter():
 
         #self.scale = tk.Scale(self.root, orient='horizontal', from_=0, to=100, variable=self.var)
         
-        
+        if hud_drift_hold:
+            listener = keyboard.Listener(
+                on_press=self.on_press,
+                on_release=self.on_release)
+            listener.start()
+
+            self.outer_drifting_box = self.canvas.create_rectangle(20,30,30,100, outline="white", width="1")
+            self.outer_drifting_box = self.canvas.create_rectangle(23,33,27,97, outline="#ff5436", fill='#ff5436', width="1", tags="drift_meter")
+            self.drifting_label = tk.Label(self.root, textvariable = self.drift_time_tk, fg = "white", bg="#666666", font=("Lucida Console", 9)).place(x = 12, y = 102)
+
         if hud_angles:
             self.angletext = tk.Label(self.root, text="Cam   Beetle", fg = "white", bg="#666666", font=("Lucida Console", 7)).place(x = 146, y = 46)
             self.anglenum = tk.Label(self.root, textvariable = self.anglevar, fg = "white", bg="#666666", font=("Lucida Console", 8, "bold")).place(x = 145, y = 57)
@@ -468,7 +530,7 @@ class Meter():
 
         global audio
 
-        global keyboard
+        global keyboard_
         global pressedQ
         global delaytimer
 
@@ -489,6 +551,34 @@ class Meter():
         global guildhall_name
         global guildhall_laps
 
+        if hud_drift_hold:
+            
+            i = self.canvas.find_withtag("drift_meter")
+            if self.drifting:
+                seconds = round((time.perf_counter() - self.drift_time) * 100)/100
+                self.drift_time_tk.set(round((time.perf_counter() - self.drift_time) * 10)/10)
+                pixels = min(64,round(seconds * 64 / 1.2))
+                #print("Drift Time", seconds, pixels)
+                self.canvas.coords(i, 23, 97-pixels , 27, 97)
+                
+                if (seconds > 1.0):
+                    self.canvas.itemconfig(i, outline="#ff8a36")
+                    self.canvas.itemconfig(i, fill="#ff8a36")
+                else:
+                    self.canvas.itemconfig(i, outline="#7897ff")
+                    self.canvas.itemconfig(i, fill="#7897ff")
+                if (seconds > 1.2):
+                    self.canvas.itemconfig(i, outline="#de1f18")
+                    self.canvas.itemconfig(i, fill="#de1f18")
+            else:
+                self.canvas.coords(i, 23, 96 , 27, 97)
+                self.canvas.itemconfig(i, outline="white")
+                self.canvas.itemconfig(i, fill="white")
+
+
+
+
+
         def different(v1,v2):
             if ( v1[0] == v2[0] and v1[1] == v2[1] and v1[2] == v2[2] ):
                 return False
@@ -502,7 +592,7 @@ class Meter():
             global _time
 
             global pressedQ
-            global keyboard
+            global keyboard_
             global delaytimer
             global filename
             global total_timer
@@ -518,8 +608,8 @@ class Meter():
             if distance.euclidean(_3Dpos, arraystep) < 5 and (pressedQ == 0 or different(last_checkpoint_position, arraystep)):
                 last_checkpoint_position = arraystep
                 if enable_livesplit_hotkey == 1:
-                    keyboard.press(live_reset)
-                    keyboard.release(live_reset)
+                    keyboard_.press(live_reset)
+                    keyboard_.release(live_reset)
                 pressedQ = 0.5
                 #cerrar fichero si hubiera una sesión anterior
                 filename = ""
@@ -542,7 +632,7 @@ class Meter():
             global guildhall_laps
 
             global pressedQ
-            global keyboard
+            global keyboard_
             global delaytimer
             global filename
             global total_timer
@@ -567,12 +657,12 @@ class Meter():
                     if audio:
                         playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "dong.wav", block=False)
                     if enable_livesplit_hotkey == 1:
-                        keyboard.press(live_start)
-                        keyboard.release(live_start)
+                        keyboard_.press(live_start)
+                        keyboard_.release(live_start)
                     #first time we start
                     if enable_ghost_keys:
-                        keyboard.press(ghost_start)
-                        keyboard.release(ghost_start)
+                        keyboard_.press(ghost_start)
+                        keyboard_.release(ghost_start)
                     pressedQ = delaytimer
                     #cerrar fichero si hubiera una sesión anterior
                     
@@ -629,8 +719,8 @@ class Meter():
                     steptime_lap = _time - lap_timer
                     pressedQ = 0.5
                     if enable_ghost_keys:
-                        keyboard.press(recalculate_ghost)
-                        keyboard.release(recalculate_ghost)
+                        keyboard_.press(recalculate_ghost)
+                        keyboard_.release(recalculate_ghost)
 
                     if filename != "":
                         if audio:
@@ -644,8 +734,8 @@ class Meter():
                         if int(lap) == int(total_laps):
                             datefinish = datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime_lap), "%M:%S:%f")[:-3]
                             if enable_livesplit_hotkey == 1:
-                                keyboard.press(live_start)
-                                keyboard.release(live_start)
+                                keyboard_.press(live_start)
+                                keyboard_.release(live_start)
 
                             filename = ""
                             #print("----------------------------------")
@@ -709,8 +799,8 @@ class Meter():
 
 
                     if enable_livesplit_hotkey == 1:
-                        keyboard.press(live_start)
-                        keyboard.release(live_start)
+                        keyboard_.press(live_start)
+                        keyboard_.release(live_start)
                     pressedQ = 2 # 10 SEGUNDOS
                     #print("----------------------------------")
                     #print("CHECKPOINT " + str(step) + ": " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime), "%M:%S:%f")[:-3])
@@ -1193,7 +1283,7 @@ class Racer():
         global _3Dpos
         global _time
 
-        global keyboard
+        global keyboard_
         global filename
         global total_timer
         global lap_timer
@@ -1203,11 +1293,11 @@ class Racer():
         global meter
 
         if enable_livesplit_hotkey == 1:
-            keyboard.press(live_reset)
-            keyboard.release(live_reset)
+            keyboard_.press(live_reset)
+            keyboard_.release(live_reset)
         if enable_ghost_keys:
-            keyboard.press(recalculate_ghost)
-            keyboard.release(recalculate_ghost)
+            keyboard_.press(recalculate_ghost)
+            keyboard_.release(recalculate_ghost)
         #cerrar fichero si hubiera una sesión anterior
         filename = ""
         total_timer = _time
@@ -1320,10 +1410,10 @@ class Racer():
             file.write(str(guildhall_name.get()))
             file.close()
             if enable_ghost_keys:
-                keyboard.press(recalculate_ghost)
-                keyboard.release(recalculate_ghost)
+                keyboard_.press(recalculate_ghost)
+                keyboard_.release(recalculate_ghost)
 
-        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.4.17""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
+        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.4.19""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
         self.t_1.place(x=0, y=10)
         self.t_2 = tk.Label(self.root, text="""Choose map to race""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_2.place(x=0, y=40)

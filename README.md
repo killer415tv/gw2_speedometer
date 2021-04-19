@@ -1,4 +1,4 @@
-# RACE ASSISTANT v.1.4.16
+# RACE ASSISTANT v.1.4.19
 Speedometer for beetle races in guildwars2 using mumblelink API
 
 Ghost mode for beetle races in guildwars2 using mumblelink API
@@ -13,6 +13,7 @@ http://beetlerank.bounceme.net/
  - Angle meter
  - Distance meter
  - Acceleration meter
+ - Drift time meter
  - Log and checkpoints system
  - Race against another players with instant ranking
  - Multi lap supported (1 logfile each lap)
@@ -23,12 +24,14 @@ http://beetlerank.bounceme.net/
 
 ## Guildhalls
  - GWTC
- - RACE
+ - RACE Hillclimb
+ - RACE Donwhill
  - EQE
  - SoTD
  - LRS
  - HUR
  - OLLO Akina
+ - Geek
 ## Tyria
  - TYRIA INF.LEAP
  - TYRIA DIESSA PLATEAU

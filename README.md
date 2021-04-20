@@ -1,4 +1,4 @@
-# RACE ASSISTANT v.1.4.19
+# RACE ASSISTANT v.1.4.20
 Speedometer for beetle races in guildwars2 using mumblelink API
 
 Ghost mode for beetle races in guildwars2 using mumblelink API
@@ -19,6 +19,7 @@ http://beetlerank.bounceme.net/
  - Multi lap supported (1 logfile each lap)
  - 3D log visualizer
  - Ghost mode to replay your best logfile
+ - 2D map loader, with drag and drop and autosearch
 
 # Available maps
 

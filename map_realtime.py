@@ -327,7 +327,7 @@ class Ghost3d(object):
 
         self.root = Tk()
         self.root.title("Map")
-        self.root.geometry("750x750+20+20") #Whatever size
+        self.root.geometry("1000x1000+20+20") #Whatever size
         self.root.overrideredirect(1) #Remove border
         self.root.wm_attributes("-transparentcolor", "#666666")
         self.root.attributes('-topmost', 1)
@@ -367,6 +367,7 @@ class Ghost3d(object):
 
     def drawMap(self):
 
+        global guildhall_name
         timer = time.perf_counter() - filename_timer
 
         #for x in self.all_files[-ghost_number:]:
@@ -374,6 +375,40 @@ class Ghost3d(object):
             data = self.df[self.df['file_name'] == self.best_file]
             
             self.scale = 1/2
+            if guildhall_name == "VAW Left path":
+                self.scale = 1/2
+            elif guildhall_name == "VAW Right path":
+                self.scale = 1/2
+            elif guildhall_name == "GeeK":
+                self.scale = 1/2
+            elif guildhall_name == "GWTC":
+                self.scale = 1/2
+            elif guildhall_name == "RACE Downhill":
+                self.scale = 1/2
+            elif guildhall_name == "RACE Hillclimb":
+                self.scale = 1/2
+            elif guildhall_name == "EQE":
+                self.scale = 1/2
+            elif guildhall_name == "SoTD":
+                self.scale = 1/2
+            elif guildhall_name == "LRS":
+                self.scale = 1/2
+            elif guildhall_name == "HUR":
+                self.scale = 1/2
+            elif guildhall_name == "TYRIA INF.LEAP":
+                self.scale = 1/2
+            elif guildhall_name == "TYRIA DIESSA PLATEAU":
+                self.scale = 1/3
+            elif guildhall_name == "TYRIA SNOWDEN DRIFTS":
+                self.scale = 1/1.2
+            elif guildhall_name == "TYRIA GENDARRAN":
+                self.scale = 1/3
+            elif guildhall_name == "TYRIA BRISBAN WILD.":
+                self.scale = 1/4
+            elif guildhall_name == "TYRIA GROTHMAR VALLEY":
+                self.scale = 1/3
+            elif guildhall_name == "OLLO Akina":
+                self.scale = 1/2
 
             ##print("duro ",len(data))
             if len(data) > 0:

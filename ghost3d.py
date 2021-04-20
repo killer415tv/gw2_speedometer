@@ -252,7 +252,9 @@ class Ghost3d(object):
 
                         #CHECK POSITION TO RESTART THE GHOST
                         endpoint = [0,0,0]
-                        if guildhall_name == "VAW":
+                        if guildhall_name == "VAW Left path":
+                            endpoint = [-246.6, 3.8, 246.5]
+                        elif guildhall_name == "VAW Right path":
                             endpoint = [-246.6, 3.8, 246.5]
                         elif guildhall_name == "GeeK":
                             endpoint = [206.5, 62.9, 141.5]

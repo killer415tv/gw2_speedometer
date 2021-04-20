@@ -35,8 +35,14 @@ np.seterr(divide='ignore', invalid='ignore')
 
 
 #-----------------------------
-#  CONFIGURATION VARIABLES
+#  CONFIGURATION VARIABLES 
 #-----------------------------
+
+
+    # IMPORTANT!!!! DONT CHANGE VALUES HERE
+    # CHANGE THEM AT CONFIG.TXT
+
+
 # this variable adjust the position of the gauge +250 for bottom position or -250 for upper position , 0 is default and center on screen
 position_up_down_offset = +270
 # this variable adjust the position of the gauge +250 for right position or -250 for left position , 0 is default and center on screen
@@ -952,7 +958,12 @@ class Meter():
                     checkpoint(1, [97.3, 842.8, -75])
                     checkpoint("end", [-314, 997, -378.2])
 
-                if guildhall_name.get() == "VAW":
+                if guildhall_name.get() == "VAW Left path":
+                    checkTP([114, 9,37]) # use this position when you take te map TP , to stop log file
+                    checkpoint("start", [-293.9,  525.1,  293.7])
+                    checkpoint("end", [-246.6, 3.8, 246.5])
+
+                if guildhall_name.get() == "VAW Right path":
                     checkTP([114, 9,37]) # use this position when you take te map TP , to stop log file
                     checkpoint("start", [-293.9,  525.1,  293.7])
                     checkpoint("end", [-246.6, 3.8, 246.5])
@@ -1413,12 +1424,12 @@ class Racer():
                 keyboard_.press(recalculate_ghost)
                 keyboard_.release(recalculate_ghost)
 
-        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.4.19""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
+        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.4.20""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
         self.t_1.place(x=0, y=10)
         self.t_2 = tk.Label(self.root, text="""Choose map to race""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_2.place(x=0, y=40)
         
-        self.choices = ['None, im free!', "OLLO Akina", 'RACE Downhill', 'RACE Hillclimb', 'GeeK', 'VAW', 'GWTC', 'EQE', 'SoTD', 'LRS', 'HUR', "TYRIA INF.LEAP", "TYRIA DIESSA PLATEAU", "TYRIA SNOWDEN DRIFTS", "TYRIA GENDARRAN", "TYRIA BRISBAN WILD.", "TYRIA GROTHMAR VALLEY"]
+        self.choices = ['None, im free!', "OLLO Akina", 'RACE Downhill', 'RACE Hillclimb', 'GeeK', 'VAW Left path', 'VAW Right path', 'GWTC', 'EQE', 'SoTD', 'LRS', 'HUR', "TYRIA INF.LEAP", "TYRIA DIESSA PLATEAU", "TYRIA SNOWDEN DRIFTS", "TYRIA GENDARRAN", "TYRIA BRISBAN WILD.", "TYRIA GROTHMAR VALLEY"]
         self.t_3 = OptionMenu(self.root, guildhall_name, *self.choices, command = saveGuildhall)
         self.t_3["highlightthickness"] = 0
         self.t_3["activebackground"] = "#222222"

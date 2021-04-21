@@ -9,3 +9,4 @@ paho_mqtt
 PySide2
 pyopengl
 requests
+plotly

@@ -33,6 +33,7 @@ http://beetlerank.bounceme.net/
  - HUR
  - OLLO Akina
  - Geek
+ - VAW (Two paths)
 ## Tyria
  - TYRIA INF.LEAP
  - TYRIA DIESSA PLATEAU

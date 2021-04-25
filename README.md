@@ -1,4 +1,4 @@
-# RACE ASSISTANT v.1.4.20
+# RACE ASSISTANT v.1.4.25
 Speedometer for beetle races in guildwars2 using mumblelink API
 
 Ghost mode for beetle races in guildwars2 using mumblelink API
@@ -27,6 +27,7 @@ http://beetlerank.bounceme.net/
  - GWTC
  - RACE Hillclimb
  - RACE Donwhill
+ - RACE Full Mountain Run
  - EQE
  - SoTD
  - LRS
@@ -73,5 +74,7 @@ https://www.youtube.com/watch?v=_6Pdw_SvgXc
 5. One person press the start race, this button only makes a countdown at all racers
 6. The race will start counting time on the first checkpoint
  
-
+# Is this legal? Esto es legal?
+Yes totally legal, its not an addon, its an application that uses the game API to get the position of the player.
+Si, es totalmente legal, no es un addon, es una aplicación que usa la API del juego para sacar la posición del jugador.
 

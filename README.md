@@ -76,5 +76,6 @@ https://www.youtube.com/watch?v=_6Pdw_SvgXc
  
 # Is this legal? Esto es legal?
 Yes totally legal, its not an addon, its an application that uses the game API to get the position of the player.
+
 Si, es totalmente legal, no es un addon, es una aplicación que usa la API del juego para sacar la posición del jugador.
 

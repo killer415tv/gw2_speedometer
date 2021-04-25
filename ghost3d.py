@@ -264,6 +264,8 @@ class Ghost3d(object):
                             endpoint = [-90, 6,-283]
                         elif guildhall_name == "RACE Hillclimb":
                             endpoint = [68,453,110]
+                        elif guildhall_name == "RACE Full Mountain Run":
+                            endpoint = [27.91, 453, 41.5]
                         elif guildhall_name == "EQE":
                             endpoint = [117, 158, 256]
                         elif guildhall_name == "SoTD":

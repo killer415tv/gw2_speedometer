@@ -262,6 +262,8 @@ class Ghost3d(object):
                             endpoint = [-90, 6,-283]
                         elif guildhall_name == "RACE Hillclimb":
                             endpoint = [68,453,110]
+                        elif guildhall_name == "RACE Full Mountain Run":
+                            endpoint = [27.91, 453, 41.5]
                         elif guildhall_name == "EQE":
                             endpoint = [117, 158, 256]
                         elif guildhall_name == "SoTD":
@@ -374,6 +376,9 @@ class Ghost3d(object):
         if hasattr(self, 'df') and self.file_ready == True:
             data = self.df[self.df['file_name'] == self.best_file]
             
+            self.color1 = "#6f6f6f"
+            self.color2 = "#cfcfcf"
+
             self.scale = 1/2
             if guildhall_name == "VAW Left path":
                 self.scale = 1/2
@@ -392,6 +397,10 @@ class Ghost3d(object):
                 self.color1 = "#714227"
                 self.color2 = "#936140"
             elif guildhall_name == "RACE Downhill":
+                self.scale = 1/2
+                self.color1 = "#714227"
+                self.color2 = "#936140"
+            elif guildhall_name == "RACE Full Mountain Run":
                 self.scale = 1/2
                 self.color1 = "#714227"
                 self.color2 = "#936140"
@@ -461,13 +470,19 @@ class Ghost3d(object):
                     points.append((float(-row['X']) + abs(float(self.maxX)) + 90) * self.scale)
                     points.append((float(row['Z']) + abs(float(self.minZ)) + 90) * self.scale)
 
-                
-
                 self.canvas.delete("map2")
                 self.canvas.create_line(points, width=7, fill=self.color1, tags="map2")
                 self.canvas.delete("map")
                 self.canvas.create_line(points, width=4, fill=self.color2, tags="map")
 
+                points = [
+                    (float(-data['X'].values[-1]) + abs(float(self.maxX)) + 90) * self.scale,
+                    (float(data['Z'].values[-1]) + abs(float(self.minZ)) + 90) * self.scale,
+                    (float(-data['X'].values[0]) + abs(float(self.maxX)) + 90) * self.scale,
+                    (float(data['Z'].values[0]) + abs(float(self.minZ)) + 90) * self.scale]
+
+                self.canvas.delete("startline")
+                self.canvas.create_line(points, width=4, fill=self.color2, tags="startline", dash="4")
                 
     def updateMap(self):
         
@@ -488,8 +503,10 @@ class Ghost3d(object):
         positionX = (-fAvatarPosition2D[0] + abs(float(self.maxX)) + 90) * self.scale
         positionY = (fAvatarPosition2D[1] + abs(float(self.minZ)) + 90) * self.scale
 
+        self.canvas.delete("position2")
+        self.canvas.create_oval(positionX+0, positionY+0, positionX+10, positionY+10, outline="#ff8a36",fill="#ff8a36", width=6, tags="position2")
         self.canvas.delete("position")
-        self.canvas.create_oval(positionX+0, positionY+0, positionX+10, positionY+10, outline="#ff1",fill="#ff1", width=2, tags="position")
+        self.canvas.create_oval(positionX+0, positionY+0, positionX+10, positionY+10, outline="#ff1",fill="#ff1", width=1, tags="position")
 
 
 

@@ -29,24 +29,25 @@ import queue
 import requests
 
 from configparser import RawConfigParser
+import shlex, subprocess
 
 
 np.seterr(divide='ignore', invalid='ignore')
 
 
+# this variable adjust the position of the gauge +250 for bottom position or -250 for upper position , 0 is default and center on screen
+position_up_down_offset = -250
+# this variable adjust the position of the gauge +250 for right position or -250 for left position , 0 is default and center on screen
+position_right_left_offset = -104
+
 #-----------------------------
-#  CONFIGURATION VARIABLES 
+#  DEFAULT CONFIGURATION VARIABLES 
 #-----------------------------
 
 
     # IMPORTANT!!!! DONT CHANGE VALUES HERE
     # CHANGE THEM AT CONFIG.TXT
 
-
-# this variable adjust the position of the gauge +250 for bottom position or -250 for upper position , 0 is default and center on screen
-position_up_down_offset = +270
-# this variable adjust the position of the gauge +250 for right position or -250 for left position , 0 is default and center on screen
-position_right_left_offset = -105
 #measure the speed in 3 dimensions or ignore the altitude axis
 speed_in_3D = 0 # 1 = on , 0 = off
 #WIDGET POSITION 
@@ -83,10 +84,52 @@ magic_angle = 48 # angle for hud_angles_bubbles, to show a visual guide of the m
 
 #show drift hold meter
 hud_drift_hold = 0
-drift_key = "'v'" # yes, double quoted but single quoted for special keys like 'Key.alt_l' more info https://pynput.readthedocs.io/en/latest/_modules/pynput/keyboard/_base.html#Key
+drift_key = "'c'" # yes, double quoted but single quoted for special keys like 'Key.alt_l' more info https://pynput.readthedocs.io/en/latest/_modules/pynput/keyboard/_base.html#Key
 #show race assistant window, map selection and multiplayer
 show_checkpoints_window = 1 
 
+client = ""
+
+winh = 110
+winw = 200
+
+if speed_in_3D == 1:
+    _pos = [0,0,0]
+    _lastPos = [0,0,0]
+else:
+    _pos = [0,0]
+    _lastPos = [0,0]
+last_checkpoint_position = [0,0,0]
+_lastVel = 0
+_lastTick = 0
+_lastTime = 0
+velocity = 0
+_time = 0
+_tick = 0
+timer = 0.01
+color = "white"
+
+delaytimer = 1
+pressedQ = 0
+keyboard_ = Controller()
+
+filename = "" 
+total_timer = 0
+lap_timer = 0
+
+total_distance = 0
+lap = 1
+countdowntxt = ""
+
+show_config = 0
+
+map_position_last_time_send = 0
+
+
+
+#Force sound at start
+if audio:
+    playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "dong.wav", block=False)
 
 
 
@@ -213,53 +256,7 @@ class Configuration():
             self.saveConf()
 
 
-#-----------------------------
-#  RACING VARIABLES
-#-----------------------------
 
-client = ""
-
-#-----------------------------
-#  END RACING VARIABLES
-#-----------------------------
-
-#toma de datos inicial
-#ml = MumbleLink()
-
-winh = 110
-winw = 200
-
-_pos = [0,0,0]
-if speed_in_3D:
-    _lastPos = [0,0,0]
-else:
-    _lastPos = [0,0]
-_lastVel = 0
-_lastTick = 0
-_lastTime = 0
-velocity = 0
-_time = 0
-_tick = 0
-timer = 0.01
-color = "white"
-
-delaytimer = 1
-pressedQ = 0
-last_checkpoint_position = [0,0,0]
-keyboard_ = Controller()
-
-filename = "" 
-total_timer = 0
-lap_timer = 0
-
-total_distance = 0
-lap = 1
-countdowntxt = ""
-
-
-#test audio on start
-if audio:
-    playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "dong.wav", block=False)
 
 
 class Link(ctypes.Structure):
@@ -389,6 +386,8 @@ class Meter():
         global fundo
         global winw
         global winh
+        global _pos
+        global _lastPos
         
 
         self.root = Tk()
@@ -406,6 +405,13 @@ class Meter():
         def disable_event():
             self.toggleTrans()
         self.root.protocol("WM_DELETE_WINDOW", disable_event)
+
+        if speed_in_3D:
+            _pos = [0,0,0]
+            _lastPos = [0,0,0]
+        else:
+            _pos = [0,0]
+            _lastPos = [0,0]
 
         if hud_angles:
             self.anglevar = tk.StringVar(self.root,0)
@@ -481,7 +487,7 @@ class Meter():
             self.updateMeterLine(0.2)   
             self.var.trace_add('write', self.updateMeter)  # if this line raises an error, change it to the old way of adding a trace: self.var.trace('w', self.updateMeter)
 
-        if hud_timer:
+        #if hud_timer:
             self.vartime = tk.StringVar(self.root, "")
             self.timenum = tk.Label(self.root, textvariable = self.vartime, fg = "#aaaaaa", bg="#666666", font=("Lucida Console", 20, "bold")).place(x = 124, y = 145)
             self.distance = tk.StringVar(self.root, "")
@@ -533,6 +539,7 @@ class Meter():
         global _tick
         global timer
         global color
+        global speed_in_3D
 
         global audio
 
@@ -557,6 +564,10 @@ class Meter():
         global guildhall_name
         global guildhall_laps
 
+        global racer
+        global client
+        global map_position_last_time_send
+
         if hud_drift_hold:
             
             i = self.canvas.find_withtag("drift_meter")
@@ -564,7 +575,6 @@ class Meter():
                 seconds = round((time.perf_counter() - self.drift_time) * 100)/100
                 self.drift_time_tk.set(round((time.perf_counter() - self.drift_time) * 10)/10)
                 pixels = min(64,round(seconds * 64 / 1.2))
-                #print("Drift Time", seconds, pixels)
                 self.canvas.coords(i, 23, 97-pixels , 27, 97)
                 
                 if (seconds > 1.0):
@@ -580,10 +590,6 @@ class Meter():
                 self.canvas.coords(i, 23, 96 , 27, 97)
                 self.canvas.itemconfig(i, outline="white")
                 self.canvas.itemconfig(i, fill="white")
-
-
-
-
 
         def different(v1,v2):
             if ( v1[0] == v2[0] and v1[1] == v2[1] and v1[2] == v2[2] ):
@@ -636,6 +642,7 @@ class Meter():
             global _time
             global guildhall_name
             global guildhall_laps
+            global speed_in_3D
 
             global pressedQ
             global keyboard_
@@ -651,6 +658,8 @@ class Meter():
             global upload
 
             global racer
+
+            global map_position_last_time_send
 
             total_laps = int(guildhall_laps.get()[:1])
 
@@ -733,9 +742,10 @@ class Meter():
                             playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "dong.wav", block=False)
 
                         #upload log to 
-                        print("upload?" + str(upload.get()))
                         if upload.get() == 1:
-                            response = requests.post('http://beetlerank.bounceme.net/upload-log',data={'user': json.loads(ml.data.identity)["name"], 'guildhall': guildhall_name.get()}, files={'file': open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + filename,'rb')})
+                            if log:
+                                response = requests.post('http://beetlerank.bounceme.net/upload-log',data={'user': json.loads(ml.data.identity)["name"], 'guildhall': guildhall_name.get()}, files={'file': open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + filename,'rb')})
+                                print("Log uploaded to web")
 
                         if int(lap) == int(total_laps):
                             datefinish = datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime_lap), "%M:%S:%f")[:-3]
@@ -749,7 +759,8 @@ class Meter():
                             #print("----------------------------------")
                             newline = self.step1_txt.get() + "\n"
                             self.step1_txt.set(newline + str(lap) + "/"+ str(total_laps) + " TF " + datefinish)
-                            self.vartime.set(datefinish)
+                            if hud_timer:
+                                self.vartime.set(datefinish)
                             
 
                             if log:
@@ -838,6 +849,13 @@ class Meter():
         else:
             _pos = [ml.data.fAvatarPosition[0],ml.data.fAvatarPosition[2]]
 
+        """
+        if 'racer' in globals() and client != "":
+            if map_position_last_time_send != round(_time*10/2):
+                map_position_last_time_send = round(_time*10/2)
+                racer.sendMQTT({"option": "position", "x": ml.data.fAvatarPosition[0], "z": ml.data.fAvatarPosition[2], "user": racer.username.get()})
+        """
+
         if show_checkpoints_window and 'racer' in globals():  
             if ml.data.identity != "":
                 racer.username.set(json.loads(ml.data.identity).get("name"))
@@ -877,6 +895,19 @@ class Meter():
                     checkpoint(2, [225, 285, -145]) #equivalente a las aguilas
                     checkpoint(3, [-123, 385, 301]) #equivalente a las aguilas
                     checkpoint("end", [68,453,110])
+
+                if guildhall_name.get() == "RACE Full Mountain Run":
+                    #race Checkpoints
+                    checkTP([35.67, 111.35, -7.02]) # use this position when you take te map TP , to stop log file
+                    checkpoint("start", [18.96, 453, 85.98])
+                    checkpoint(1, [-81.6, 380.74, 104.90]) 
+                    checkpoint(2, [207, 278, -271]) 
+                    checkpoint(3, [177.9, 99.84, 236.9])
+                    checkpoint(4, [-158.3, 3, -284.8])
+                    checkpoint(5, [281.3, 107.9, 245.1])
+                    checkpoint(6, [116.2, 246.4, -170.9])
+                    checkpoint(7, [-29.9, 380.5, 141.9])
+                    checkpoint("end", [27.91, 453, 41.5])
 
                 if guildhall_name.get() == "EQE":
                     #eqe Checkpoints
@@ -959,12 +990,12 @@ class Meter():
                     checkpoint("end", [-314, 997, -378.2])
 
                 if guildhall_name.get() == "VAW Left path":
-                    checkTP([114, 9,37]) # use this position when you take te map TP , to stop log file
+                    checkTP([35.67, 111.35, -7.02]) # use this position when you take te map TP , to stop log file
                     checkpoint("start", [-293.9,  525.1,  293.7])
                     checkpoint("end", [-246.6, 3.8, 246.5])
 
                 if guildhall_name.get() == "VAW Right path":
-                    checkTP([114, 9,37]) # use this position when you take te map TP , to stop log file
+                    checkTP([35.67, 111.35, -7.02]) # use this position when you take te map TP , to stop log file
                     checkpoint("start", [-293.9,  525.1,  293.7])
                     checkpoint("end", [-246.6, 3.8, 246.5])
 
@@ -1008,7 +1039,7 @@ class Meter():
                         return str(round(np.rad2deg(np.arccos(dot_pr / norms))))
 
                     # construimos un vector con la posición actual y la anterior
-                    if speed_in_3D:
+                    if speed_in_3D == 1:
                         Y_index = 2
                     else:
                         Y_index = 1
@@ -1104,7 +1135,8 @@ class Meter():
                 #escribir velocidad,tiempo,x,y,z en fichero, solo si está abierto el fichero y si está habilitado el log
                 if filename != "" and round((velocity*100/10000)*99/72) < 150:
                     #print([filename,str(_pos[0]),str(_pos[1]),str(_pos[2]),str(velocity), str(_time - total_timer)])
-                    self.vartime.set(datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(_time - total_timer), "%M:%S:%f")[:-3])
+                    if hud_timer:
+                        self.vartime.set(datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(_time - total_timer), "%M:%S:%f")[:-3])
                     if hud_distance:
                         self.distance.set(str(round(total_distance)) + "m.")
                     if log:
@@ -1263,6 +1295,13 @@ class Racer():
     def ignore_message(self, client, userdata, message):
         pass
 
+    def open_multiplayer_map(self):
+        if not self.mapOpen:
+            self.session_id.get()
+            print( os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "map_realtime_multiplayer.py" )
+            subprocess.Popen(["python", os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "map_realtime_multiplayer.py", self.session_id.get()])
+            self.mapOpen = True
+
     def joinRace(self):
         global client
         self.root.focus_set()
@@ -1337,6 +1376,7 @@ class Racer():
             self.t_4_6.configure(fg="black"); self.t_4_6.configure(bg=self.color_trans_bg)
             self.t_5.configure(fg=self.color_trans_fg); self.t_5.configure(bg="#222222")
             self.t_6.configure(fg=self.color_trans_fg); self.t_6.configure(bg="#222222")
+            #self.t_6_1.configure(fg=self.color_trans_fg); self.t_6_1.configure(bg="#222222")
             self.t_7.configure(fg=self.color_trans_fg); self.t_7.configure(bg="#222222")
             self.t_7_1.configure(fg=self.color_trans_fg); self.t_7_1.configure(bg="#222222")
             self.t_7_2.configure(fg=self.color_trans_fg); self.t_7_2.configure(bg="#222222")
@@ -1345,6 +1385,34 @@ class Racer():
             self.t_8.configure(fg=self.color_trans_fg); self.t_8.configure(bg=self.color_trans_bg)
             self.t_9.configure(fg=self.color_trans_fg); self.t_9.configure(bg=self.color_trans_bg)
             self.t_10.configure(fg=self.color_trans_fg); self.t_10.configure(bg=self.color_trans_bg)
+            self.conf_move.configure(fg=self.color_trans_fg); self.conf_move.configure(bg="#222222")
+            self.conf_1_1.configure(fg=self.color_trans_fg); self.conf_1_1.configure(bg=self.color_trans_bg)
+            self.conf_1_2.configure(fg="black"); self.conf_1_2.configure(bg=self.color_trans_bg)
+            self.conf_2_1.configure(fg=self.color_trans_fg); self.conf_2_1.configure(bg=self.color_trans_bg)
+            self.conf_2_2.configure(fg="black"); self.conf_2_2.configure(bg=self.color_trans_bg)
+            self.conf_3_1.configure(fg=self.color_trans_fg); self.conf_3_1.configure(bg=self.color_trans_bg)
+            self.conf_3_2.configure(fg="black"); self.conf_3_2.configure(bg=self.color_trans_bg)
+            self.conf_4_1.configure(fg=self.color_trans_fg); self.conf_4_1.configure(bg=self.color_trans_bg)
+            self.conf_4_2.configure(fg="black"); self.conf_4_2.configure(bg=self.color_trans_bg)
+            self.conf_5_1.configure(fg=self.color_trans_fg); self.conf_5_1.configure(bg=self.color_trans_bg)
+            self.conf_5_2.configure(fg="black"); self.conf_5_2.configure(bg=self.color_trans_bg)
+            self.conf_6_1.configure(fg=self.color_trans_fg); self.conf_6_1.configure(bg=self.color_trans_bg)
+            self.conf_6_2.configure(fg="black"); self.conf_6_2.configure(bg=self.color_trans_bg)
+            self.conf_7_1.configure(fg=self.color_trans_fg); self.conf_7_1.configure(bg=self.color_trans_bg)
+            self.conf_7_2.configure(fg="black"); self.conf_7_2.configure(bg=self.color_trans_bg)
+            self.conf_8_1.configure(fg=self.color_trans_fg); self.conf_8_1.configure(bg=self.color_trans_bg)
+            self.conf_8_2.configure(fg="black"); self.conf_8_2.configure(bg=self.color_trans_bg)
+            self.conf_9_1.configure(fg=self.color_trans_fg); self.conf_9_1.configure(bg=self.color_trans_bg)
+            self.conf_9_2.configure(fg="black"); self.conf_9_2.configure(bg=self.color_trans_bg)
+            self.conf_10_1.configure(fg=self.color_trans_fg); self.conf_10_1.configure(bg=self.color_trans_bg)
+            self.conf_10_2.configure(fg="black"); self.conf_10_2.configure(bg=self.color_trans_bg)
+            self.conf_11_1.configure(fg=self.color_trans_fg); self.conf_11_1.configure(bg=self.color_trans_bg)
+            self.conf_11_2.configure(fg="black"); self.conf_11_2.configure(bg=self.color_trans_bg)
+            self.conf_12_1.configure(fg=self.color_trans_fg); self.conf_12_1.configure(bg=self.color_trans_bg)
+            self.conf_12_2.configure(fg="black"); self.conf_12_2.configure(bg=self.color_trans_bg)
+            self.conf_save.configure(fg=self.color_trans_fg); self.conf_save.configure(bg="#222222")
+            self.conf.configure(fg=self.color_trans_fg); self.conf.configure(bg="#222222")
+
             self.root.configure(bg=self.color_trans_bg)
             
         else:
@@ -1358,6 +1426,7 @@ class Racer():
             self.t_4_6.configure(fg=self.color_normal_fg); self.t_4_6.configure(bg=self.color_normal_bg)
             self.t_5.configure(fg=self.color_normal_fg); self.t_5.configure(bg=self.color_normal_bg)
             self.t_6.configure(fg=self.color_normal_fg); self.t_6.configure(bg=self.color_normal_bg)
+            #self.t_6_1.configure(fg=self.color_normal_fg); self.t_6_1.configure(bg=self.color_normal_bg)
             self.t_7.configure(fg=self.color_normal_fg); self.t_7.configure(bg=self.color_normal_bg)
             self.t_7_1.configure(fg=self.color_normal_fg); self.t_7_1.configure(bg=self.color_normal_bg)
             self.t_7_2.configure(fg=self.color_normal_fg); self.t_7_2.configure(bg=self.color_normal_bg)
@@ -1366,6 +1435,34 @@ class Racer():
             self.t_8.configure(fg=self.color_normal_fg); self.t_8.configure(bg=self.color_normal_bg)
             self.t_9.configure(fg=self.color_normal_fg); self.t_9.configure(bg=self.color_normal_bg)
             self.t_10.configure(fg=self.color_normal_fg); self.t_10.configure(bg=self.color_normal_bg)
+            self.conf_move.configure(fg=self.color_normal_fg); self.conf_move.configure(bg=self.color_normal_bg)
+            self.conf_1_1.configure(fg=self.color_normal_fg); self.conf_1_1.configure(bg=self.color_normal_bg)
+            self.conf_1_2.configure(fg=self.color_normal_fg); self.conf_1_2.configure(bg=self.color_normal_bg)
+            self.conf_2_1.configure(fg=self.color_normal_fg); self.conf_2_1.configure(bg=self.color_normal_bg)
+            self.conf_2_2.configure(fg=self.color_normal_fg); self.conf_2_2.configure(bg=self.color_normal_bg)
+            self.conf_3_1.configure(fg=self.color_normal_fg); self.conf_3_1.configure(bg=self.color_normal_bg)
+            self.conf_3_2.configure(fg=self.color_normal_fg); self.conf_3_2.configure(bg=self.color_normal_bg)
+            self.conf_4_1.configure(fg=self.color_normal_fg); self.conf_4_1.configure(bg=self.color_normal_bg)
+            self.conf_4_2.configure(fg=self.color_normal_fg); self.conf_4_2.configure(bg=self.color_normal_bg)
+            self.conf_5_1.configure(fg=self.color_normal_fg); self.conf_5_1.configure(bg=self.color_normal_bg)
+            self.conf_5_2.configure(fg=self.color_normal_fg); self.conf_5_2.configure(bg=self.color_normal_bg)
+            self.conf_6_1.configure(fg=self.color_normal_fg); self.conf_6_1.configure(bg=self.color_normal_bg)
+            self.conf_6_2.configure(fg=self.color_normal_fg); self.conf_6_2.configure(bg=self.color_normal_bg)
+            self.conf_7_1.configure(fg=self.color_normal_fg); self.conf_7_1.configure(bg=self.color_normal_bg)
+            self.conf_7_2.configure(fg=self.color_normal_fg); self.conf_7_2.configure(bg=self.color_normal_bg)
+            self.conf_8_1.configure(fg=self.color_normal_fg); self.conf_8_1.configure(bg=self.color_normal_bg)
+            self.conf_8_2.configure(fg=self.color_normal_fg); self.conf_8_2.configure(bg=self.color_normal_bg)
+            self.conf_9_1.configure(fg=self.color_normal_fg); self.conf_9_1.configure(bg=self.color_normal_bg)
+            self.conf_9_2.configure(fg=self.color_normal_fg); self.conf_9_2.configure(bg=self.color_normal_bg)
+            self.conf_10_1.configure(fg=self.color_normal_fg); self.conf_10_1.configure(bg=self.color_normal_bg)
+            self.conf_10_2.configure(fg=self.color_normal_fg); self.conf_10_2.configure(bg=self.color_normal_bg)
+            self.conf_11_1.configure(fg=self.color_normal_fg); self.conf_11_1.configure(bg=self.color_normal_bg)
+            self.conf_11_2.configure(fg=self.color_normal_fg); self.conf_11_2.configure(bg=self.color_normal_bg)
+            self.conf_12_1.configure(fg=self.color_normal_fg); self.conf_12_1.configure(bg=self.color_normal_bg)
+            self.conf_12_2.configure(fg=self.color_normal_fg); self.conf_12_2.configure(bg=self.color_normal_bg)
+            self.conf_save.configure(fg=self.color_normal_fg); self.conf_save.configure(bg=self.color_normal_bg)
+            self.conf.configure(fg=self.color_normal_fg); self.conf.configure(bg=self.color_normal_bg)
+
             self.root.configure(bg=self.color_normal_bg)
             
         self.move = not self.move
@@ -1376,6 +1473,7 @@ class Racer():
         global guildhall_laps
         global upload
 
+        self.mapOpen = False
         self.move = True
 
         self.color_trans_fg= "white"
@@ -1386,7 +1484,7 @@ class Racer():
         self.root = Tk()
         self.root.call('wm', 'attributes', '.', '-topmost', '1')
         self.root.title("Guildhall logs & challenger")
-        self.root.geometry("350x450+0+400")
+        self.root.geometry("750x450+0+400")
         self.root.wm_attributes("-transparentcolor", "#666666")
         self.root.configure(bg='#f0f0f0')
 
@@ -1424,17 +1522,18 @@ class Racer():
                 keyboard_.press(recalculate_ghost)
                 keyboard_.release(recalculate_ghost)
 
-        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.4.20""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
+        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.4.25""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
         self.t_1.place(x=0, y=10)
         self.t_2 = tk.Label(self.root, text="""Choose map to race""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_2.place(x=0, y=40)
         
-        self.choices = ['None, im free!', "OLLO Akina", 'RACE Downhill', 'RACE Hillclimb', 'GeeK', 'VAW Left path', 'VAW Right path', 'GWTC', 'EQE', 'SoTD', 'LRS', 'HUR', "TYRIA INF.LEAP", "TYRIA DIESSA PLATEAU", "TYRIA SNOWDEN DRIFTS", "TYRIA GENDARRAN", "TYRIA BRISBAN WILD.", "TYRIA GROTHMAR VALLEY"]
-        self.t_3 = OptionMenu(self.root, guildhall_name, *self.choices, command = saveGuildhall)
+        self.choices = ['None, im free!', "OLLO Akina", 'RACE Downhill', 'RACE Hillclimb', 'RACE Full Mountain Run', 'GeeK', 'VAW Left path', 'VAW Right path', 'GWTC', 'EQE', 'SoTD', 'LRS', 'HUR', "TYRIA INF.LEAP", "TYRIA DIESSA PLATEAU", "TYRIA SNOWDEN DRIFTS", "TYRIA GENDARRAN", "TYRIA BRISBAN WILD.", "TYRIA GROTHMAR VALLEY"]
+        self.t_3 = tk.OptionMenu(self.root, guildhall_name, *self.choices, command = saveGuildhall)
+        self.t_3.config(font=("Lucida Console", 10))
         self.t_3["highlightthickness"] = 0
         self.t_3["activebackground"] = "#222222"
         self.t_3["activeforeground"] = "white" 
-        self.t_3.place(x=19, y=60, width=150)
+        self.t_3.place(x=19, y=60, width=150, height=27)
         
 
         self.laps = ['1 lap', '2 laps', '3 laps', '4 laps', '5 laps', '6 laps', '7 laps']
@@ -1444,11 +1543,300 @@ class Racer():
         self.t_3_5["activeforeground"] = "white"
         self.t_3_5.place(x=169, y=60, width=70)
 
-        self.t_3_6 = tk.Button(self.root, text='RESET', command=lambda:self.reset())
+        global audio
+        global hud_gauge
+        global hud_timer
+        global hud_distance
+        global hud_acceleration
+        global hud_angles
+        global hud_angles_bubbles
+        global hud_drift_hold
+        global enable_livesplit_hotkey
+        global enable_ghost_keys
+        global speed_in_3D
+        global log
+
+
+        def conf_toggle(field):
+            if globals()[field] == 1:
+                globals()[field] = 0
+            else:
+                globals()[field] = 1
+            print(globals()[field])
+
+        
+
+        def conf_save():
+            print("saved and restart")
+            global conf
+
+            conf.saveConf()
+
+            print( sys.argv[0] )
+            subprocess.Popen(["python", sys.argv[0]])
+            sys.exit()
+
+        def toggleAll():
+            global meter
+            global racer
+            global countdownWidget
+            global show_checkpoints_window
+
+            if not show_checkpoints_window:
+                    meter.toggleTrans()
+            else:
+                if meter.move == racer.move:
+                    meter.toggleTrans()
+                    racer.toggleTrans()
+                    countdownWidget.toggleTrans()
+                else:
+                    if meter.move:
+                        racer.toggleTrans()
+                    else:
+                        meter.toggleTrans()
+
+
+        self.conf_move = tk.Button(self.root, text='MOVE SPEEDOMETER', command=lambda:toggleAll(),font=("Lucida Console", 10))
+        self.conf_move.place(x=310, y=23, width=160, height=20)
+        
+        #OPTION 1 
+        self.conf_1_0 = IntVar(self.root, audio)
+
+        self.conf_1_1 = tk.Label(self.root, text="""Audio on checkpoints""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
+        self.conf_1_1.place(x=314, y=44)
+
+        self.conf_1_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
+            text = "",
+            variable=self.conf_1_0,
+            borderwidth=0, command=lambda:conf_toggle("audio"))
+        self.conf_1_2.place(x=310, y=44)
+        
+        
+        #OPTION 1 
+        self.conf_2_0 = IntVar(self.root, hud_gauge)
+
+        self.conf_2_1 = tk.Label(self.root, text="""Show speed""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
+        self.conf_2_1.place(x=314, y=44 + 1 * 20)
+
+        self.conf_2_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
+            text = "",
+            variable=self.conf_2_0,
+            borderwidth=0, command=lambda:conf_toggle("hud_gauge"))
+        self.conf_2_2.place(x=310, y=44 + 1 * 20 )
+        
+        
+        #OPTION 1 
+        self.conf_3_0 = IntVar(self.root, hud_timer)
+
+        self.conf_3_1 = tk.Label(self.root, text="""Show timer""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
+        self.conf_3_1.place(x=314, y=44 + 2 * 20)
+
+        self.conf_3_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
+            text = "",
+            variable=self.conf_3_0,
+            borderwidth=0, command=lambda:conf_toggle("hud_timer"))
+        self.conf_3_2.place(x=310, y=44 + 2 * 20)
+        
+        
+        #OPTION 1 
+        self.conf_4_0 = IntVar(self.root, hud_distance)
+
+        self.conf_4_1 = tk.Label(self.root, text="""Show distance""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
+        self.conf_4_1.place(x=314, y=44 + 3 * 20)
+
+        self.conf_4_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
+            text = "",
+            variable=self.conf_4_0,
+            borderwidth=0, command=lambda:conf_toggle("hud_distance"))
+        self.conf_4_2.place(x=310, y=44 + 3 * 20)
+        
+        
+        #OPTION 1 
+        self.conf_5_0 = IntVar(self.root, hud_acceleration)
+
+        self.conf_5_1 = tk.Label(self.root, text="""Show acceleration""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
+        self.conf_5_1.place(x=314, y=44 + 4 * 20)
+
+        self.conf_5_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
+            text = "",
+            variable=self.conf_5_0,
+            borderwidth=0, command=lambda:conf_toggle("hud_acceleration"))
+        self.conf_5_2.place(x=310, y=44 + 4 * 20)
+        
+        
+        #OPTION 1 
+        self.conf_6_0 = IntVar(self.root, hud_angles)
+
+        self.conf_6_1 = tk.Label(self.root, text="""Show angles""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
+        self.conf_6_1.place(x=314, y=44 + 5 * 20)
+
+        self.conf_6_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
+            text = "",
+            variable=self.conf_6_0,
+            borderwidth=0, command=lambda:conf_toggle("hud_angles"))
+        self.conf_6_2.place(x=310, y=44 + 5 * 20)
+        
+        
+        #OPTION 1 
+        self.conf_7_0 = IntVar(self.root, hud_angles_bubbles)
+
+        self.conf_7_1 = tk.Label(self.root, text="""Show angle orbs""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
+        self.conf_7_1.place(x=314, y=44 + 6 * 20)
+
+        self.conf_7_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
+            text = "",
+            variable=self.conf_7_0,
+            borderwidth=0, command=lambda:conf_toggle("hud_angles_bubbles"))
+        self.conf_7_2.place(x=310, y=44 + 6 * 20)
+        
+        
+        #OPTION 1 
+        self.conf_8_0 = IntVar(self.root, hud_drift_hold)
+
+        self.conf_8_1 = tk.Label(self.root, text="""Show drift hold""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
+        self.conf_8_1.place(x=314, y=44 + 7 * 20)
+
+        self.conf_8_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
+            text = "",
+            variable=self.conf_8_0,
+            borderwidth=0, command=lambda:conf_toggle("hud_drift_hold"))
+        self.conf_8_2.place(x=310, y=44 + 7 * 20)
+        
+        
+        #OPTION 1 
+        self.conf_9_0 = IntVar(self.root, enable_livesplit_hotkey)
+
+        self.conf_9_1 = tk.Label(self.root, text="""Enable livesplit hotkeys""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
+        self.conf_9_1.place(x=314, y=44 + 8 * 20)
+
+        self.conf_9_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
+            text = "",
+            variable=self.conf_9_0,
+            borderwidth=0, command=lambda:conf_toggle("enable_livesplit_hotkey"))
+        self.conf_9_2.place(x=310, y=44 + 8 * 20)
+        
+        
+        #OPTION 1 
+        self.conf_10_0 = IntVar(self.root, enable_ghost_keys)
+
+        self.conf_10_1 = tk.Label(self.root, text="""Enable ghost hotkeys""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
+        self.conf_10_1.place(x=314, y=44 + 9 * 20)
+
+        self.conf_10_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
+            text = "",
+            variable=self.conf_10_0,
+            borderwidth=0, command=lambda:conf_toggle("enable_ghost_keys"))
+        self.conf_10_2.place(x=310, y=44 + 9 * 20)
+        
+        
+        #OPTION 1 
+        self.conf_11_0 = IntVar(self.root, speed_in_3D)
+
+        self.conf_11_1 = tk.Label(self.root, text="""Measure speed in 3D""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
+        self.conf_11_1.place(x=314, y=44 + 10 * 20)
+
+        self.conf_11_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
+            text = "",
+            variable=self.conf_11_0,
+            borderwidth=0, command=lambda:conf_toggle("speed_in_3D"))
+        self.conf_11_2.place(x=310, y=44 + 10 * 20)
+        
+        
+        #OPTION 1 
+        self.conf_12_0 = IntVar(self.root, log)
+
+        self.conf_12_1 = tk.Label(self.root, text="""Log to file (need if want to upload)""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
+        self.conf_12_1.place(x=314, y=44 + 11 * 20)
+
+        self.conf_12_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
+            text = "",
+            variable=self.conf_12_0,
+            borderwidth=0, command=lambda:conf_toggle("log"))
+        self.conf_12_2.place(x=310, y=44 + 11 * 20)
+
+        #SAVE OPTIONS
+        self.conf_save = tk.Button(self.root, text='SAVE & RESTART', command=lambda:conf_save() ,font=("Lucida Console", 10))
+        self.conf_save.place(x=320, y=44 + 13 * 20, width=120, height=27)
+
+
+        def changeConfigVisibility():
+            global show_config
+
+            if show_config == 1:
+                #mostrarlo
+                self.conf_move.place(x=310, y=23, width=160, height=20)
+                self.conf_1_1.place(x=314, y=44)
+                self.conf_1_2.place(x=310, y=44)
+                self.conf_2_1.place(x=314, y=44 + 1 * 20)
+                self.conf_2_2.place(x=310, y=44 + 1 * 20 )
+                self.conf_3_1.place(x=314, y=44 + 2 * 20)
+                self.conf_3_2.place(x=310, y=44 + 2 * 20)
+                self.conf_4_1.place(x=314, y=44 + 3 * 20)
+                self.conf_4_2.place(x=310, y=44 + 3 * 20)
+                self.conf_5_1.place(x=314, y=44 + 4 * 20)
+                self.conf_5_2.place(x=310, y=44 + 4 * 20)
+                self.conf_6_1.place(x=314, y=44 + 5 * 20)
+                self.conf_6_2.place(x=310, y=44 + 5 * 20)
+                self.conf_7_1.place(x=314, y=44 + 6 * 20)
+                self.conf_7_2.place(x=310, y=44 + 6 * 20)
+                self.conf_8_1.place(x=314, y=44 + 7 * 20)
+                self.conf_8_2.place(x=310, y=44 + 7 * 20)
+                self.conf_9_1.place(x=314, y=44 + 8 * 20)
+                self.conf_9_2.place(x=310, y=44 + 8 * 20)
+                self.conf_10_1.place(x=314, y=44 + 9 * 20)
+                self.conf_10_2.place(x=310, y=44 + 9 * 20)
+                self.conf_11_1.place(x=314, y=44 + 10 * 20)
+                self.conf_11_2.place(x=310, y=44 + 10 * 20)
+                self.conf_12_1.place(x=314, y=44 + 11 * 20)
+                self.conf_12_2.place(x=310, y=44 + 11 * 20)
+                self.conf_save.place(x=320, y=44 + 13 * 20, width=120, height=27)
+
+
+                show_config = 0
+
+
+            else:
+                #ocultarlo
+                self.conf_1_1.place_forget()
+                self.conf_1_2.place_forget()
+                self.conf_2_1.place_forget()
+                self.conf_2_2.place_forget()
+                self.conf_3_1.place_forget()
+                self.conf_3_2.place_forget()
+                self.conf_4_1.place_forget()
+                self.conf_4_2.place_forget()
+                self.conf_5_1.place_forget()
+                self.conf_5_2.place_forget()
+                self.conf_6_1.place_forget()
+                self.conf_6_2.place_forget()
+                self.conf_7_1.place_forget()
+                self.conf_7_2.place_forget()
+                self.conf_8_1.place_forget()
+                self.conf_8_2.place_forget()
+                self.conf_9_1.place_forget()
+                self.conf_9_2.place_forget()
+                self.conf_10_1.place_forget()
+                self.conf_10_2.place_forget()
+                self.conf_11_1.place_forget()
+                self.conf_11_2.place_forget()
+                self.conf_12_1.place_forget()
+                self.conf_12_2.place_forget()
+                self.conf_move.place_forget()
+                self.conf_save.place_forget()
+
+                show_config = 1
+
+        self.conf = tk.Button(self.root, text='CONFIG', command=lambda:changeConfigVisibility(), font=("Lucida Console", 7))
+        self.conf.place(x=239, y=44, width=60, height=15)
+
+
+        self.t_3_6 = tk.Button(self.root, text='RESET', command=lambda:self.reset(),font=("Lucida Console", 10))
         self.t_3_6.place(x=239, y=60, width=60, height=27)
 
+        changeConfigVisibility()
+
         self.status = StringVar(self.root)
-        self.status.set("JOIN A RACE")
+        self.status.set("JOIN")
 
         self.race_status = StringVar(self.root)
         self.race_status.set("No race")
@@ -1462,8 +1850,8 @@ class Racer():
         self.username = StringVar(self.root)
         self.timestamps = []
 
-        self.t_4 = tk.Label(self.root, text="""Upload to ranking""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.t_4.place(x=141, y=100)
+        self.t_4 = tk.Label(self.root, text="""Upload to ranking""", justify = tk.LEFT, padx = 10, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
+        self.t_4.place(x=151, y=100)
         self.t_4_4 = tk.Label(self.root, text="""Multiplayer""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_4_4.place(x=20, y=100)
         
@@ -1472,18 +1860,20 @@ class Racer():
         #tk.Label(self.root, text="""Join race:""", justify = tk.CENTER, padx = 20,fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10)).place(x=0, y=110)
         
         self.t_5 = tk.Entry(self.root,textvariable=self.session_id)
-        self.t_5.place(x=20, y=120, height=25)
-        self.t_6 = tk.Button(self.root, textvariable=self.status, command=self.joinRace)
+        self.t_5.place(x=20, y=120, height=28)
+        self.t_6 = tk.Button(self.root, textvariable=self.status, command=self.joinRace,font=("Lucida Console", 10))
         self.t_6.place(x=120, y=120, width=80)
+        #self.t_6_1 = tk.Button(self.root, text="MAP", command=self.open_multiplayer_map,font=("Lucida Console", 10))
+        #self.t_6_1.place(x=120, y=148, width=80)
 
         #tk.Label(self.root, text="""Create new race:""", justify = tk.CENTER, padx = 20,fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10)).pack()
-        self.t_7 = tk.Button(self.root, text='START THE RACE', command=lambda:self.newRaceThread())
+        self.t_7 = tk.Button(self.root, text='START RACE', command=lambda:self.newRaceThread(),font=("Lucida Console", 10))
         self.t_7.place(x=200, y=120, width=100)
-        self.t_7_1 = tk.Button(self.root, text='SURRENDER', command=lambda:self.surrender())
+        self.t_7_1 = tk.Button(self.root, text='SURRENDER', command=lambda:self.surrender(),font=("Lucida Console", 10))
         self.t_7_1.place(x=200, y=176, width=100)
-        self.t_7_2 = tk.Button(self.root, text='READY', command=lambda:self.ready())
+        self.t_7_2 = tk.Button(self.root, text='READY', command=lambda:self.ready(),font=("Lucida Console", 10))
         self.t_7_2.place(x=200, y=148, width=100)
-        self.t_8 = tk.Label(self.root, text="""-------------""", justify = tk.CENTER, padx = 20,fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
+        self.t_8 = tk.Label(self.root, text="""------""", justify = tk.CENTER, padx = 20,fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_8.place(x=0, y=150)
         self.t_9 = tk.Label(self.root, textvariable=self.race_status, justify = tk.CENTER, padx = 20,fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_9.place(x=0, y=175)
@@ -1494,11 +1884,12 @@ class Racer():
         def changeMultiVisibility(hide):
             if hide == 0:
                 #mostrarlo
-                self.t_6.place(x=120, y=120, width=80)
-                self.t_5.place(x=20, y=120, height=25)
-                self.t_7.place(x=200, y=120, width=100)
-                self.t_7_1.place(x=200, y=176, width=100)
-                self.t_7_2.place(x=200, y=148, width=100)
+                self.t_6.place(x=120, y=120, width=80, height=27)
+                #self.t_6_1.place(x=120, y=148, width=80, height=27)
+                self.t_5.place(x=20, y=120, height=26)
+                self.t_7.place(x=200, y=120, width=100, height=27)
+                self.t_7_1.place(x=200, y=176, width=100, height=27)
+                self.t_7_2.place(x=200, y=148, width=100, height=27)
                 self.t_8.place(x=0, y=150)
                 self.t_9.place(x=0, y=175)
                 self.t_10.place(x=0, y=210)
@@ -1507,6 +1898,7 @@ class Racer():
             else:
                 #ocultarlo
                 self.t_6.place_forget()
+                #self.t_6_1.place_forget()
                 self.t_5.place_forget()
                 self.t_7.place_forget()
                 self.t_7_1.place_forget()
@@ -1545,6 +1937,8 @@ class Racer():
             variable=upload, command=onClickUpload,
             borderwidth=0)
         self.t_4_6.place(x=139, y=100)
+        if not log:
+            self.t_4_6.configure(state=DISABLED)
 
 
         self.toggleTrans()
@@ -1632,7 +2026,7 @@ class Countdown():
         self.color_trans_fg= "white"
         self.color_trans_bg= "#666666"
         self.color_normal_fg= "black"
-        self.color_normal_bg= "#f0f0f0"
+        self.color_normal_bg= "#666666"
 
         self.fg = StringVar(self.root)
         self.bg = StringVar(self.root)
@@ -1647,7 +2041,7 @@ class Countdown():
         self.root.geometry("400x100+{}+{}".format(positionRight, positionDown)) #Whatever size
 
         self.root.wm_attributes("-transparentcolor", "#666666")
-        self.root.configure(bg='#f0f0f0')
+        self.root.configure(bg='#666666')
         
         self.localcountdown = tk.StringVar(self.root,"")
 
@@ -1681,9 +2075,7 @@ class Countdown():
 
 
 if __name__ == '__main__':
-
-    #root.mainloop() 
-
+ 
     root = tk.Tk()
     root.call('wm', 'attributes', '.', '-topmost', '1')
 
@@ -1710,7 +2102,7 @@ if __name__ == '__main__':
         racer = Racer()
         countdownWidget = Countdown()
     
-
+    """
     def toggleAll():
 
         if not show_checkpoints_window:
@@ -1730,6 +2122,7 @@ if __name__ == '__main__':
 
     t_11 = tk.Button(root, text='Move Speedometer windows', command=lambda:toggleAll() ,fg="white", bg="#222222", relief='flat')
     t_11.pack(anchor="ne")
+    """
 
     meter.updateMeterTimer()
 

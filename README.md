@@ -1,4 +1,4 @@
-# RACE ASSISTANT v.1.4.25
+# RACE ASSISTANT v.1.4.27
 Speedometer for beetle races in guildwars2 using mumblelink API
 
 Ghost mode for beetle races in guildwars2 using mumblelink API
@@ -35,6 +35,7 @@ http://beetlerank.bounceme.net/
  - OLLO Akina
  - Geek
  - VAW (Two paths)
+ - UAoT
 ## Tyria
  - TYRIA INF.LEAP
  - TYRIA DIESSA PLATEAU

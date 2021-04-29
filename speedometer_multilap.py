@@ -89,6 +89,8 @@ drift_key = "'c'" # yes, double quoted but single quoted for special keys like '
 show_checkpoints_window = 1 
 
 client = ""
+mapId = 0
+lastMapId = 0
 
 winh = 110
 winw = 200
@@ -568,6 +570,9 @@ class Meter():
         global client
         global map_position_last_time_send
 
+        global mapId
+        global lastMapId
+
         if hud_drift_hold:
             
             i = self.canvas.find_withtag("drift_meter")
@@ -838,20 +843,33 @@ class Meter():
         #print("actualiza", flush=True)
         #toma de datos nueva
         ml.read()
+        print(mapId, lastMapId)
 
-        if (guildhall_name.get() != 'None, im free!'):
-            if (ml.context.mapId == 54):
-                guildhall_name.set('TYRIA BRISBAN WILD.')
-            elif (ml.context.mapId == 39):
-                guildhall_name.set("TYRIA INF.LEAP")
-            elif (ml.context.mapId == 32):
-                guildhall_name.set("TYRIA DIESSA PLATEAU")
-            elif (ml.context.mapId == 31):
-                guildhall_name.set("TYRIA SNOWDEN DRIFTS")
-            elif (ml.context.mapId == 24):
-                guildhall_name.set("TYRIA GENDARRAN")
-            elif (ml.context.mapId == 1330):
-                guildhall_name.set("TYRIA GROTHMAR VALLEY")
+        mapId = ml.context.mapId
+        if (mapId != lastMapId):
+            lastMapId = ml.context.mapId
+            if show_checkpoints_window:
+                print("save")
+
+            if (guildhall_name.get() != 'None, im free!'):
+                if (ml.context.mapId == 54):
+                    guildhall_name.set("TYRIA BRISBAN WILD.")
+                    racer.saveGuildhall("TYRIA BRISBAN WILD.")
+                elif (ml.context.mapId == 39):
+                    guildhall_name.set("TYRIA INF.LEAP")
+                    racer.saveGuildhall("TYRIA INF.LEAP")
+                elif (ml.context.mapId == 32):
+                    guildhall_name.set("TYRIA DIESSA PLATEAU")
+                    racer.saveGuildhall("TYRIA DIESSA PLATEAU")
+                elif (ml.context.mapId == 31):
+                    guildhall_name.set("TYRIA SNOWDEN DRIFTS")
+                    racer.saveGuildhall("TYRIA SNOWDEN DRIFTS")
+                elif (ml.context.mapId == 24):
+                    guildhall_name.set("TYRIA GENDARRAN")
+                    racer.saveGuildhall("TYRIA GENDARRAN")
+                elif (ml.context.mapId == 1330):
+                    guildhall_name.set("TYRIA GROTHMAR VALLEY")
+                    racer.saveGuildhall("TYRIA GROTHMAR VALLEY")
             
                 
         _tick = ml.data.uiTick

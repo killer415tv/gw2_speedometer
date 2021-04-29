@@ -843,13 +843,11 @@ class Meter():
         #print("actualiza", flush=True)
         #toma de datos nueva
         ml.read()
-        print(mapId, lastMapId)
 
         mapId = ml.context.mapId
         if (mapId != lastMapId):
             lastMapId = ml.context.mapId
             if show_checkpoints_window:
-                print("save")
 
             if (guildhall_name.get() != 'None, im free!'):
                 if (ml.context.mapId == 54):

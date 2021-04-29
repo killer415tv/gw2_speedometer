@@ -847,7 +847,6 @@ class Meter():
         mapId = ml.context.mapId
         if (mapId != lastMapId):
             lastMapId = ml.context.mapId
-            if show_checkpoints_window:
 
             if (guildhall_name.get() != 'None, im free!'):
                 if (ml.context.mapId == 54):

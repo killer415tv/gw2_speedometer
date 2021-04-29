@@ -839,6 +839,21 @@ class Meter():
         #toma de datos nueva
         ml.read()
 
+        if (guildhall_name.get() != 'None, im free!'):
+            if (ml.context.mapId == 54):
+                guildhall_name.set('TYRIA BRISBAN WILD.')
+            elif (ml.context.mapId == 39):
+                guildhall_name.set("TYRIA INF.LEAP")
+            elif (ml.context.mapId == 32):
+                guildhall_name.set("TYRIA DIESSA PLATEAU")
+            elif (ml.context.mapId == 31):
+                guildhall_name.set("TYRIA SNOWDEN DRIFTS")
+            elif (ml.context.mapId == 24):
+                guildhall_name.set("TYRIA GENDARRAN")
+            elif (ml.context.mapId == 1330):
+                guildhall_name.set("TYRIA GROTHMAR VALLEY")
+            
+                
         _tick = ml.data.uiTick
         _time = time.time()
         
@@ -1476,6 +1491,19 @@ class Racer():
             
         self.move = not self.move
 
+    def saveGuildhall(self,value):
+        #stores in counterDone.txt number of total laps done
+        global guildhall_name
+
+        self.root.focus_set()
+    
+        file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "guildhall.txt", "w")
+        file.write(str(guildhall_name.get()))
+        file.close()
+        if enable_ghost_keys:
+            keyboard_.press(recalculate_ghost)
+            keyboard_.release(recalculate_ghost)
+
     def __init__(self):
         
         global guildhall_name
@@ -1518,26 +1546,15 @@ class Racer():
         guildhall_laps = StringVar(self.root)
         guildhall_laps.set("1 lap")
 
-        def saveGuildhall(value):
-            #stores in counterDone.txt number of total laps done
-            global guildhall_name
 
-            self.root.focus_set()
-        
-            file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "guildhall.txt", "w")
-            file.write(str(guildhall_name.get()))
-            file.close()
-            if enable_ghost_keys:
-                keyboard_.press(recalculate_ghost)
-                keyboard_.release(recalculate_ghost)
 
-        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.4.27""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
+        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.4.29""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
         self.t_1.place(x=0, y=10)
         self.t_2 = tk.Label(self.root, text="""Choose map to race""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_2.place(x=0, y=40)
         
         self.choices = ['None, im free!', "OLLO Akina", 'RACE Downhill', 'RACE Hillclimb', 'RACE Full Mountain Run', 'GeeK', 'UAoT', 'VAW Left path', 'VAW Right path', 'GWTC', 'EQE', 'SoTD', 'LRS', 'HUR', "TYRIA INF.LEAP", "TYRIA DIESSA PLATEAU", "TYRIA SNOWDEN DRIFTS", "TYRIA GENDARRAN", "TYRIA BRISBAN WILD.", "TYRIA GROTHMAR VALLEY"]
-        self.t_3 = tk.OptionMenu(self.root, guildhall_name, *self.choices, command = saveGuildhall)
+        self.t_3 = tk.OptionMenu(self.root, guildhall_name, *self.choices, command = self.saveGuildhall)
         self.t_3.config(font=("Lucida Console", 10))
         self.t_3["highlightthickness"] = 0
         self.t_3["activebackground"] = "#222222"

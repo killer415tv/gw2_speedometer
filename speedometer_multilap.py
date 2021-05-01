@@ -80,7 +80,7 @@ hud_acceleration = 0 # 1 = on , 0 = off
 #show Angle meter, shows angles between velocity and mouse camera , and velocity and avatar angle 
 hud_angles = 0 # 1 = on , 0 = off 
 hud_angles_bubbles = 1 # 1 = on , 0 = off
-magic_angle = 48 # angle for hud_angles_bubbles, to show a visual guide of the magic angle
+magic_angle = 60 # angle for hud_angles_bubbles, to show a visual guide of the magic angle
 
 #show drift hold meter
 hud_drift_hold = 0
@@ -138,6 +138,41 @@ if audio:
 #-----------------------------
 #  END CONFIGURATION VARIABLES
 #-----------------------------
+
+from ctypes import windll, byref, create_unicode_buffer, create_string_buffer
+FR_PRIVATE  = 0x10
+FR_NOT_ENUM = 0x20
+
+def loadfont(fontpath, private=True, enumerable=False):
+    '''
+    Makes fonts located in file `fontpath` available to the font system.
+
+    `private`     if True, other processes cannot see this font, and this 
+                  font will be unloaded when the process dies
+    `enumerable`  if True, this font will appear when enumerating fonts
+
+    See https://msdn.microsoft.com/en-us/library/dd183327(VS.85).aspx
+
+    '''
+    # This function was taken from
+    # https://github.com/ifwe/digsby/blob/f5fe00244744aa131e07f09348d10563f3d8fa99/digsby/src/gui/native/win/winfonts.py#L15
+    # This function is written for Python 2.x. For 3.x, you
+    # have to convert the isinstance checks to bytes and str
+    if isinstance(fontpath, bytes):
+        pathbuf = create_string_buffer(fontpath)
+        AddFontResourceEx = windll.gdi32.AddFontResourceExA
+    elif isinstance(fontpath, str):
+        pathbuf = create_unicode_buffer(fontpath)
+        AddFontResourceEx = windll.gdi32.AddFontResourceExW
+    else:
+        raise TypeError('fontpath must be of type str or unicode')
+
+    flags = (FR_PRIVATE if private else 0) | (FR_NOT_ENUM if not enumerable else 0)
+    numFontsAdded = AddFontResourceEx(byref(pathbuf), flags, 0)
+    return bool(numFontsAdded)
+
+loadfont(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "font.ttf")
+
 
 class Configuration():
     def __init__(self, master=None, **kw):
@@ -455,21 +490,21 @@ class Meter():
                 on_release=self.on_release)
             listener.start()
 
-            self.outer_drifting_box = self.canvas.create_rectangle(20,30,30,100, outline="white", width="1")
-            self.outer_drifting_box = self.canvas.create_rectangle(23,33,27,97, outline="#ff5436", fill='#ff5436', width="1", tags="drift_meter")
-            self.drifting_label = tk.Label(self.root, textvariable = self.drift_time_tk, fg = "white", bg="#666666", font=("Lucida Console", 9)).place(x = 12, y = 102)
+            self.outer_drifting_box = self.canvas.create_rectangle(20,30,30,100, outline="white", width="1", tags="drift_meter_border")
+            self.inner_drifting_box = self.canvas.create_rectangle(23,33,27,97, outline="#ff5436", fill='#ff5436', width="5", tags="drift_meter")
+            self.drifting_label = tk.Label(self.root, textvariable = self.drift_time_tk, fg = "white", bg="#666666", font=("Digital-7 Mono", 9)).place(x = 12, y = 102)
 
         if hud_angles:
             self.angletext = tk.Label(self.root, text="Cam   Beetle", fg = "white", bg="#666666", font=("Lucida Console", 7)).place(x = 146, y = 46)
-            self.anglenum = tk.Label(self.root, textvariable = self.anglevar, fg = "white", bg="#666666", font=("Lucida Console", 8, "bold")).place(x = 145, y = 57)
+            self.anglenum = tk.Label(self.root, textvariable = self.anglevar, fg = "white", bg="#666666", font=("Digital-7 Mono", 8, "bold")).place(x = 145, y = 57)
         
         if hud_acceleration:
             self.acceltext = tk.Label(self.root, text="Accel.", fg = "white", bg="#666666", font=("Lucida Console", 7)).place(x = 231, y = 46)
-            self.accelnum = tk.Label(self.root, textvariable = self.accelvar, fg = "white", bg="#666666", font=("Lucida Console", 8, "bold")).place(x = 230, y = 57)
+            self.accelnum = tk.Label(self.root, textvariable = self.accelvar, fg = "white", bg="#666666", font=("Digital-7 Mono", 8, "bold")).place(x = 230, y = 57)
 
         if hud_gauge:
-            self.numero = tk.Label(self.root, textvariable = self.var100, fg = "white", bg="#666666", font=("Lucida Console", 44, "bold")).place(x = 165, y = 75)
-            self.canvas.create_arc(2*10, 2*15, 2*winw-10, 2*winw-10, extent=108, start=36,style='arc', outline="#666666", width="40", tags="arc")
+            self.numero = tk.Label(self.root, textvariable = self.var100, fg = "white", bg="#666666", font=("Digital-7 Mono", 50)).place(relx = 1, x = -412, y = 75, anchor = 'ne')
+            self.canvas.create_arc(2*10, 2*15, 2*winw-10, 2*winw-10, extent=108, start=36,style='arc', outline="#666666", width="35", tags="arc")
             self.canvas.create_arc(2*10, 2*15, 2*winw-10, 2*winw-10, extent=108, start=36,style='arc', outline="white", width="16", tags="arcbg")
             self.canvas.create_arc(2*10, 2*15, 2*winw-10, 2*winw-10, extent=108, start=36,style='arc', outline="#666666", width="14", tags="arcbg")
 
@@ -491,9 +526,9 @@ class Meter():
 
         #if hud_timer:
             self.vartime = tk.StringVar(self.root, "")
-            self.timenum = tk.Label(self.root, textvariable = self.vartime, fg = "#aaaaaa", bg="#666666", font=("Lucida Console", 20, "bold")).place(x = 124, y = 145)
+            self.timenum_label = tk.Label(self.root, textvariable = self.vartime, fg = "#aaaaaa", bg="#666666", font=("Digital-7 Mono", 20)).place(x = 144, y = 145)
             self.distance = tk.StringVar(self.root, "")
-            self.timenum = tk.Label(self.root, textvariable = self.distance, fg = "#aaaaaa", bg="#666666", font=("Lucida Console", 15)).place(x = 124, y = 170)
+            self.distance_label = tk.Label(self.root, textvariable = self.distance, fg = "#aaaaaa", bg="#666666", font=("Digital-7 Mono", 15)).place(x = 144, y = 170)
             self.steps_txt = tk.StringVar(self.root, "")
             self.steps0 = tk.Label(self.root, textvariable = self.steps_txt, fg = "white", bg="#666666", font=("Lucida Console", 15, "bold")).place(x = 395, y = 0)
             self.step1_txt = tk.StringVar(self.root, "")
@@ -576,11 +611,13 @@ class Meter():
         if hud_drift_hold:
             
             i = self.canvas.find_withtag("drift_meter")
+            b = self.canvas.find_withtag("drift_meter_border")
             if self.drifting:
                 seconds = round((time.perf_counter() - self.drift_time) * 100)/100
                 self.drift_time_tk.set(round((time.perf_counter() - self.drift_time) * 10)/10)
                 pixels = min(64,round(seconds * 64 / 1.2))
                 self.canvas.coords(i, 23, 97-pixels , 27, 97)
+                self.canvas.itemconfig(b, outline="white")
                 
                 if (seconds > 1.0):
                     self.canvas.itemconfig(i, outline="#ff8a36")
@@ -591,10 +628,13 @@ class Meter():
                 if (seconds > 1.2):
                     self.canvas.itemconfig(i, outline="#de1f18")
                     self.canvas.itemconfig(i, fill="#de1f18")
+                    self.canvas.itemconfig(b, outline="#de1f18")
             else:
                 self.canvas.coords(i, 23, 96 , 27, 97)
                 self.canvas.itemconfig(i, outline="white")
                 self.canvas.itemconfig(i, fill="white")
+                self.canvas.itemconfig(b, outline="#666")
+
 
         def different(v1,v2):
             if ( v1[0] == v2[0] and v1[1] == v2[1] and v1[2] == v2[2] ):
@@ -1200,10 +1240,10 @@ class Meter():
                     self.var100.set(round((velocity*100/10000)*99/72))
                     i = self.canvas.find_withtag("arc")
                     self.canvas.itemconfig(i, outline=color)
-                    i = self.canvas.find_withtag("numero")
-                    self.canvas.itemconfig(i, fg=color)
+                    #i = self.canvas.find_withtag("numero")
+                    #self.canvas.itemconfig(i, fg=color)
 
-                    
+                                    
             _lastTime = _time
             _lastPos = _pos
             _lastVel = velocity
@@ -1563,7 +1603,7 @@ class Racer():
 
 
 
-        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.4.29""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
+        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.5.1""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
         self.t_1.place(x=0, y=10)
         self.t_2 = tk.Label(self.root, text="""Choose map to race""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_2.place(x=0, y=40)

@@ -1062,12 +1062,12 @@ class Meter():
                 if guildhall_name.get() == "VAW Left path":
                     checkTP([35.67, 111.35, -7.02]) # use this position when you take te map TP , to stop log file
                     checkpoint("start", [-293.9,  525.1,  293.7])
-                    checkpoint("end", [-246.6, 3.8, 246.5])
+                    checkpoint("end", [-255.1, 3.8, 303.8])
 
                 if guildhall_name.get() == "VAW Right path":
                     checkTP([35.67, 111.35, -7.02]) # use this position when you take te map TP , to stop log file
                     checkpoint("start", [-293.9,  525.1,  293.7])
-                    checkpoint("end", [-246.6, 3.8, 246.5])
+                    checkpoint("end", [-255.1, 3.8, 303.8])
 
                 if guildhall_name.get() == "GeeK":
                     checkTP([114, 9,37]) # use this position when you take te map TP , to stop log file

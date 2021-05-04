@@ -290,6 +290,8 @@ class Ghost3d(object):
                             endpoint = [-314, 997, -378.2]
                         elif guildhall_name == "UAoT":
                             endpoint = [302, 96, 215]
+                        elif guildhall_name == "INDI":
+                            endpoint = [0.5, 59, -115]
                         
                     
                         try:
@@ -402,6 +404,10 @@ class Ghost3d(object):
                 self.color1 = "#714227"
                 self.color2 = "#936140"
             elif guildhall_name == "GeeK":
+                self.scale = 1/2
+                self.color1 = "#714227"
+                self.color2 = "#936140"
+            elif guildhall_name == "INDI":
                 self.scale = 1/2
                 self.color1 = "#714227"
                 self.color2 = "#936140"

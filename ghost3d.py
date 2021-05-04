@@ -291,6 +291,8 @@ class Ghost3d(object):
                             endpoint = [-314, 997, -378.2]
                         elif guildhall_name == "UAoT":
                             endpoint = [302, 96, 215]
+                        elif guildhall_name == "INDI":
+                            endpoint = [0.5, 59, -115]
                         
                     
                         try:

@@ -1082,6 +1082,11 @@ class Meter():
                     checkpoint(2, [27, 237, -80])
                     checkpoint(3, [230, 19, -226])
                     checkpoint("end", [302, 96, 215])
+                
+                if guildhall_name.get() == "INDI":
+                    checkTP([3.1, 61, -35]) # use this position when you take te map TP , to stop log file
+                    checkpoint("start", [0, 730.6,-43])
+                    checkpoint("end", [0.5, 59, -115])
 
 
                 
@@ -1603,12 +1608,12 @@ class Racer():
 
 
 
-        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.5.1""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
+        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.5.4""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
         self.t_1.place(x=0, y=10)
         self.t_2 = tk.Label(self.root, text="""Choose map to race""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_2.place(x=0, y=40)
         
-        self.choices = ['None, im free!', "OLLO Akina", 'RACE Downhill', 'RACE Hillclimb', 'RACE Full Mountain Run', 'GeeK', 'UAoT', 'VAW Left path', 'VAW Right path', 'GWTC', 'EQE', 'SoTD', 'LRS', 'HUR', "TYRIA INF.LEAP", "TYRIA DIESSA PLATEAU", "TYRIA SNOWDEN DRIFTS", "TYRIA GENDARRAN", "TYRIA BRISBAN WILD.", "TYRIA GROTHMAR VALLEY"]
+        self.choices = ['None, im free!', "OLLO Akina", 'RACE Downhill', 'RACE Hillclimb', 'RACE Full Mountain Run', 'GeeK','INDI', 'UAoT', 'VAW Left path', 'VAW Right path', 'GWTC', 'EQE', 'SoTD', 'LRS', 'HUR', "TYRIA INF.LEAP", "TYRIA DIESSA PLATEAU", "TYRIA SNOWDEN DRIFTS", "TYRIA GENDARRAN", "TYRIA BRISBAN WILD.", "TYRIA GROTHMAR VALLEY"]
         self.t_3 = tk.OptionMenu(self.root, guildhall_name, *self.choices, command = self.saveGuildhall)
         self.t_3.config(font=("Lucida Console", 10))
         self.t_3["highlightthickness"] = 0

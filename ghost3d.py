@@ -28,7 +28,6 @@ import threading
 import queue
 
 
-import numpy as np
 import PySide2
 from pyqtgraph.Qt import QtCore, QtGui
 import pyqtgraph.opengl as gl
@@ -59,6 +58,8 @@ guildhall_name = ""
 filename_timer = 99999
 ghost_number = 1
 forceFile = False
+
+splitTime = 1  #check time diff each 1 secs
 
 
 
@@ -320,13 +321,11 @@ class Ghost3d(object):
             else:
                 print("THERE IS NO LOG FILES YET")
 
-
-
-    
     def __init__(self):
 
         global fAvatarPosition
         global guildhall_name
+        global timer
 
         self.file_ready = False
 
@@ -342,8 +341,24 @@ class Ghost3d(object):
 
         #time viewer
         self.wtime = QtGui.QWidget()
+        self.wtime.setStyleSheet("background-color: black;")
 
 
+        layout = QtGui.QVBoxLayout()
+        layout.setAlignment(QtCore.Qt.AlignCenter)
+        self.wtime.setLayout(layout)
+
+        self.label = QtGui.QLabel(str(timer))
+        self.label.setFont(QtGui.QFont('Lucida Console', 20))
+        self.label.setStyleSheet("background: rgba(255, 0, 0, 0);");
+        
+        #my_font = QFont("Times New Roman", 12)
+        #my_button.setFont(my_font)
+
+        self.wtime.layout().addWidget(self.label)
+
+
+        
 
 
         windowWidth = self.root.winfo_screenwidth()
@@ -357,7 +372,7 @@ class Ghost3d(object):
             QtCore.Qt.WindowStaysOnTopHint |
             QtCore.Qt.FramelessWindowHint)
         self.wtime.setAttribute(QtCore.Qt.WA_TranslucentBackground)
-        self.wtime.setWindowOpacity(0.7)
+        self.wtime.setWindowOpacity(1)
         #self.wtime.setBackgroundColor(0,0,0,1)
 
         def empty(ev):
@@ -449,8 +464,43 @@ class Ghost3d(object):
         global timer
         global ghost_number
         global filename_timer
+        global splitTime
+        global fAvatarPosition
+
 
         timer = time.perf_counter() - filename_timer
+
+
+
+        #here we are going to check the time diff
+        if hasattr(self, 'df') and self.file_ready == True:
+
+            xy = ['X', 'Y', 'Z']
+            distance_array = np.sum((self.df[xy].values - fAvatarPosition)**2, axis=1)
+
+            ghostTimer = float(self.df["TIME"].values[distance_array.argmin()])
+            ownTimer = timer
+            diffTimer = ownTimer - ghostTimer
+
+            if diffTimer < -1000:
+                diffTimer = 0
+            
+            # el tiempo datetime.strftime(datetime.utcfromtimestamp(timer), "%M:%S:%f")[:-3]
+
+            #print( str(round(diffTimer)) + " segs" )
+
+            if timer < 0:
+                self.label.setText('<font color=\"white\">Ghost is waiting to start</font>')
+            else:
+                if diffTimer > 0:
+                    self.label.setText('<font color=\"red\">' + str(round(diffTimer*10)/10) + '</font>')
+                else:
+                    self.label.setText('<font color=\"Lime\">' + str(round(diffTimer*10)/10) + '</font>')
+                
+
+                
+
+
 
         #for x in self.all_files[-ghost_number:]:
         if hasattr(self, 'df') and self.file_ready == True:

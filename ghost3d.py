@@ -318,6 +318,16 @@ class Ghost3d(object):
                     print("- PRESS KEY 'Y' TO RECALCULATE THE BEST FILE")
                     print("- Speedometer program will automatically press 't' and 'y' each time you start or finish a timed track")
                     print("-----------------------------------------------")
+
+                    self.df = pd.DataFrame()
+                    file_df = pd.read_csv(self.best_file)
+                    file_df['file_name'] = self.best_file
+                    self.df = self.df.append(file_df)
+                    min_time = 99999
+                    print("-----------------------------------------------")
+                    print("- LOAD LOG FILE" , self.best_file )
+                    print("-----------------------------------------------")
+
             else:
                 print("THERE IS NO LOG FILES YET")
 
@@ -470,12 +480,11 @@ class Ghost3d(object):
 
         timer = time.perf_counter() - filename_timer
 
-
-
         #here we are going to check the time diff
         if hasattr(self, 'df') and self.file_ready == True:
 
             xy = ['X', 'Y', 'Z']
+            self.df[xy] = self.df[xy].astype(float)
             distance_array = np.sum((self.df[xy].values - fAvatarPosition)**2, axis=1)
 
             ghostTimer = float(self.df["TIME"].values[distance_array.argmin()])

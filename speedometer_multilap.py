@@ -1596,7 +1596,7 @@ class Racer():
 
         #get ranking from web
         #pepe
-        if (guildhall_name == "None, im free!"):
+        if (guildhall_name.get() == "None, im free!"):
             self.map_ranking_var.set("")
         else:
             headers = {

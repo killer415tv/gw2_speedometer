@@ -797,7 +797,7 @@ class Meter():
                             if log:
                                 response = requests.post('http://beetlerank.bounceme.net/upload-log',data={'user': json.loads(ml.data.identity)["name"], 'guildhall': guildhall_name.get()}, files={'file': open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + filename,'rb')})
                                 print("Log uploaded to web")
-                                racer.saveGuildhall()
+                                racer.saveGuildhall(guildhall_name.get())
 
                         if int(lap) == int(total_laps):
                             datefinish = datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime_lap), "%M:%S:%f")[:-3]

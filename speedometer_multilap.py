@@ -80,7 +80,7 @@ hud_acceleration = 0 # 1 = on , 0 = off
 #show Angle meter, shows angles between velocity and mouse camera , and velocity and avatar angle 
 hud_angles = 0 # 1 = on , 0 = off 
 hud_angles_bubbles = 1 # 1 = on , 0 = off
-magic_angle = 60 # angle for hud_angles_bubbles, to show a visual guide of the magic angle
+magic_angle = 58 # angle for hud_angles_bubbles, to show a visual guide of the magic angle
 
 #show drift hold meter
 hud_drift_hold = 0
@@ -450,8 +450,21 @@ class Meter():
             _pos = [0,0]
             _lastPos = [0,0]
 
+        self.var = tk.IntVar(self.root, 0)
+        self.var100 = tk.IntVar(self.root, 0)
+
+        self.canvas = tk.Canvas(self.root, width=winw+800, height=winh-150,
+                                borderwidth=0, highlightthickness=0,
+                                bg='#666666')
+
         if hud_angles:
             self.anglevar = tk.StringVar(self.root,0)
+            self.airdrift_angle_tk = tk.IntVar(self.root, 0.0)
+            
+            self.outer_airdrift_box = self.canvas.create_rectangle(20 + 356, 30,30 + 356, 100, outline="white", width="1", tags="airdrift_meter_border")
+            self.inner_airdrift_box = self.canvas.create_rectangle(23 + 356, 33,27 + 356, 97, outline="#ff5436", fill='#ff5436', width="5", tags="airdrift_meter")
+            self.airdrift_label = tk.Label(self.root, textvariable = self.airdrift_angle_tk, fg = "white", bg="#666666", font=("Digital-7 Mono", 9)).place(x = 17 + 356, y = 102)
+
         if hud_acceleration:
             self.accelvar = tk.StringVar(self.root,0)
         if hud_drift_hold:
@@ -459,13 +472,6 @@ class Meter():
             self.drift_time = 0.0
             self.drift_time_tk = tk.IntVar(self.root, 0.0)
 
-
-        self.var = tk.IntVar(self.root, 0)
-        self.var100 = tk.IntVar(self.root, 0)
-
-        self.canvas = tk.Canvas(self.root, width=winw+800, height=winh-150,
-                                borderwidth=0, highlightthickness=0,
-                                bg='#666666')
 
         def _create_circle(self, x, y, r, **kwargs):
             return self.create_oval(x-r, y-r, x+r, y+r, **kwargs)
@@ -791,6 +797,7 @@ class Meter():
                             if log:
                                 response = requests.post('http://beetlerank.bounceme.net/upload-log',data={'user': json.loads(ml.data.identity)["name"], 'guildhall': guildhall_name.get()}, files={'file': open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + filename,'rb')})
                                 print("Log uploaded to web")
+                                racer.saveGuildhall()
 
                         if int(lap) == int(total_laps):
                             datefinish = datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime_lap), "%M:%S:%f")[:-3]
@@ -1154,7 +1161,28 @@ class Meter():
                         if math.isnan(angle_between_res1) == False and math.isnan(angle_between_res2) == False:
 
                             self.anglevar.set(str(int(angle_between_res1)) + "º/ " + str(int(angle_between_res2)) + "º")
+                            
+                            global magic_angle
 
+                            i = self.canvas.find_withtag("airdrift_meter")
+                            b = self.canvas.find_withtag("airdrift_meter_border")
+                            beetleangle = abs(int(angle_between_res2))
+                            self.airdrift_angle_tk.set(beetleangle)
+                            pixels = min(64,round(beetleangle * 64 / magic_angle))
+                            self.canvas.coords(i, 23 + 356, 97-pixels , 27 + 356, 97)
+                            self.canvas.itemconfig(i, outline="#7897ff")
+                            self.canvas.itemconfig(i, fill="#7897ff")
+                            self.canvas.itemconfig(b, outline="white")
+
+                            if (beetleangle > magic_angle):
+                                self.canvas.itemconfig(i, outline="#ff8a36")
+                                self.canvas.itemconfig(i, fill="#ff8a36")
+                                self.canvas.itemconfig(b, outline="#ff8a36")
+                            if (beetleangle > magic_angle + 10):
+                                self.canvas.itemconfig(i, outline="#de1f18")
+                                self.canvas.itemconfig(i, fill="#de1f18")
+                                self.canvas.itemconfig(b, outline="#de1f18")
+                            
                             full_straight_vector = [0,-1]
 
                             #forzamos el vector velocidad siempre alante
@@ -1451,6 +1479,7 @@ class Racer():
     def toggleTrans(self):
         if (self.move):
             self.root.overrideredirect(1)
+            self.map_ranking.configure(fg=self.color_trans_fg); self.map_ranking.configure(bg=self.color_trans_bg)
             self.t_1.configure(fg=self.color_trans_fg); self.t_1.configure(bg=self.color_trans_bg)
             self.t_2.configure(fg=self.color_trans_fg); self.t_2.configure(bg=self.color_trans_bg)
             self.t_3.configure(fg=self.color_trans_fg); self.t_3.configure(bg="#222222")
@@ -1501,6 +1530,7 @@ class Racer():
             
         else:
             self.root.overrideredirect(0)
+            self.map_ranking.configure(fg=self.color_normal_fg); self.map_ranking.configure(bg=self.color_normal_bg)
             self.t_1.configure(fg=self.color_normal_fg); self.t_1.configure(bg=self.color_normal_bg)
             self.t_2.configure(fg=self.color_normal_fg); self.t_2.configure(bg=self.color_normal_bg)
             self.t_3.configure(fg=self.color_normal_fg); self.t_3.configure(bg=self.color_normal_bg)
@@ -1564,6 +1594,20 @@ class Racer():
             keyboard_.press(recalculate_ghost)
             keyboard_.release(recalculate_ghost)
 
+        #get ranking from web
+        #pepe
+        if (guildhall_name == "None, im free!"):
+            self.map_ranking_var.set("")
+        else:
+            headers = {
+                'Origin': 'null',
+                'Referer': 'null'
+            }
+            response = requests.get('http://beetlerank.bounceme.net/rank/api/' + str(guildhall_name.get()), headers)
+        
+            self.map_ranking_var.set(response.text)
+
+
     def __init__(self):
         
         global guildhall_name
@@ -1608,7 +1652,7 @@ class Racer():
 
 
 
-        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.5.4""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
+        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.5.8""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
         self.t_1.place(x=0, y=10)
         self.t_2 = tk.Label(self.root, text="""Choose map to race""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_2.place(x=0, y=40)
@@ -1966,6 +2010,14 @@ class Racer():
         self.t_10 = tk.Label(self.root, textvariable=self.ranking, justify = tk.LEFT, padx = 20,fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_10.place(x=0, y=210)
 
+        #ranking label
+        self.map_ranking_var = StringVar(self.root)
+        self.map_ranking_var.set("")
+
+        self.map_ranking = tk.Label(self.root, textvariable=self.map_ranking_var, justify = tk.LEFT, padx = 0,fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
+        self.map_ranking.place(x=20, y=130)
+
+
 
         def changeMultiVisibility(hide):
             if hide == 0:
@@ -1980,6 +2032,9 @@ class Racer():
                 self.t_9.place(x=0, y=175)
                 self.t_10.place(x=0, y=210)
 
+                #ranking hide
+                self.map_ranking.place_forget()
+
 
             else:
                 #ocultarlo
@@ -1992,6 +2047,12 @@ class Racer():
                 self.t_8.place_forget()
                 self.t_9.place_forget()
                 self.t_10.place_forget()
+
+                #ranking show
+                self.map_ranking.place(x=20, y=130)
+
+
+
 
         self.multiplayer = IntVar(value=0)
         upload = IntVar(value=0)

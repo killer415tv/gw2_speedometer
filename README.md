@@ -1,6 +1,6 @@
 ![LOGO](https://user-images.githubusercontent.com/44058571/116699002-597dcc00-a9c5-11eb-8c08-e11e52794992.jpg)
 
-# RACE ASSISTANT v.1.5.1
+# RACE ASSISTANT v.1.5.8
 Speedometer for beetle races in guildwars2 using mumblelink API
 
 Ghost mode for beetle races in guildwars2 using mumblelink API

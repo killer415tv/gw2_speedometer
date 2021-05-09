@@ -801,9 +801,8 @@ class Meter():
                                 }
                                 response = requests.post('http://beetlerank.bounceme.net/upload-log',data={'user': json.loads(ml.data.identity)["name"], 'guildhall': guildhall_name.get()}, files={'file': open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + filename,'rb')}, headers=headers)
                                 print("Log uploaded to web")
-                                print("1",response)
                                 print("2",response.text)
-                                if response.text:
+                                if response.text and int(total_laps) == 1:
                                     message.write(response.text)
                                 racer.saveGuildhall(guildhall_name.get())
 

@@ -795,8 +795,16 @@ class Meter():
                         #upload log to 
                         if upload.get() == 1:
                             if log:
-                                response = requests.post('http://beetlerank.bounceme.net/upload-log',data={'user': json.loads(ml.data.identity)["name"], 'guildhall': guildhall_name.get()}, files={'file': open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + filename,'rb')})
+                                headers = {
+                                    'Origin': 'null',
+                                    'Referer': 'null'
+                                }
+                                response = requests.post('http://beetlerank.bounceme.net/upload-log',data={'user': json.loads(ml.data.identity)["name"], 'guildhall': guildhall_name.get()}, files={'file': open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + filename,'rb')}, headers=headers)
                                 print("Log uploaded to web")
+                                print("1",response)
+                                print("2",response.text)
+                                if response.text:
+                                    message.write(response.text)
                                 racer.saveGuildhall(guildhall_name.get())
 
                         if int(lap) == int(total_laps):
@@ -1651,8 +1659,7 @@ class Racer():
         guildhall_laps.set("1 lap")
 
 
-
-        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.5.8""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
+        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.5.9""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
         self.t_1.place(x=0, y=10)
         self.t_2 = tk.Label(self.root, text="""Choose map to race""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_2.place(x=0, y=40)
@@ -2180,12 +2187,12 @@ class Countdown():
         self.fg.set(self.color_normal_fg)
         self.bg.set(self.color_normal_bg)
 
-        windowWidth = self.root.winfo_reqwidth()
-        windowHeight = self.root.winfo_reqheight()
-        positionRight = int(root.winfo_screenwidth()/2 - windowWidth/2) 
-        positionDown = int(root.winfo_screenheight()/2 - windowHeight/2) 
+        windowWidth = 500
+        windowHeight = 100
+        positionRight = int(root.winfo_screenwidth()/2 - windowWidth/2)
+        positionDown = int(root.winfo_screenheight()/2 - windowHeight/2)
         self.root.title("Countdown")
-        self.root.geometry("400x100+{}+{}".format(positionRight, positionDown)) #Whatever size
+        self.root.geometry("{}x{}+{}+{}".format(windowWidth, windowHeight, positionRight, positionDown)) #Whatever size
 
         self.root.wm_attributes("-transparentcolor", "#666666")
         self.root.configure(bg='#666666')
@@ -2220,6 +2227,83 @@ class Countdown():
         else:
             self.root.after(500, self.checkCountdowntxt)
 
+class Message():
+    def __init__(self):
+        
+        global countdowntxt
+
+        self.move = True
+
+        self.root = Tk()
+        self.root.call('wm', 'attributes', '.', '-topmost', '1')
+
+        self.color_trans_fg= "white"
+        self.color_trans_bg= "#666666"
+        self.color_normal_fg= "black"
+        self.color_normal_bg= "#666666"
+
+        self.fg = StringVar(self.root)
+        self.bg = StringVar(self.root)
+        self.fg.set(self.color_normal_fg)
+        self.bg.set(self.color_normal_bg)
+
+        windowWidth = 500
+        windowHeight = 220
+        positionRight = int(root.winfo_screenwidth()/2 - windowWidth/2)
+        positionDown = int(root.winfo_screenheight()/2 - windowHeight/2)
+        self.root.title("Message")
+        self.root.geometry("{}x{}+{}+{}".format(windowWidth, windowHeight, positionRight, positionDown)) #Whatever size
+
+        self.root.wm_attributes("-transparentcolor", "#666666")
+        self.root.configure(bg='#666666')
+        
+        self.localcountdown = tk.StringVar(self.root,"")
+
+        self.canvas = tk.Canvas(self.root, width=500, height=220,
+                                borderwidth=0, highlightthickness=0,
+                                bg='#222')
+        self.outer_drifting_box = self.canvas.create_rectangle(1,1,499,219, outline="white", width="1")
+
+        self.time = tk.Label(self.root, textvariable=self.localcountdown, justify = tk.CENTER, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 30))
+        #self.time.place(x=0, y=0)
+        self.btn = tk.Button(self.root, text="Ok", padx= 20,font=("Lucida Console", 10),command=lambda:self.hide())
+        self.time.pack(expand=True, padx=2)
+        self.btn.pack(pady= 10)
+
+        self.canvas.place(x = 0, y = 0)
+
+        self.toggleTrans()
+        self.hide()
+        #self.checkCountdowntxt()  y
+
+    def toggleTrans(self):
+        if (self.move):
+            self.root.overrideredirect(1)
+            self.time.configure(fg=self.color_trans_fg); self.time.configure(bg="#222")
+            self.btn.configure(fg=self.color_trans_fg); self.btn.configure(bg="#222222")
+            self.root.configure(bg=self.color_trans_bg)
+        else:
+            self.root.overrideredirect(0)
+            self.time.configure(fg=self.color_trans_fg); self.time.configure(bg=self.color_trans_bg)
+            self.btn.configure(fg=self.color_normal_fg); self.btn.configure(bg=self.color_normal_bg)
+            self.root.configure(bg=self.color_normal_bg)
+            
+        self.move = not self.move
+
+    def hide(self):
+        self.root.withdraw()
+    
+    def show(self):
+        self.root.update()
+        self.root.deiconify()
+
+    def write(self,msg):
+        self.localcountdown.set(msg)
+        self.show()
+        self.root.lift()
+        #self.root.after(5000, self.hide)
+
+
 
 if __name__ == '__main__':
  
@@ -2248,6 +2332,7 @@ if __name__ == '__main__':
     if show_checkpoints_window:
         racer = Racer()
         countdownWidget = Countdown()
+        message = Message()
     
     """
     def toggleAll():

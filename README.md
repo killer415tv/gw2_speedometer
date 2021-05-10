@@ -46,6 +46,8 @@ http://beetlerank.bounceme.net/
  - TYRIA GENDARRAN
  - TYRIA BRISBAN WILD.
  - TYRIA GROTHMAR VALLEY
+## DRFT
+ - DRFT-1 Fractal Actual Speedway
 
 
 # Demo

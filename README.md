@@ -38,6 +38,7 @@ http://beetlerank.bounceme.net/
  - Geek
  - VAW (Two paths)
  - UAoT
+ - INDI
 ## Tyria
  - TYRIA INF.LEAP
  - TYRIA DIESSA PLATEAU

@@ -44,10 +44,22 @@ position_right_left_offset = -104
 #  DEFAULT CONFIGURATION VARIABLES 
 #-----------------------------
 
+root = tk.Tk()
+root.overrideredirect(1)
+root.wm_attributes("-transparentcolor", "#666666")
+root.configure(bg='#666666')
+
+windowWidth = 650
+windowHeight = 300
+positionRight = int(root.winfo_screenwidth()/2 - windowWidth/2) + 120
+positionDown = int(root.winfo_screenheight()/2 - windowHeight/2) 
 
     # IMPORTANT!!!! DONT CHANGE VALUES HERE
     # CHANGE THEM AT CONFIG.TXT
+geometry_speedometer = "650x300+{}+{}".format(positionRight, positionDown)
+geometry_racer = "750x450+0+400"
 
+print(root.winfo_screenwidth(),root.winfo_screenheight(),geometry_speedometer)
 #measure the speed in 3 dimensions or ignore the altitude axis
 speed_in_3D = 0 # 1 = on , 0 = off
 #WIDGET POSITION 
@@ -199,6 +211,8 @@ class Configuration():
         global show_checkpoints_window
         global hud_drift_hold
         global drift_key
+        global geometry_speedometer
+        global geometry_racer
         cfg.add_section("general")
 
         cfg.set("general", "speed_in_3D", speed_in_3D)
@@ -220,6 +234,8 @@ class Configuration():
         cfg.set("general", "show_checkpoints_window", show_checkpoints_window)
         cfg.set("general", "hud_drift_hold", hud_drift_hold)
         cfg.set("general", "drift_key", drift_key)
+        cfg.set("general", "geometry_speedometer", meter.root.geometry())
+        cfg.set("general", "geometry_racer", racer.root.geometry())
 
         f = open("./config.txt", "w")
         cfg.write(f)
@@ -246,6 +262,8 @@ class Configuration():
         global show_checkpoints_window
         global hud_drift_hold
         global drift_key
+        global geometry_speedometer
+        global geometry_racer
 
         if (cfg.read(["./config.txt"])):
 
@@ -287,14 +305,14 @@ class Configuration():
                 hud_drift_hold = int(cfg.get("general", "hud_drift_hold"))
             if (cfg.has_option("general", "drift_key")):
                 drift_key = (cfg.get("general", "drift_key"))
+            if (cfg.has_option("general", "geometry_speedometer")):
+                geometry_speedometer = (cfg.get("general", "geometry_speedometer"))
+            if (cfg.has_option("general", "geometry_racer")):
+                geometry_racer = (cfg.get("general", "geometry_racer"))
 
         else:
             # Generate a default config file with default values
             self.saveConf()
-
-
-
-
 
 class Link(ctypes.Structure):
     def __str__(self): 
@@ -425,16 +443,13 @@ class Meter():
         global winh
         global _pos
         global _lastPos
+        global geometry_speedometer
         
 
         self.root = Tk()
         self.root.config(cursor="none")
-        windowWidth = self.root.winfo_reqwidth()
-        windowHeight = self.root.winfo_reqheight()
-        positionRight = int(root.winfo_screenwidth()/2 - windowWidth/2) + position_right_left_offset
-        positionDown = int(root.winfo_screenheight()/2 - windowHeight/2) + position_up_down_offset
         self.root.title("Speedometer")
-        self.root.geometry("650x300+{}+{}".format(positionRight, positionDown)) #Whatever size
+        self.root.geometry(geometry_speedometer) #Whatever size
         self.root.overrideredirect(1) #Remove border
         self.root.wm_attributes("-transparentcolor", "#666666")
         self.root.attributes('-topmost', 1)
@@ -1399,6 +1414,7 @@ class Racer():
         self.sendMQTT({"option": "c", "step": 1000, "time": 0 ,"lap": 1, "user": self.username.get()})
         lap = 1
         countdowntxt = ""
+
     def ready(self):
         self.root.focus_set()
         global lap
@@ -1486,7 +1502,6 @@ class Racer():
 
         lap = 1
         total_distance = 0
-
 
     def toggleTrans(self):
         if (self.move):
@@ -1623,13 +1638,12 @@ class Racer():
             except:
                 self.map_ranking_var.set("")
             
-
-
     def __init__(self):
         
         global guildhall_name
         global guildhall_laps
         global upload
+        global geometry_racer
 
         self.mapOpen = False
         self.move = True
@@ -1642,7 +1656,7 @@ class Racer():
         self.root = Tk()
         self.root.call('wm', 'attributes', '.', '-topmost', '1')
         self.root.title("Guildhall logs & challenger")
-        self.root.geometry("750x450+0+400")
+        self.root.geometry(geometry_racer)
         self.root.wm_attributes("-transparentcolor", "#666666")
         self.root.configure(bg='#f0f0f0')
 
@@ -1668,7 +1682,7 @@ class Racer():
         guildhall_laps.set("1 lap")
 
 
-        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.5.9""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
+        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.5.12""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
         self.t_1.place(x=0, y=10)
         self.t_2 = tk.Label(self.root, text="""Choose map to race""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_2.place(x=0, y=40)

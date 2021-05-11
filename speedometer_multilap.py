@@ -1611,13 +1611,18 @@ class Racer():
         if (guildhall_name.get() == "None, im free!"):
             self.map_ranking_var.set("")
         else:
-            headers = {
-                'Origin': 'null',
-                'Referer': 'null'
-            }
-            response = requests.get('http://beetlerank.bounceme.net/rank/api/' + str(guildhall_name.get()), headers)
-        
-            self.map_ranking_var.set(response.text)
+            try:
+                headers = {
+                    'Origin': 'null',
+                    'Referer': 'null'
+                }
+                response = requests.get('http://beetlerank.bounceme.net/rank/api/' + str(guildhall_name.get()), headers)
+            
+                self.map_ranking_var.set(response.text)
+
+            except:
+                self.map_ranking_var.set("")
+            
 
 
     def __init__(self):

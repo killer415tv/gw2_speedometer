@@ -59,7 +59,6 @@ positionDown = int(root.winfo_screenheight()/2 - windowHeight/2)
 geometry_speedometer = "650x300+{}+{}".format(positionRight, positionDown)
 geometry_racer = "750x450+0+400"
 
-print(root.winfo_screenwidth(),root.winfo_screenheight(),geometry_speedometer)
 #measure the speed in 3 dimensions or ignore the altitude axis
 speed_in_3D = 0 # 1 = on , 0 = off
 #WIDGET POSITION 
@@ -213,6 +212,9 @@ class Configuration():
         global drift_key
         global geometry_speedometer
         global geometry_racer
+        global racer
+        global meter
+
         cfg.add_section("general")
 
         cfg.set("general", "speed_in_3D", speed_in_3D)

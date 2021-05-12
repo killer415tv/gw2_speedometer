@@ -1135,7 +1135,11 @@ class Meter():
                 if guildhall_name.get() == "DRFT-1 Fractal Actual Speedway":
                     checkTP([-156, 31, 431]) # use this position when you take te map TP , to stop log file
                     checkpoint(0, "start", [-117, 22, 348])
-                    checkpoint(1, "*", [121,25,-219])
+                    
+                    checkpoint(1, "*", [144,25,-271])
+                    checkpoint(1, "*", [143,25,-281])
+                    checkpoint(1, "*", [142,25,-291])
+
                     checkpoint(2, "*", [-179,11,95])
                     checkpoint(3, "end", [-178, 22, 391])
 

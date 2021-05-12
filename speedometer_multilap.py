@@ -138,6 +138,8 @@ show_config = 0
 
 map_position_last_time_send = 0
 
+next_step = 0
+
 
 
 #Force sound at start
@@ -706,7 +708,7 @@ class Meter():
                 self.distance.set("")
                 lap = 1
 
-        def checkpoint(step, coords):
+        def checkpoint(step, stepName, coords):
             global last_checkpoint_position
             global _3Dpos
             global _time
@@ -731,186 +733,195 @@ class Meter():
 
             global map_position_last_time_send
 
+            global next_step
+
             total_laps = int(guildhall_laps.get()[:1])
 
-            step0 = coords
-            arraystep0 = (ctypes.c_float * len(step0))(*step0)
-            if distance.euclidean(_3Dpos, arraystep0) < 15 and (pressedQ == 0 or different(last_checkpoint_position, arraystep0)):
-                last_checkpoint_position = arraystep0
-                if step == "start":
+            #only valid steps are the next one, or the first one
+            if step == next_step or step == 0:
 
-                    if audio:
-                        playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "dong.wav", block=False)
-                    if enable_livesplit_hotkey == 1:
-                        keyboard_.press(live_start)
-                        keyboard_.release(live_start)
-                    #first time we start
-                    if enable_ghost_keys:
-                        keyboard_.press(ghost_start)
-                        keyboard_.release(ghost_start)
-                    pressedQ = delaytimer
-                    #cerrar fichero si hubiera una sesión anterior
-                    
-                    #debug mumble link object
-                    #print(ml.data)
-                    #print(ml.context)
-
-                    if int(lap) == 1:
-                        
-                        self.steps_txt.set("")
-                        self.step1_txt.set("")
-                        self.vartime.set("")
-                        self.distance.set("")
-                        total_distance = 0
-                        total_timer = _time
-                        lap_timer = _time
-                        filename = guildhall_name.get() + "_log_" + str(_time) + ".csv"
-                        self.steps_txt.set("")
-                        if log:
-                            #print("----------------------------------")
-                            #print("NEW LOG FILE - " + filename)
-                            #print("----------------------------------")
-                            writer = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + filename,'a',newline='', encoding='utf-8')
-                            writer.seek(0,2)
-                            writer.writelines( (',').join(["X","Y","Z","SPEED","ANGLE_CAM", "ANGLE_BEETLE","TIME", "ACCELERATION"]))
-                        if show_checkpoints_window and racer.session_id.get() != "":
-                            #mqtt se manda el tiempo como inicio
-                            racer.sendMQTT({"option": "s", "lap": lap, "time" : 0, "user": racer.username.get()})
-                    else:
-                        lap_timer = _time
-                        steptime_lap = _time - lap_timer
-                        steptime = _time - total_timer
-                        #cross the start on second lap
-                        newline = ""
-                        
-                        self.step1_txt.set(newline + str(lap) + "/"+ str(total_laps) + " TS" + " " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime_lap), "%M:%S:%f")[:-3])
-
-                        filename = guildhall_name.get() + "_log_" + str(_time) + ".csv"
-                        self.steps_txt.set("")
-                        if log:
-                            #print("----------------------------------")
-                            #print("NEW LOG FILE - " + filename)
-                            #print("----------------------------------")
-                            writer = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + filename,'a',newline='', encoding='utf-8')
-                            writer.seek(0,2)
-                            writer.writelines( (',').join(["X","Y","Z","SPEED","ANGLE_CAM", "ANGLE_BEETLE","TIME", "ACCELERATION"]))
-                        if show_checkpoints_window and racer.session_id.get() != "":
-                            #mqtt se manda el tiempo como inicio
-                            racer.sendMQTT({"option": "s", "lap": lap, "step": 0, "time" : steptime, "user": racer.username.get()})
-
-
-                if step == "end":
-                    steptime = _time - total_timer
-                    steptime_lap = _time - lap_timer
-                    pressedQ = 0.5
-                    if enable_ghost_keys:
-                        keyboard_.press(recalculate_ghost)
-                        keyboard_.release(recalculate_ghost)
-
-                    if filename != "":
+                step0 = coords
+                arraystep0 = (ctypes.c_float * len(step0))(*step0)
+                if distance.euclidean(_3Dpos, arraystep0) < 15 and (pressedQ == 0 or different(last_checkpoint_position, arraystep0)):
+                    last_checkpoint_position = arraystep0
+                    if stepName == "start":
+                        next_step = 1
                         if audio:
                             playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "dong.wav", block=False)
+                        if enable_livesplit_hotkey == 1:
+                            keyboard_.press(live_start)
+                            keyboard_.release(live_start)
+                        #first time we start
+                        if enable_ghost_keys:
+                            keyboard_.press(ghost_start)
+                            keyboard_.release(ghost_start)
+                        pressedQ = delaytimer
+                        #cerrar fichero si hubiera una sesión anterior
+                        
+                        #debug mumble link object
+                        #print(ml.data)
+                        #print(ml.context)
 
-                        #upload log to 
-                        if upload.get() == 1:
-                            if log:
-                                headers = {
-                                    'Origin': 'null',
-                                    'Referer': 'null'
-                                }
-                                response = requests.post('http://beetlerank.bounceme.net/upload-log',data={'user': json.loads(ml.data.identity)["name"], 'guildhall': guildhall_name.get()}, files={'file': open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + filename,'rb')}, headers=headers)
-                                print("Log uploaded to web")
-                                print("2",response.text)
-                                if response.text and int(total_laps) == 1:
-                                    message.write(response.text)
-                                racer.saveGuildhall(guildhall_name.get())
-
-                        if int(lap) == int(total_laps):
-                            datefinish = datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime_lap), "%M:%S:%f")[:-3]
-                            if enable_livesplit_hotkey == 1:
-                                keyboard_.press(live_start)
-                                keyboard_.release(live_start)
-
-                            filename = ""
-                            #print("----------------------------------")
-                            #print("CHECKPOINT FINAL RACE: " + datefinish)
-                            #print("----------------------------------")
-                            newline = self.step1_txt.get() + "\n"
-                            self.step1_txt.set(newline + str(lap) + "/"+ str(total_laps) + " TF " + datefinish)
-                            if hud_timer:
-                                self.vartime.set(datefinish)
+                        if int(lap) == 1:
                             
-
+                            self.steps_txt.set("")
+                            self.step1_txt.set("")
+                            self.vartime.set("")
+                            self.distance.set("")
+                            total_distance = 0
+                            total_timer = _time
+                            lap_timer = _time
+                            filename = guildhall_name.get() + "_log_" + str(_time) + ".csv"
+                            self.steps_txt.set("")
                             if log:
-                                #store in file the record time of full track , today date and player name
-                                now = datetime.datetime.now()
-                                today_date = now.strftime("%d/%m/%Y %H:%M:%S")
-                                writer = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + guildhall_name.get() + "_records.csv",'a',newline='', encoding='utf-8')
+                                #print("----------------------------------")
+                                #print("NEW LOG FILE - " + filename)
+                                #print("----------------------------------")
+                                writer = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + filename,'a',newline='', encoding='utf-8')
                                 writer.seek(0,2)
-                                writer.writelines("\r")
-                                writer.writelines( (',').join([datefinish, today_date, json.loads(ml.data.identity)["name"]]))
-
+                                writer.writelines( (',').join(["X","Y","Z","SPEED","ANGLE_CAM", "ANGLE_BEETLE","TIME", "ACCELERATION"]))
                             if show_checkpoints_window and racer.session_id.get() != "":
                                 #mqtt se manda el tiempo como inicio
-                                racer.sendMQTT({"option": "f", "lap":lap, "time": steptime, "step": 999, "user": racer.username.get()})
-                            
-                            lap = 1
-                            
+                                racer.sendMQTT({"option": "s", "lap": lap, "time" : 0, "user": racer.username.get()})
                         else:
-                            steptime = _time - total_timer
+                            lap_timer = _time
                             steptime_lap = _time - lap_timer
+                            steptime = _time - total_timer
                             #cross the start on second lap
-                            newline = self.step1_txt.get() + "\n "
-                            #print("----------------------------------")
-                            #print("CHECKPOINT FINAL LAP : " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime), "%M:%S:%f")[:-3])
-                            #print("----------------------------------")
-                            self.step1_txt.set(newline + str(lap) + "/"+ str(total_laps) + " TF " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime_lap), "%M:%S:%f")[:-3])
+                            newline = ""
+                            
+                            self.step1_txt.set(newline + str(lap) + "/"+ str(total_laps) + " TS" + " " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime_lap), "%M:%S:%f")[:-3])
 
+                            filename = guildhall_name.get() + "_log_" + str(_time) + ".csv"
+                            self.steps_txt.set("")
+                            if log:
+                                #print("----------------------------------")
+                                #print("NEW LOG FILE - " + filename)
+                                #print("----------------------------------")
+                                writer = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + filename,'a',newline='', encoding='utf-8')
+                                writer.seek(0,2)
+                                writer.writelines( (',').join(["X","Y","Z","SPEED","ANGLE_CAM", "ANGLE_BEETLE","TIME", "ACCELERATION"]))
                             if show_checkpoints_window and racer.session_id.get() != "":
                                 #mqtt se manda el tiempo como inicio
-                                racer.sendMQTT({"option": "f", "lap": lap, "step": 998, "time" : steptime, "user": racer.username.get()})
-                            
-                            lap = lap + 1
+                                racer.sendMQTT({"option": "s", "lap": lap, "step": 0, "time" : steptime, "user": racer.username.get()})
 
-                        """ 
-                        #stores in counterDone.txt number of total laps done
-                        file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "counterDone.txt")
-                        global numero_contador
-                        line = file.read()
-                        if line == '':
-                            line = "1"
-                        numero_contador = int(line.strip()) + 1
-                        print (numero_contador)
-                        file.close()
-                        file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "counterDone.txt", "w")
-                        file.write(str(numero_contador))
-                        file.close()
-                        """
+                        
 
-                if str(step).isnumeric() == True:
-                    
-                    steptime = _time - total_timer
-                    steptime_lap = _time - lap_timer
+                    if stepName == "end":
+                        next_step = 0
+                        steptime = _time - total_timer
+                        steptime_lap = _time - lap_timer
+                        pressedQ = 0.5
+                        if enable_ghost_keys:
+                            keyboard_.press(recalculate_ghost)
+                            keyboard_.release(recalculate_ghost)
+
+                        if filename != "":
+                            if audio:
+                                playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "dong.wav", block=False)
+
+                            #upload log to 
+                            if upload.get() == 1:
+                                if log:
+                                    headers = {
+                                        'Origin': 'null',
+                                        'Referer': 'null'
+                                    }
+                                    response = requests.post('http://beetlerank.bounceme.net/upload-log',data={'user': json.loads(ml.data.identity)["name"], 'guildhall': guildhall_name.get()}, files={'file': open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + filename,'rb')}, headers=headers)
+                                    print("Log uploaded to web")
+                                    print("2",response.text)
+                                    if response.text and int(total_laps) == 1:
+                                        message.write(response.text)
+                                    racer.saveGuildhall(guildhall_name.get())
+
+                            if int(lap) == int(total_laps):
+                                datefinish = datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime_lap), "%M:%S:%f")[:-3]
+                                if enable_livesplit_hotkey == 1:
+                                    keyboard_.press(live_start)
+                                    keyboard_.release(live_start)
+
+                                filename = ""
+                                #print("----------------------------------")
+                                #print("CHECKPOINT FINAL RACE: " + datefinish)
+                                #print("----------------------------------")
+                                newline = self.step1_txt.get() + "\n"
+                                self.step1_txt.set(newline + str(lap) + "/"+ str(total_laps) + " TF " + datefinish)
+                                if hud_timer:
+                                    self.vartime.set(datefinish)
+                                
+
+                                if log:
+                                    #store in file the record time of full track , today date and player name
+                                    now = datetime.datetime.now()
+                                    today_date = now.strftime("%d/%m/%Y %H:%M:%S")
+                                    writer = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + guildhall_name.get() + "_records.csv",'a',newline='', encoding='utf-8')
+                                    writer.seek(0,2)
+                                    writer.writelines("\r")
+                                    writer.writelines( (',').join([datefinish, today_date, json.loads(ml.data.identity)["name"]]))
+
+                                if show_checkpoints_window and racer.session_id.get() != "":
+                                    #mqtt se manda el tiempo como inicio
+                                    racer.sendMQTT({"option": "f", "lap":lap, "time": steptime, "step": 999, "user": racer.username.get()})
+                                
+                                lap = 1
+                                
+                            else:
+                                steptime = _time - total_timer
+                                steptime_lap = _time - lap_timer
+                                #cross the start on second lap
+                                newline = self.step1_txt.get() + "\n "
+                                #print("----------------------------------")
+                                #print("CHECKPOINT FINAL LAP : " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime), "%M:%S:%f")[:-3])
+                                #print("----------------------------------")
+                                self.step1_txt.set(newline + str(lap) + "/"+ str(total_laps) + " TF " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime_lap), "%M:%S:%f")[:-3])
+
+                                if show_checkpoints_window and racer.session_id.get() != "":
+                                    #mqtt se manda el tiempo como inicio
+                                    racer.sendMQTT({"option": "f", "lap": lap, "step": 998, "time" : steptime, "user": racer.username.get()})
+                                
+                                lap = lap + 1
+
+                            """ 
+                            #stores in counterDone.txt number of total laps done
+                            file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "counterDone.txt")
+                            global numero_contador
+                            line = file.read()
+                            if line == '':
+                                line = "1"
+                            numero_contador = int(line.strip()) + 1
+                            print (numero_contador)
+                            file.close()
+                            file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "counterDone.txt", "w")
+                            file.write(str(numero_contador))
+                            file.close()
+                            """
+
+                    if stepName == "*":
+                        
+                        next_step = step + 1
+
+                        steptime = _time - total_timer
+                        steptime_lap = _time - lap_timer
 
 
-                    if enable_livesplit_hotkey == 1:
-                        keyboard_.press(live_start)
-                        keyboard_.release(live_start)
-                    pressedQ = 2 # 10 SEGUNDOS
-                    #print("----------------------------------")
-                    #print("CHECKPOINT " + str(step) + ": " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime), "%M:%S:%f")[:-3])
-                    #print("----------------------------------")
-                    self.steps_txt.set(guildhall_name.get() + " Times")
-                    newline = self.step1_txt.get() + "\n "
-                    if step == 1 and lap == 1:
-                        newline = " "
-                    self.step1_txt.set(newline + str(lap) + "/"+ str(total_laps) + " T" + str(step) + " " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime_lap), "%M:%S:%f")[:-3])
-                    if audio:
-                        playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "dong.wav", block=False)
-                    if show_checkpoints_window and racer.session_id.get() != "":
-                        #mqtt se manda el tiempo como inicio
-                        racer.sendMQTT({"option": "c", "step": step, "lap": lap, "time": steptime, "user": racer.username.get()})
-                    
+                        if enable_livesplit_hotkey == 1:
+                            keyboard_.press(live_start)
+                            keyboard_.release(live_start)
+                        pressedQ = 2 # 10 SEGUNDOS
+                        #print("----------------------------------")
+                        #print("CHECKPOINT " + str(step) + ": " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime), "%M:%S:%f")[:-3])
+                        #print("----------------------------------")
+                        self.steps_txt.set(guildhall_name.get() + " Times")
+                        newline = self.step1_txt.get() + "\n "
+                        if step == 1 and lap == 1:
+                            newline = " "
+                        self.step1_txt.set(newline + str(lap) + "/"+ str(total_laps) + " T" + str(step) + " " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime_lap), "%M:%S:%f")[:-3])
+                        if audio:
+                            playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "dong.wav", block=False)
+                        if show_checkpoints_window and racer.session_id.get() != "":
+                            #mqtt se manda el tiempo como inicio
+                            racer.sendMQTT({"option": "c", "step": step, "lap": lap, "time": steptime, "user": racer.username.get()})
+                        
 
         """Fade over time"""
         #print("actualiza", flush=True)
@@ -973,160 +984,160 @@ class Meter():
                 if guildhall_name.get() == "GWTC":
                     #GWTC Checkpoints
                     checkTP([3.18, 61.32, -35.58]) # use this position when you take te map TP , to stop log file
-                    checkpoint("start", [49.9, 564.5, 31.9])
-                    checkpoint(1, [-30.5, 495.9, 219.6])
-                    checkpoint(2, [-156, 363.1, 157.4])
-                    checkpoint(3, [359, 245.7, 84])
-                    checkpoint(4, [-142.9, 140.2, -57.6])
-                    checkpoint(5, [4.6, 56, 191.6])
-                    checkpoint("end", [-37.9, 1.74, -26.7])
+                    checkpoint(0, "start", [49.9, 564.5, 31.9])
+                    checkpoint(1, "*", [-30.5, 495.9, 219.6])
+                    checkpoint(2, "*", [-156, 363.1, 157.4])
+                    checkpoint(3, "*", [359, 245.7, 84])
+                    checkpoint(4, "*", [-142.9, 140.2, -57.6])
+                    checkpoint(5, "*", [4.6, 56, 191.6])
+                    checkpoint(6,"end", [-37.9, 1.74, -26.7])
 
                 if guildhall_name.get() == "RACE Downhill":
                     #race Checkpoints
                     checkTP([35.67, 111.35, -7.02]) # use this position when you take te map TP , to stop log file
-                    checkpoint("start", [105, 453, 152])
-                    checkpoint(1, [75, 388, 132]) #el saltito
-                    checkpoint(2, [207, 278,-271]) #las dos aguilas
-                    checkpoint(3, [-271, 69, 43]) #estructura parecida al puente
-                    checkpoint("end", [-90, 6,-283])
+                    checkpoint(0, "start", [105, 453, 152])
+                    checkpoint(1, "*", [75, 388, 132]) #el saltito
+                    checkpoint(2, "*", [207, 278,-271]) #las dos aguilas
+                    checkpoint(3, "*", [-271, 69, 43]) #estructura parecida al puente
+                    checkpoint(4, "end", [-90, 6,-283])
 
                 if guildhall_name.get() == "RACE Hillclimb":
                     #race Checkpoints
                     checkTP([35.67, 111.35, -7.02]) # use this position when you take te map TP , to stop log file
-                    checkpoint("start", [-66, 6, -275])
-                    checkpoint(1, [-271, 69, 43]) #estructura parecida al puente
-                    checkpoint(2, [225, 285, -145]) #equivalente a las aguilas
-                    checkpoint(3, [-123, 385, 301]) #equivalente a las aguilas
-                    checkpoint("end", [68,453,110])
+                    checkpoint(0, "start", [-66, 6, -275])
+                    checkpoint(1, "*", [-271, 69, 43]) #estructura parecida al puente
+                    checkpoint(2, "*", [225, 285, -145]) #equivalente a las aguilas
+                    checkpoint(3, "*", [-123, 385, 301]) #equivalente a las aguilas
+                    checkpoint(4, "end", [68,453,110])
 
                 if guildhall_name.get() == "RACE Full Mountain Run":
                     #race Checkpoints
                     checkTP([35.67, 111.35, -7.02]) # use this position when you take te map TP , to stop log file
-                    checkpoint("start", [18.96, 453, 85.98])
-                    checkpoint(1, [-81.6, 380.74, 104.90]) 
-                    checkpoint(2, [207, 278, -271]) 
-                    checkpoint(3, [177.9, 99.84, 236.9])
-                    checkpoint(4, [-158.3, 3, -284.8])
-                    checkpoint(5, [281.3, 107.9, 245.1])
-                    checkpoint(6, [116.2, 246.4, -170.9])
-                    checkpoint(7, [-29.9, 380.5, 141.9])
-                    checkpoint("end", [27.91, 453, 41.5])
+                    checkpoint(0, "start", [18.96, 453, 85.98])
+                    checkpoint(1, "*", [-81.6, 380.74, 104.90]) 
+                    checkpoint(2, "*", [207, 278, -271]) 
+                    checkpoint(3, "*", [177.9, 99.84, 236.9])
+                    checkpoint(4, "*", [-158.3, 3, -284.8])
+                    checkpoint(5, "*", [281.3, 107.9, 245.1])
+                    checkpoint(6, "*", [116.2, 246.4, -170.9])
+                    checkpoint(7, "*", [-29.9, 380.5, 141.9])
+                    checkpoint(8, "end", [27.91, 453, 41.5])
 
                 if guildhall_name.get() == "EQE":
                     #eqe Checkpoints
                     checkTP([114.48, 9.07, 37.47]) # use this position when you take te map TP , to stop log file
-                    checkpoint("start", [186.02, 140.6, 198.7])
-                    checkpoint(1, [-78.8, 23.9, -94.5])
-                    checkpoint(2, [104, 142.6, -44])
-                    checkpoint(3, [-207, 122, -41])
-                    checkpoint("end", [117, 158, 256])
+                    checkpoint(0, "start", [186.02, 140.6, 198.7])
+                    checkpoint(1, "*", [-78.8, 23.9, -94.5])
+                    checkpoint(2, "*", [104, 142.6, -44])
+                    checkpoint(3, "*", [-207, 122, -41])
+                    checkpoint(4, "end", [117, 158, 256])
 
                 if guildhall_name.get() == "SoTD":
                     #SoTD Checkpoints
                     checkTP([3.18, 61.32, -35.58]) # use this position when you take te map TP , to stop log file
-                    checkpoint("start", [93.41, 512.07, -6.85])
-                    checkpoint(1, [-39.83, -0.34, 74.95])
-                    checkpoint(2, [5.39, 88.43, 170.73])
-                    checkpoint(3, [-62.09, 242.28, -251.58])
-                    checkpoint(4, [369.351, 396.35, 91.34])
-                    checkpoint("end", [61.96, 512.09, -58.64])
+                    checkpoint(0, "start", [93.41, 512.07, -6.85])
+                    checkpoint(1, "*", [-39.83, -0.34, 74.95])
+                    checkpoint(2, "*", [5.39, 88.43, 170.73])
+                    checkpoint(3, "*", [-62.09, 242.28, -251.58])
+                    checkpoint(4, "*", [369.351, 396.35, 91.34])
+                    checkpoint(5, "end", [61.96, 512.09, -58.64])
 
                 if guildhall_name.get() == "LRS":
                     #SoTD Checkpoints
                     checkTP([3.18, 61.32, -35.58]) # use this position when you take te map TP , to stop log file
-                    checkpoint("start", [25.83, 575.20, -14.51])
-                    checkpoint(1, [182.53, 488.21, 59.85])
-                    checkpoint(2, [203.48, 261.82, -96.09])
-                    checkpoint(3, [-0.6, 19.45, -254.91])
-                    checkpoint(4, [-101.72, 53.04, 244.96])
-                    checkpoint("end", [-26.74, 0.55, -51.33])
+                    checkpoint(0, "start", [25.83, 575.20, -14.51])
+                    checkpoint(1, "*", [182.53, 488.21, 59.85])
+                    checkpoint(2, "*", [203.48, 261.82, -96.09])
+                    checkpoint(3, "*", [-0.6, 19.45, -254.91])
+                    checkpoint(4, "*", [-101.72, 53.04, 244.96])
+                    checkpoint(5, "end", [-26.74, 0.55, -51.33])
 
                 if guildhall_name.get() == "HUR":
                     #HUR Checkpoints
                     checkTP([35.67, 111.35, -7.02]) # use this position when you take te map TP , to stop log file
-                    checkpoint("start", [42.57, 103.83, -282.71])
-                    checkpoint(1, [-253.95, 162.94, 284.7])
-                    checkpoint(2, [81.8, 0.56, -323.83])
-                    checkpoint(3, [293.64, 60.74, -49.93])
-                    checkpoint(4, [113.59, 154.99, -62.03])
-                    checkpoint(5, [97.33, 221.3, 278.31])
-                    checkpoint("end", [42.5, 103.87, -187.45])
+                    checkpoint(0, "start", [42.57, 103.83, -282.71])
+                    checkpoint(1, "*", [-253.95, 162.94, 284.7])
+                    checkpoint(2, "*", [81.8, 0.56, -323.83])
+                    checkpoint(3, "*", [293.64, 60.74, -49.93])
+                    checkpoint(4, "*", [113.59, 154.99, -62.03])
+                    checkpoint(5, "*", [97.33, 221.3, 278.31])
+                    checkpoint(6,"end", [42.5, 103.87, -187.45])
 
                 if guildhall_name.get() == "TYRIA INF.LEAP":
                     checkTP([240.4, 2.7, -549.4])
-                    checkpoint("start", [172.968, 5.71193, -548.169])
-                    checkpoint(1, [-46.6852, 62.7075, -106.757])
-                    checkpoint(2, [-425.45, 52.2022, -118.072])
-                    checkpoint(3, [-69.0608, 43.4203, -192.177])
-                    checkpoint("end", [166.077, 1.25356, -488.581])
+                    checkpoint(0, "start", [172.968, 5.71193, -548.169])
+                    checkpoint(1, "*", [-46.6852, 62.7075, -106.757])
+                    checkpoint(2, "*", [-425.45, 52.2022, -118.072])
+                    checkpoint(3, "*", [-69.0608, 43.4203, -192.177])
+                    checkpoint(4,"end", [166.077, 1.25356, -488.581])
 
                 if guildhall_name.get() == "TYRIA DIESSA PLATEAU":
                     checkTP([-135.9, 30.3, -530.7])
-                    checkpoint("start", [-102.2, 27.2, -529.1])
-                    checkpoint("end", [-166.1, 30.8, -505.5])
+                    checkpoint(0, "start", [-102.2, 27.2, -529.1])
+                    checkpoint(1, "end", [-166.1, 30.8, -505.5])
 
                 if guildhall_name.get() == "TYRIA SNOWDEN DRIFTS":
                     checkTP([256.5, 33.8, -70.9])
-                    checkpoint("start", [234.6, 20.4, -133.7])
-                    checkpoint("end", [253.2, 26.6, -98])
+                    checkpoint(0, "start", [234.6, 20.4, -133.7])
+                    checkpoint(1, "end", [253.2, 26.6, -98])
 
                 if guildhall_name.get() == "TYRIA GENDARRAN":
                     checkTP([308.67, 35.4, 515.4])
-                    checkpoint("start", [225.7, 7.5, 480.2])
-                    checkpoint("end", [283.9, 12.9, 463.9])
+                    checkpoint(0, "start", [225.7, 7.5, 480.2])
+                    checkpoint(1, "end", [283.9, 12.9, 463.9])
 
                 if guildhall_name.get() == "TYRIA BRISBAN WILD.":
                     checkTP([-843.3, 65.4, 385.3])
-                    checkpoint("start", [-796.7, 65.3, 347.1])
-                    checkpoint("end", [-820.6, 66.1, 454.4])
+                    checkpoint(0, "start", [-796.7, 65.3, 347.1])
+                    checkpoint(1, "end", [-820.6, 66.1, 454.4])
 
                 if guildhall_name.get() == "TYRIA GROTHMAR VALLEY":
                     checkTP([486.4, 19.8, 164.5])
                     checkTP([516.6, 20.7, 151.03])
-                    checkpoint("start", [461.03, 27.4, 261.8])
-                    checkpoint("end", [511.1, 16.2, 191.8])
+                    checkpoint(0, "start", [461.03, 27.4, 261.8])
+                    checkpoint(1, "end", [511.1, 16.2, 191.8])
 
                 if guildhall_name.get() == "OLLO Akina":
                     checkTP([114, 9,37]) # use this position when you take te map TP , to stop log file
-                    checkpoint("start", [-387, 997, -273.4])
-                    checkpoint(1, [97.3, 842.8, -75])
-                    checkpoint("end", [-314, 997, -378.2])
+                    checkpoint(0, "start", [-387, 997, -273.4])
+                    checkpoint(1, "*", [97.3, 842.8, -75])
+                    checkpoint(2, "end", [-314, 997, -378.2])
 
                 if guildhall_name.get() == "VAW Left path":
                     checkTP([35.67, 111.35, -7.02]) # use this position when you take te map TP , to stop log file
-                    checkpoint("start", [-293.9,  525.1,  293.7])
-                    checkpoint("end", [-255.1, 3.8, 303.8])
+                    checkpoint(0, "start", [-293.9,  525.1,  293.7])
+                    checkpoint(1, "end", [-255.1, 3.8, 303.8])
 
                 if guildhall_name.get() == "VAW Right path":
                     checkTP([35.67, 111.35, -7.02]) # use this position when you take te map TP , to stop log file
-                    checkpoint("start", [-293.9,  525.1,  293.7])
-                    checkpoint("end", [-255.1, 3.8, 303.8])
+                    checkpoint(0, "start", [-293.9,  525.1,  293.7])
+                    checkpoint(1, "end", [-255.1, 3.8, 303.8])
 
                 if guildhall_name.get() == "GeeK":
                     checkTP([114, 9,37]) # use this position when you take te map TP , to stop log file
-                    checkpoint("start", [89, 50.4, 67.67])
-                    checkpoint("end", [206.5, 62.9, 141.5])
+                    checkpoint(0, "start", [89, 50.4, 67.67])
+                    checkpoint(1, "end", [206.5, 62.9, 141.5])
                 
                 if guildhall_name.get() == "UAoT":
                     #UAoT Checkpoints
                     checkTP([114.48, 9.07, 37.47]) # use this position when you take te map TP , to stop log file
-                    checkpoint("start", [179, 96, 183.5])
-                    checkpoint(1, [-150, 59, 321])
-                    checkpoint(2, [27, 237, -80])
-                    checkpoint(3, [230, 19, -226])
-                    checkpoint("end", [302, 96, 215])
+                    checkpoint(0, "start", [179, 96, 183.5])
+                    checkpoint(1, "*", [-150, 59, 321])
+                    checkpoint(2, "*", [27, 237, -80])
+                    checkpoint(3, "*", [230, 19, -226])
+                    checkpoint(4, "end", [302, 96, 215])
                 
                 if guildhall_name.get() == "INDI":
                     checkTP([3.1, 61, -35]) # use this position when you take te map TP , to stop log file
-                    checkpoint("start", [0, 730.6,-43])
-                    checkpoint("end", [0.5, 59, -115])
+                    checkpoint(0, "start", [0, 730.6,-43])
+                    checkpoint(1, "end", [0.5, 59, -115])
 
                 if guildhall_name.get() == "DRFT-1 Fractal Actual Speedway":
                     checkTP([-156, 31, 431]) # use this position when you take te map TP , to stop log file
-                    checkpoint("start", [-117, 22, 348])
-                    checkpoint(1, [121,25,-219])
-                    checkpoint(2, [-179,11,95])
-                    checkpoint("end", [-178, 22, 391])
+                    checkpoint(0, "start", [-117, 22, 348])
+                    checkpoint(1, "*", [121,25,-219])
+                    checkpoint(2, "*", [-179,11,95])
+                    checkpoint(3, "end", [-178, 22, 391])
 
             #DEBUG
             #print(list(_pos) , flush=True)
@@ -1686,7 +1697,7 @@ class Racer():
         guildhall_laps.set("1 lap")
 
 
-        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.5.12""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
+        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.5.13""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
         self.t_1.place(x=0, y=10)
         self.t_2 = tk.Label(self.root, text="""Choose map to race""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_2.place(x=0, y=40)

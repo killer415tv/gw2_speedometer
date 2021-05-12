@@ -236,8 +236,10 @@ class Configuration():
         cfg.set("general", "show_checkpoints_window", show_checkpoints_window)
         cfg.set("general", "hud_drift_hold", hud_drift_hold)
         cfg.set("general", "drift_key", drift_key)
-        cfg.set("general", "geometry_speedometer", meter.root.geometry())
-        cfg.set("general", "geometry_racer", racer.root.geometry())
+        if 'racer' in globals():
+            cfg.set("general", "geometry_speedometer", meter.root.geometry())
+        if 'meter' in globals():
+            cfg.set("general", "geometry_racer", racer.root.geometry())
 
         f = open("./config.txt", "w")
         cfg.write(f)

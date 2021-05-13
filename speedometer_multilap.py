@@ -91,11 +91,13 @@ hud_acceleration = 0 # 1 = on , 0 = off
 #show Angle meter, shows angles between velocity and mouse camera , and velocity and avatar angle 
 hud_angles = 0 # 1 = on , 0 = off 
 hud_angles_bubbles = 1 # 1 = on , 0 = off
+hud_angles_airboost = 1
+hud_max_speed = 1
 magic_angle = 58 # angle for hud_angles_bubbles, to show a visual guide of the magic angle
 
 #show drift hold meter
 hud_drift_hold = 0
-drift_key = "'c'" # yes, double quoted but single quoted for special keys like 'Key.alt_l' more info https://pynput.readthedocs.io/en/latest/_modules/pynput/keyboard/_base.html#Key
+drift_key = 'c' # for special keys like ALT use 'Key.alt_l' more info https://pynput.readthedocs.io/en/latest/_modules/pynput/keyboard/_base.html#Key
 #show race assistant window, map selection and multiplayer
 show_checkpoints_window = 1 
 
@@ -214,6 +216,8 @@ class Configuration():
         global drift_key
         global geometry_speedometer
         global geometry_racer
+        global hud_angles_airboost
+        global hud_max_speed
         global racer
         global meter
 
@@ -227,6 +231,8 @@ class Configuration():
         cfg.set("general", "audio", audio)
         cfg.set("general", "hud_angles", hud_angles)
         cfg.set("general", "hud_angles_bubbles", hud_angles_bubbles)
+        cfg.set("general", "hud_angles_airboost", hud_angles_airboost)
+        cfg.set("general", "hud_max_speed", hud_max_speed)
         cfg.set("general", "magic_angle", magic_angle)
         cfg.set("general", "hud_acceleration", hud_acceleration)
         cfg.set("general", "hud_gauge", hud_gauge)
@@ -270,6 +276,9 @@ class Configuration():
         global drift_key
         global geometry_speedometer
         global geometry_racer
+        global hud_angles_airboost
+        global hud_max_speed
+
 
         if (cfg.read(["./config.txt"])):
 
@@ -289,6 +298,10 @@ class Configuration():
                 hud_angles = int(cfg.get("general", "hud_angles"))
             if (cfg.has_option("general", "hud_angles_bubbles")):
                 hud_angles_bubbles = int(cfg.get("general", "hud_angles_bubbles"))
+            if (cfg.has_option("general", "hud_angles_airboost")):
+                hud_angles_airboost = int(cfg.get("general", "hud_angles_airboost"))
+            if (cfg.has_option("general", "hud_max_speed")):
+                hud_max_speed = int(cfg.get("general", "hud_max_speed"))
             if (cfg.has_option("general", "magic_angle")):
                 magic_angle = int(cfg.get("general", "magic_angle"))
             if (cfg.has_option("general", "hud_acceleration")):
@@ -423,7 +436,7 @@ class Meter():
         global filename_timer
         global drift_key
         try:
-            if str(key) == drift_key:
+            if str(key).replace("'","") == drift_key:
                 if self.drifting == False:
                     self.drift_time = time.perf_counter() 
                 self.drifting = True
@@ -435,7 +448,7 @@ class Meter():
     def on_release(self,key):
         global drift_key
         try:
-            if str(key) == drift_key:
+            if str(key).replace("'","") == drift_key:
                 self.drift_time = time.perf_counter()
                 self.drifting = False
            
@@ -472,6 +485,7 @@ class Meter():
             _lastPos = [0,0]
 
         self.var = tk.IntVar(self.root, 0)
+        self.max_speed = tk.IntVar(self.root, 0)
         self.var100 = tk.IntVar(self.root, 0)
 
         self.canvas = tk.Canvas(self.root, width=winw+800, height=winh-150,
@@ -480,6 +494,8 @@ class Meter():
 
         if hud_angles:
             self.anglevar = tk.StringVar(self.root,0)
+
+        if hud_angles_airboost:
             self.airdrift_angle_tk = tk.IntVar(self.root, 0.0)
             
             self.outer_airdrift_box = self.canvas.create_rectangle(20 + 356, 30,30 + 356, 100, outline="white", width="1", tags="airdrift_meter_border")
@@ -529,6 +545,8 @@ class Meter():
             self.acceltext = tk.Label(self.root, text="Accel.", fg = "white", bg="#666666", font=("Lucida Console", 7)).place(x = 231, y = 46)
             self.accelnum = tk.Label(self.root, textvariable = self.accelvar, fg = "white", bg="#666666", font=("Digital-7 Mono", 8, "bold")).place(x = 230, y = 57)
 
+        
+
         if hud_gauge:
             self.numero = tk.Label(self.root, textvariable = self.var100, fg = "white", bg="#666666", font=("Digital-7 Mono", 50)).place(relx = 1, x = -412, y = 75, anchor = 'ne')
             self.canvas.create_arc(2*10, 2*15, 2*winw-10, 2*winw-10, extent=108, start=36,style='arc', outline="#666666", width="35", tags="arc")
@@ -546,10 +564,18 @@ class Meter():
             #rojo
             self.canvas.create_arc(2*10, 2*15, 2*winw-10, 2*winw-10, extent=31, start=36,style='arc', outline="#ff5436", width="10", tags="arc5")
 
+            if hud_max_speed:
+                self.max_meter_meter = self.canvas.create_line(winw, winw, 20, winw,fill='red',width=4)
+                self.max_speed.set(7250)
+                self.updateMeterLine(0.5, self.max_meter_meter)
+                self.max_speed.trace_add('write', self.updateMeterMaxSpeed)
+
             self.meter = self.canvas.create_line(winw, winw, 20, winw,fill='white',width=4)
-            self.angle = 0
-            self.updateMeterLine(0.2)   
+            self.angle = 0.2
+            self.updateMeterLine(self.angle, self.meter)   
             self.var.trace_add('write', self.updateMeter)  # if this line raises an error, change it to the old way of adding a trace: self.var.trace('w', self.updateMeter)
+
+
 
         #if hud_timer:
             self.vartime = tk.StringVar(self.root, "")
@@ -561,6 +587,7 @@ class Meter():
             self.step1_txt = tk.StringVar(self.root, "")
             self.steps1 = tk.Label(self.root, textvariable = self.step1_txt, fg = "white", bg="#666666", font=("Lucida Console", 9)).place(x = 395+10, y = 15+10)
 
+        
 
         self.canvas.create_circle(204, 202, 171, fill="#666", outline="#666666", width=4)
 
@@ -576,19 +603,27 @@ class Meter():
             self.root.overrideredirect(0)
         self.move = not self.move
 
-    def updateMeterLine(self, a):
+    def updateMeterLine(self, angle, line):
         """Draw a meter line"""
-        self.angle = a
-        x = winw - 190 * cos(a * pi)
-        y = winw - 190 * sin(a * pi)
-        self.canvas.coords(self.meter, winw, winw, x, y)
+        
+        x = winw - 190 * cos(angle * pi)
+        y = winw - 190 * sin(angle * pi)
+        self.canvas.coords(line, winw, winw, x, y)
 
     def updateMeter(self, name1, name2, op):
         """Convert variable to angle on trace"""
         mini = 0
         maxi = 100
         pos = (self.var.get() - mini) / (maxi - mini)
-        self.updateMeterLine(pos * 0.6 + 0.2)
+        self.angle = pos * 0.6 + 0.2
+        self.updateMeterLine(self.angle, self.meter)
+
+    def updateMeterMaxSpeed(self, name1, name2, op):
+        """Convert variable to angle on trace"""
+        mini = 0
+        maxi = 100
+        pos = (self.max_speed.get() - mini) / (maxi - mini)
+        self.updateMeterLine(pos * 0.6 + 0.2, self.max_meter_meter)
 
     def updateMeterTimer(self):
 
@@ -1159,7 +1194,7 @@ class Meter():
                 angle_between_res1 = 0
                 angle_between_res2 = 0
 
-                if hud_angles:
+                if True:
                     def unit_vector(a):
                         return a/ np.linalg.norm(a)
 
@@ -1206,47 +1241,68 @@ class Meter():
                         angle_between_res2 = float(angle_between(uaf, uv))
                         if math.isnan(angle_between_res1) == False and math.isnan(angle_between_res2) == False:
 
-                            self.anglevar.set(str(int(angle_between_res1)) + "º/ " + str(int(angle_between_res2)) + "º")
+                            if hud_max_speed:
+                                
+                                aa = int(angle_between_res2)
+                                bb = 0
+
+                                if aa < -90:
+                                    bb = (72) 
+                                elif aa >= -90 and aa < -45:
+                                    bb = (((aa+90) * (aa+90)) / 72) 
+                                elif int(aa) >= -45 and int(aa) < 45:
+                                    bb = ((aa * aa) / 72)
+                                elif aa >= 45 and aa < 90: 
+                                    bb = (((aa-90) * (aa-90)) / 72)
+                                else:
+                                    bb = (72) 
+
+                                self.max_speed.set(min(bb + 72, 100))
+
+                            if hud_angles:
+                                self.anglevar.set(str(int(angle_between_res1)) + "º/ " + str(int(angle_between_res2)) + "º")
                             
-                            global magic_angle
+                            if hud_angles_airboost:
+                                global magic_angle
 
-                            i = self.canvas.find_withtag("airdrift_meter")
-                            b = self.canvas.find_withtag("airdrift_meter_border")
-                            beetleangle = abs(int(angle_between_res2))
-                            self.airdrift_angle_tk.set(beetleangle)
-                            pixels = min(64,round(beetleangle * 64 / magic_angle))
-                            self.canvas.coords(i, 23 + 356, 97-pixels , 27 + 356, 97)
-                            self.canvas.itemconfig(i, outline="#7897ff")
-                            self.canvas.itemconfig(i, fill="#7897ff")
-                            self.canvas.itemconfig(b, outline="white")
+                                i = self.canvas.find_withtag("airdrift_meter")
+                                b = self.canvas.find_withtag("airdrift_meter_border")
+                                beetleangle = abs(int(angle_between_res2))
+                                self.airdrift_angle_tk.set(beetleangle)
+                                pixels = min(64,round(beetleangle * 64 / magic_angle))
+                                self.canvas.coords(i, 23 + 356, 97-pixels , 27 + 356, 97)
+                                self.canvas.itemconfig(i, outline="#7897ff")
+                                self.canvas.itemconfig(i, fill="#7897ff")
+                                self.canvas.itemconfig(b, outline="white")
 
-                            if (beetleangle > magic_angle):
-                                self.canvas.itemconfig(i, outline="#ff8a36")
-                                self.canvas.itemconfig(i, fill="#ff8a36")
-                                self.canvas.itemconfig(b, outline="#ff8a36")
-                            if (beetleangle > magic_angle + 10):
-                                self.canvas.itemconfig(i, outline="#de1f18")
-                                self.canvas.itemconfig(i, fill="#de1f18")
-                                self.canvas.itemconfig(b, outline="#de1f18")
+                                if (beetleangle > magic_angle):
+                                    self.canvas.itemconfig(i, outline="#ff8a36")
+                                    self.canvas.itemconfig(i, fill="#ff8a36")
+                                    self.canvas.itemconfig(b, outline="#ff8a36")
+                                if (beetleangle > magic_angle + 10):
+                                    self.canvas.itemconfig(i, outline="#de1f18")
+                                    self.canvas.itemconfig(i, fill="#de1f18")
+                                    self.canvas.itemconfig(b, outline="#de1f18")
                             
-                            full_straight_vector = [0,-1]
-
-                            #forzamos el vector velocidad siempre alante
-                            uv = full_straight_vector
-                            #creamos un vector camara girando el velocidad 
-                            theta = np.radians(angle_between_res1/2)
-                            c, s = np.cos(theta), np.sin(theta)
-                            R = np.array(((c,-s), (s, c)))
-                            uc = np.dot(R, uv)
-                            #creamos un vector avatar front girando la velocidad
-                            theta = np.radians(angle_between_res2/2)
-                            c, s = np.cos(theta), np.sin(theta)
-                            R = np.array(((c,-s), (s, c)))
-                            uaf = np.dot(R, uv)
-
-                            #uc = [cos(angle_between_res1),sin(angle_between_res1)]
 
                             if hud_angles_bubbles:
+                                full_straight_vector = [0,-1]
+
+                                #forzamos el vector velocidad siempre alante
+                                uv = full_straight_vector
+                                #creamos un vector camara girando el velocidad 
+                                theta = np.radians(angle_between_res1/2)
+                                c, s = np.cos(theta), np.sin(theta)
+                                R = np.array(((c,-s), (s, c)))
+                                uc = np.dot(R, uv)
+                                #creamos un vector avatar front girando la velocidad
+                                theta = np.radians(angle_between_res2/2)
+                                c, s = np.cos(theta), np.sin(theta)
+                                R = np.array(((c,-s), (s, c)))
+                                uaf = np.dot(R, uv)
+
+                                #uc = [cos(angle_between_res1),sin(angle_between_res1)]
+
                                 theta = np.radians(magic_angle/2)
                                 c, s = np.cos(theta), np.sin(theta)
                                 R = np.array(((c,-s), (s, c)))
@@ -1316,6 +1372,7 @@ class Meter():
                     color = "#de1f18"
                 if round(velocity*100/10000) < 140:
                     self.var.set(round(velocity*100/10000))
+                    #self.max_speed.set(72)
                     self.var100.set(round((velocity*100/10000)*99/72))
                     i = self.canvas.find_withtag("arc")
                     self.canvas.itemconfig(i, outline=color)
@@ -1569,6 +1626,10 @@ class Racer():
             self.conf_11_2.configure(fg="black"); self.conf_11_2.configure(bg=self.color_trans_bg)
             self.conf_12_1.configure(fg=self.color_trans_fg); self.conf_12_1.configure(bg=self.color_trans_bg)
             self.conf_12_2.configure(fg="black"); self.conf_12_2.configure(bg=self.color_trans_bg)
+            self.conf_13_1.configure(fg=self.color_trans_fg); self.conf_13_1.configure(bg=self.color_trans_bg)
+            self.conf_13_2.configure(fg="black"); self.conf_13_2.configure(bg=self.color_trans_bg)
+            self.conf_14_1.configure(fg=self.color_trans_fg); self.conf_14_1.configure(bg=self.color_trans_bg)
+            self.conf_14_2.configure(fg="black"); self.conf_14_2.configure(bg=self.color_trans_bg)
             self.conf_save.configure(fg=self.color_trans_fg); self.conf_save.configure(bg="#222222")
             self.conf.configure(fg=self.color_trans_fg); self.conf.configure(bg="#222222")
 
@@ -1620,6 +1681,10 @@ class Racer():
             self.conf_11_2.configure(fg=self.color_normal_fg); self.conf_11_2.configure(bg=self.color_normal_bg)
             self.conf_12_1.configure(fg=self.color_normal_fg); self.conf_12_1.configure(bg=self.color_normal_bg)
             self.conf_12_2.configure(fg=self.color_normal_fg); self.conf_12_2.configure(bg=self.color_normal_bg)
+            self.conf_13_1.configure(fg=self.color_normal_fg); self.conf_13_1.configure(bg=self.color_normal_bg)
+            self.conf_13_2.configure(fg=self.color_normal_fg); self.conf_13_2.configure(bg=self.color_normal_bg)
+            self.conf_14_1.configure(fg=self.color_normal_fg); self.conf_14_1.configure(bg=self.color_normal_bg)
+            self.conf_14_2.configure(fg=self.color_normal_fg); self.conf_14_2.configure(bg=self.color_normal_bg)
             self.conf_save.configure(fg=self.color_normal_fg); self.conf_save.configure(bg=self.color_normal_bg)
             self.conf.configure(fg=self.color_normal_fg); self.conf.configure(bg=self.color_normal_bg)
 
@@ -1732,6 +1797,8 @@ class Racer():
         global hud_acceleration
         global hud_angles
         global hud_angles_bubbles
+        global hud_angles_airboost
+        global hud_max_speed
         global hud_drift_hold
         global enable_livesplit_hotkey
         global enable_ghost_keys
@@ -1871,7 +1938,6 @@ class Racer():
             borderwidth=0, command=lambda:conf_toggle("hud_angles_bubbles"))
         self.conf_7_2.place(x=310, y=44 + 6 * 20)
         
-        
         #OPTION 1 
         self.conf_8_0 = IntVar(self.root, hud_drift_hold)
 
@@ -1936,9 +2002,34 @@ class Racer():
             borderwidth=0, command=lambda:conf_toggle("log"))
         self.conf_12_2.place(x=310, y=44 + 11 * 20)
 
+        #OPTION 1 
+        self.conf_13_0 = IntVar(self.root, hud_angles_airboost)
+
+        self.conf_13_1 = tk.Label(self.root, text="""Show airboost helper""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
+        self.conf_13_1.place(x=314, y=44 + 12 * 20)
+
+        self.conf_13_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
+            text = "",
+            variable=self.conf_13_0,
+            borderwidth=0, command=lambda:conf_toggle("hud_angles_airboost"))
+        self.conf_13_2.place(x=310, y=44 + 12 * 20)
+
+        #OPTION 1 
+        self.conf_14_0 = IntVar(self.root, hud_max_speed)
+
+        self.conf_14_1 = tk.Label(self.root, text="""Show max speed on gauge""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
+        self.conf_14_1.place(x=314, y=44 + 13 * 20)
+
+        self.conf_14_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
+            text = "",
+            variable=self.conf_14_0,
+            borderwidth=0, command=lambda:conf_toggle("hud_max_speed"))
+        self.conf_14_2.place(x=310, y=44 + 13 * 20)
+
+
         #SAVE OPTIONS
         self.conf_save = tk.Button(self.root, text='SAVE & RESTART', command=lambda:conf_save() ,font=("Lucida Console", 10))
-        self.conf_save.place(x=320, y=44 + 13 * 20, width=120, height=27)
+        self.conf_save.place(x=320, y=44 + 15 * 20, width=120, height=27)
 
 
         def changeConfigVisibility():
@@ -1971,7 +2062,11 @@ class Racer():
                 self.conf_11_2.place(x=310, y=44 + 10 * 20)
                 self.conf_12_1.place(x=314, y=44 + 11 * 20)
                 self.conf_12_2.place(x=310, y=44 + 11 * 20)
-                self.conf_save.place(x=320, y=44 + 13 * 20, width=120, height=27)
+                self.conf_13_1.place(x=314, y=44 + 12 * 20)
+                self.conf_13_2.place(x=310, y=44 + 12 * 20)
+                self.conf_14_1.place(x=314, y=44 + 13 * 20)
+                self.conf_14_2.place(x=310, y=44 + 13 * 20)
+                self.conf_save.place(x=320, y=44 + 15 * 20, width=120, height=27)
 
 
                 show_config = 0
@@ -2003,6 +2098,10 @@ class Racer():
                 self.conf_11_2.place_forget()
                 self.conf_12_1.place_forget()
                 self.conf_12_2.place_forget()
+                self.conf_13_1.place_forget()
+                self.conf_13_2.place_forget()
+                self.conf_14_1.place_forget()
+                self.conf_14_2.place_forget()
                 self.conf_move.place_forget()
                 self.conf_save.place_forget()
 

@@ -565,7 +565,7 @@ class Meter():
             self.canvas.create_arc(2*10, 2*15, 2*winw-10, 2*winw-10, extent=31, start=36,style='arc', outline="#ff5436", width="10", tags="arc5")
 
             if hud_max_speed:
-                self.max_meter_meter = self.canvas.create_line(winw, winw, 20, winw,fill='red',width=4)
+                self.max_meter_meter = self.canvas.create_line(winw, winw, 20, winw,fill='lime',width=4)
                 self.max_speed.set(7250)
                 self.updateMeterLine(0.5, self.max_meter_meter)
                 self.max_speed.trace_add('write', self.updateMeterMaxSpeed)
@@ -719,12 +719,16 @@ class Meter():
             global total_distance
 
             global lap
+            global racer
 
             # reset , tp position
             step = coords
             arraystep = (ctypes.c_float * len(step))(*step)
             #la distancia de 5 es como si fuera una esfera de tamaño similar a una esfera de carreras de tiria
             if distance.euclidean(_3Dpos, arraystep) < 5 and (pressedQ == 0 or different(last_checkpoint_position, arraystep)):
+                if 'racer' in globals():
+                    racer.saveCheckpoint(0)
+                    
                 last_checkpoint_position = arraystep
                 if enable_livesplit_hotkey == 1:
                     keyboard_.press(live_reset)
@@ -770,6 +774,8 @@ class Meter():
 
             global next_step
 
+            
+
             total_laps = int(guildhall_laps.get()[:1])
 
             #only valid steps are the next one, or the first one
@@ -778,6 +784,13 @@ class Meter():
                 step0 = coords
                 arraystep0 = (ctypes.c_float * len(step0))(*step0)
                 if distance.euclidean(_3Dpos, arraystep0) < 15 and (pressedQ == 0 or different(last_checkpoint_position, arraystep0)):
+                    
+                    if 'racer' in globals():
+                        if stepName == "end":
+                            racer.saveCheckpoint(0)
+                        else:
+                            racer.saveCheckpoint(int(step) + 1)
+
                     last_checkpoint_position = arraystep0
                     if stepName == "start":
                         next_step = 1
@@ -1177,6 +1190,19 @@ class Meter():
 
                     checkpoint(2, "*", [-179,11,95])
                     checkpoint(3, "end", [-178, 22, 391])
+                    
+                if guildhall_name.get() == "DRFT-2 Wayfar Out":
+                    checkpoint(0,"start",[236.18545532226562,182.43496704101562,1193.39501953125])
+                    checkpoint(1,"*",[119.91375732421875,108.96684265136719,965.742919921875])
+                    checkpoint(2,"*",[-193.8041229248047,137.92950439453125,845.072998046875])
+                    checkpoint(3,"*",[-198.61849975585938,102.17216491699219,474.2681884765625])
+                    checkpoint(4,"*",[243.06484985351562,87.04293060302734,244.41075134277344])
+                    checkpoint(5,"*",[300.2074890136719,14.289880752563477,29.330516815185547])
+                    checkpoint(6,"*",[-16.304609298706055,28.552560806274414,-257.130126953125])
+                    checkpoint(7,"*",[-249.95533752441406,74.66495513916016,-399.3951721191406])
+                    checkpoint(8,"*",[18.190637588500977,25.067520141601562,-869.16259765625])
+                    checkpoint(9,"end",[70.45439910888672,8.777570724487305,-1082.09912109375])
+                    checkTP([264.8414001464844,197.06907653808594,1235.7269287109375])
 
             #DEBUG
             #print(list(_pos) , flush=True)
@@ -1249,11 +1275,11 @@ class Meter():
                                 if aa < -90:
                                     bb = (72) 
                                 elif aa >= -90 and aa < -45:
-                                    bb = (((aa+90) * (aa+90)) / 72) 
+                                    bb = (((aa+90) * (aa+90)) / 50) 
                                 elif int(aa) >= -45 and int(aa) < 45:
-                                    bb = ((aa * aa) / 72)
+                                    bb = ((aa * aa) / 50)
                                 elif aa >= 45 and aa < 90: 
-                                    bb = (((aa-90) * (aa-90)) / 72)
+                                    bb = (((aa-90) * (aa-90)) / 50)
                                 else:
                                     bb = (72) 
 
@@ -1545,6 +1571,7 @@ class Racer():
     def reset(self):
 
         self.root.focus_set()
+        self.saveCheckpoint(0)
 
         global _3Dpos
         global _time
@@ -1692,6 +1719,12 @@ class Racer():
             
         self.move = not self.move
 
+    def saveCheckpoint(self,value):
+        #stores in counterDone.txt number of total laps done
+        file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "checkpoint.txt", "w")
+        file.write(str(value))
+        file.close()
+
     def saveGuildhall(self,value):
         #stores in counterDone.txt number of total laps done
         global guildhall_name
@@ -1766,7 +1799,7 @@ class Racer():
         guildhall_laps.set("1 lap")
 
 
-        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.5.13""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
+        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.5.22""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
         self.t_1.place(x=0, y=10)
         self.t_2 = tk.Label(self.root, text="""Choose map to race""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_2.place(x=0, y=40)
@@ -1774,7 +1807,7 @@ class Racer():
         self.choices = ['None, im free!', "OLLO Akina", 'RACE Downhill', 'RACE Hillclimb', 'RACE Full Mountain Run', 
             'GeeK','INDI', 'UAoT', 'VAW Left path', 'VAW Right path', 'GWTC', 'EQE', 'SoTD', 'LRS', 'HUR', 
             "TYRIA INF.LEAP", "TYRIA DIESSA PLATEAU", "TYRIA SNOWDEN DRIFTS", "TYRIA GENDARRAN", "TYRIA BRISBAN WILD.", "TYRIA GROTHMAR VALLEY",
-            "DRFT-1 Fractal Actual Speedway"]
+            "DRFT-1 Fractal Actual Speedway", "DRFT-2 Wayfar Out"]
         self.t_3 = tk.OptionMenu(self.root, guildhall_name, *self.choices, command = self.saveGuildhall)
         self.t_3.config(font=("Lucida Console", 10))
         self.t_3["highlightthickness"] = 0
@@ -1811,7 +1844,6 @@ class Racer():
                 globals()[field] = 0
             else:
                 globals()[field] = 1
-            print(globals()[field])
 
         
 

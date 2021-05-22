@@ -294,6 +294,8 @@ class Ghost3d(object):
                             endpoint = [0.5, 59, -115]
                         elif guildhall_name == "DRFT-1 Fractal Actual Speedway":
                             endpoint = [-178, 22, 391]
+                        elif guildhall_name == "DRFT-2 Wayfar Out":
+                            endpoint = [70.45439910888672,8.777570724487305,-1082.09912109375]
                         
                     
                         try:

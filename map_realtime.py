@@ -296,6 +296,30 @@ class Ghost3d(object):
                             endpoint = [-178, 22, 391]
                         elif guildhall_name == "DRFT-2 Wayfar Out":
                             endpoint = [70.45439910888672,8.777570724487305,-1082.09912109375]
+                        elif guildhall_name.get() == "DRFT-3 Summers Sunset":
+                            endpoint = [-162.6918487548828,3.4913501739501953,100.76415252685547]
+                        elif guildhall_name.get() == "DRFT-4 Mossheart Memory":
+                            endpoint = [656.0433959960938,51.61550521850586,-575.2821655273438]
+                        elif guildhall_name.get() == "DRFT-5 Roller Coaster Canyon":
+                            endpoint = [352.8476867675781,45.145347595214844,425.576416015625]
+                        elif guildhall_name.get() == "DRFT-6 Centurion Circuit":
+                            endpoint = [20.252696990966797,168.30413818359375,86.17316436767578]
+                        elif guildhall_name.get() == "DRFT-7 Dredgehaunt Cliffs":
+                            endpoint = [-46.31200408935547,60.5682258605957,-566.6380615234375]
+                        elif guildhall_name.get() == "DRFT-8 Icy Rising Ramparts":
+                            endpoint = [575.1735229492188,58.270286560058594,365.3240661621094]
+                        elif guildhall_name.get() == "DRFT-9 Soulthirst Savannah of Svanier":
+                            endpoint = [724.0528564453125,137.1461639404297,214.591064453125]
+                        elif guildhall_name.get() == "DRFT-10 Toxic Turnpike":
+                            endpoint = [557.4955444335938,52.8920783996582,464.1280822753906]
+                        elif guildhall_name.get() == "DRFT-11 Estuary of Twilight":
+                            endpoint = [-187.4603271484375,19.422760009765625,668.4896850585938]
+                        elif guildhall_name.get() == "DRFT-12 Celedon Circle":
+                            endpoint = [-68.65498352050781,-0.2025335431098938,-932.6437377929688]
+                        elif guildhall_name.get() == "DRFT-13 Thermo Reactor Escape":
+                            endpoint = [181.4370880126953,27.945026397705078,239.04833984375]
+                        elif guildhall_name.get() == "DRFT-14 Jormags Jumpscare":
+                            endpoint = [661.1888427734375,39.34746551513672,462.04925537109375]
                         
                     
                         try:

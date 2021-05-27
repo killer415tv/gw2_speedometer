@@ -877,7 +877,7 @@ class Meter():
                                     }
                                     response = requests.post('http://beetlerank.bounceme.net/upload-log',data={'user': json.loads(ml.data.identity)["name"], 'guildhall': guildhall_name.get()}, files={'file': open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + filename,'rb')}, headers=headers)
                                     print("Log uploaded to web")
-                                    print("2",response.text)
+                                    print(response.text)
                                     if response.text and int(total_laps) == 1:
                                         message.write(response.text)
                                     racer.saveGuildhall(guildhall_name.get())
@@ -937,7 +937,6 @@ class Meter():
                             if line == '':
                                 line = "1"
                             numero_contador = int(line.strip()) + 1
-                            print (numero_contador)
                             file.close()
                             file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "counterDone.txt", "w")
                             file.write(str(numero_contador))
@@ -1011,12 +1010,12 @@ class Meter():
         else:
             _pos = [ml.data.fAvatarPosition[0],ml.data.fAvatarPosition[2]]
 
-        """
+        
         if 'racer' in globals() and client != "":
-            if map_position_last_time_send != round(_time*10/2):
-                map_position_last_time_send = round(_time*10/2)
-                racer.sendMQTT({"option": "position", "x": ml.data.fAvatarPosition[0], "z": ml.data.fAvatarPosition[2], "user": racer.username.get()})
-        """
+            if map_position_last_time_send != round(_time*10/5):
+                map_position_last_time_send = round(_time*10/5)
+                racer.sendMQTT({"option": "position", "x": ml.data.fAvatarPosition[0], "y": ml.data.fAvatarPosition[1], "z": ml.data.fAvatarPosition[2], "user": racer.username.get(), "map": guildhall_name.get()})
+        
 
         if show_checkpoints_window and 'racer' in globals():  
             if ml.data.identity != "":
@@ -1150,6 +1149,19 @@ class Meter():
                     checkpoint(0, "start", [-387, 997, -273.4])
                     checkpoint(1, "*", [97.3, 842.8, -75])
                     checkpoint(2, "end", [-314, 997, -378.2])
+
+                if guildhall_name.get() == "OLLO Shortcut":
+
+                    checkpoint(0,"start",[24.269977569580078,16.183862686157227,-40.50206756591797])
+                    checkpoint(1,"*",[9.049388885498047,39.9488525390625,82.58651733398438])
+                    checkpoint(2,"*",[-11.155280113220215,40.044132232666016,289.6002502441406])
+                    checkpoint(3,"*",[99.26748657226562,23.069229125976562,192.68919372558594])
+                    checkpoint(4,"*",[98.61570739746094,23.08808135986328,282.6737365722656])
+                    checkpoint(5,"*",[139.25704956054688,42.244361877441406,346.36370849609375])
+                    checkpoint(6,"*",[205.88778686523438,29.56764030456543,217.02557373046875])
+                    checkpoint(7,"*",[208.2991485595703,36.79213333129883,5.360412120819092])
+                    checkpoint(8,"end",[109.66463470458984,36.829837799072266,-21.301481246948242])
+                    checkTP([114.61094665527344,9.075913429260254,37.21352005004883])
 
                 if guildhall_name.get() == "VAW Left path":
                     checkTP([35.67, 111.35, -7.02]) # use this position when you take te map TP , to stop log file
@@ -1966,7 +1978,7 @@ class Racer():
         self.t_2 = tk.Label(self.root, text="""Choose map to race""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_2.place(x=0, y=40)
         
-        self.choices = ['None, im free!', "OLLO Akina", 'RACE Downhill', 'RACE Hillclimb', 'RACE Full Mountain Run', 
+        self.choices = ['None, im free!', "OLLO Akina", "OLLO Shortcut", 'RACE Downhill', 'RACE Hillclimb', 'RACE Full Mountain Run', 
             'GeeK','INDI', 'UAoT', 'VAW Left path', 'VAW Right path', 'GWTC', 'EQE', 'SoTD', 'LRS', 'HUR', 
             "TYRIA INF.LEAP", "TYRIA DIESSA PLATEAU", "TYRIA SNOWDEN DRIFTS", "TYRIA GENDARRAN", "TYRIA BRISBAN WILD.", "TYRIA GROTHMAR VALLEY",
             "DRFT-1 Fractal Actual Speedway", "DRFT-2 Wayfar Out", "DRFT-3 Summers Sunset", "DRFT-4 Mossheart Memory", "DRFT-5 Roller Coaster Canyon", 
@@ -2333,10 +2345,9 @@ class Racer():
         self.t_4_4.place(x=20, y=100)
         
 
-
         #tk.Label(self.root, text="""Join race:""", justify = tk.CENTER, padx = 20,fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10)).place(x=0, y=110)
         
-        self.t_5 = tk.Entry(self.root,textvariable=self.session_id)
+        self.t_5 = tk.Entry(self.root,textvariable=self.session_id ,show="*")
         self.t_5.place(x=20, y=120, height=28)
         self.t_6 = tk.Button(self.root, textvariable=self.status, command=self.joinRace,font=("Lucida Console", 10))
         self.t_6.place(x=120, y=120, width=80)
@@ -2363,7 +2374,6 @@ class Racer():
 
         self.map_ranking = tk.Label(self.root, textvariable=self.map_ranking_var, justify = tk.LEFT, padx = 0,fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.map_ranking.place(x=20, y=130)
-
 
 
         def changeMultiVisibility(hide):

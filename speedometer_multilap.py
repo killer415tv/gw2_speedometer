@@ -2067,7 +2067,8 @@ class Racer():
             "TYRIA INF.LEAP", "TYRIA DIESSA PLATEAU", "TYRIA SNOWDEN DRIFTS", "TYRIA GENDARRAN", "TYRIA BRISBAN WILD.", "TYRIA GROTHMAR VALLEY",
             "DRFT-1 Fractal Actual Speedway", "DRFT-2 Wayfar Out", "DRFT-3 Summers Sunset", "DRFT-4 Mossheart Memory", "DRFT-5 Roller Coaster Canyon", 
             "DRFT-6 Centurion Circuit", "DRFT-7 Dredgehaunt Cliffs", "DRFT-8 Icy Rising Ramparts", "DRFT-9 Soulthirst Savannah of Svanier", "DRFT-10 Toxic Turnpike", 
-            "DRFT-11 Estuary of Twilight", "DRFT-12 Celedon Circle", "DRFT-13 Thermo Reactor Escape", "DRFT-14 Jormags Jumpscare"]
+            "DRFT-11 Estuary of Twilight", "DRFT-12 Celedon Circle", "DRFT-13 Thermo Reactor Escape", "DRFT-14 Jormags Jumpscare", 
+            "DRFT-GP-1 Lions Summer Sights","DRFT-GP-2 Sandswept Shore Sprint","DRFT-GP-3 Inquest Isle Invasion","DRFT-GP-4 Triple Trek Periphery","DRFT-GP-5 Beachin Crabwalk"]
         self.t_3 = tk.OptionMenu(self.root, guildhall_name, *self.choices, command = self.saveGuildhall)
         self.t_3.config(font=("Lucida Console", 10))
         self.t_3["highlightthickness"] = 0

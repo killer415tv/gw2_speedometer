@@ -320,6 +320,16 @@ class Ghost3d(object):
                             endpoint = [181.4370880126953,27.945026397705078,239.04833984375]
                         elif guildhall_name.get() == "DRFT-14 Jormags Jumpscare":
                             endpoint = [661.1888427734375,39.34746551513672,462.04925537109375]
+                        elif guildhall_name.get() == "DRFT-GP-1 Lions Summer Sights":
+                            endpoint = [-216.6181182861328,31.319185256958008,-353.88165283203125]
+                        elif guildhall_name.get() == "DRFT-GP-2 Sandswept Shore Sprint":
+                            endpoint = [-502.1472473144531,1.6342060565948486,910.4564208984375]
+                        elif guildhall_name.get() == "DRFT-GP-3 Inquest Isle Invasion":
+                            endpoint = [-223.18630981445312,0.7399634122848511,-81.19659423828125]
+                        elif guildhall_name.get() == "DRFT-GP-4 Triple Trek Periphery":
+                            endpoint = [234.2526397705078,2.7598352432250977,-83.74826049804688]
+                        elif guildhall_name.get() == "DRFT-GP-5 Beachin Crabwalk":
+                            endpoint = [-417.37591552734375,44.911865234375,-181.865478515625]
                         
                     
                         try:

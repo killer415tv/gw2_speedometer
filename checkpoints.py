@@ -403,11 +403,11 @@ class Ghost3d(object):
         #for x in self.all_files[-ghost_number:]:
         if hasattr(self, 'df') and self.file_ready == True:
             
-            #dibujo los checkpoints < checkpoint en gris
-            data = self.df[(self.df['STEP'] < checkpoint) & (self.df['file_name'] == self.best_file)]
+            data = self.df[(self.df['STEP'] == -1) & (self.df['file_name'] == self.best_file)]
+            
             if len(data) > 0:
 
-                points = list(self.df[(self.df['STEP'] < checkpoint) & (self.df['file_name'] == self.best_file)].values)
+                points = list(self.df[(self.df['STEP'] == -1) & (self.df['file_name'] == self.best_file)].values)
                 
                 for p in points:
 
@@ -419,24 +419,12 @@ class Ghost3d(object):
                     file = p[5]
 
                     step_index = str(step)
-                 
-                    if stepname == "reset":
-                        speedcolor = [255, 182, 24]
-                        radius = 5
-                    else:
-                        speedcolor = [40, 40, 40]
-                        radius = 10
-
+                
+                    speedcolor = [255, 182, 24, 255]
+                    radius = 5
                     #print(vel, speedcolor)
                     
                     self.md = gl.MeshData.cylinder(rows=1, cols=40, radius=[radius,radius], length=0.4)
-
-                    colors = np.ones((self.md.faceCount(), 4), dtype=float)
-                    colors[::1,0] = 1
-                    colors[::1,1] = 0
-                    colors[::1,2] = 0
-                    colors[:,1] = np.linspace(0, 1, colors.shape[0])
-                    #self.md.setFaceColors(colors)
 
                     if not step_index in self.balls:
                         self.balls[step_index] = gl.GLMeshItem(meshdata=self.md, drawEdges=False, smooth=False, drawFaces=True, glOptions='additive', shader='shaded', color=(QtGui.QColor(speedcolor[0], speedcolor[1], speedcolor[2])))
@@ -455,12 +443,57 @@ class Ghost3d(object):
                     #self.balls[step_index].resetTransform()
                     #self.balls[step_index].rotate(1,0,0,1,True)
                     self.balls[step_index].translate(transx,transy,transz)
-                    
-
                     self.balls[step_index].setColor(QtGui.QColor(speedcolor[0], speedcolor[1], speedcolor[2]))
 
                     self.last_balls_positions[step_index] = [posx,posz,posy]
 
+            #dibujo los checkpoints < checkpoint en gris
+
+            data = self.df[(self.df['STEP'] < checkpoint) & (self.df['STEP'] > -1) & (self.df['file_name'] == self.best_file)]
+            if len(data) > 0:
+
+                points = list(self.df[(self.df['STEP'] < checkpoint) & (self.df['STEP'] > -1) & (self.df['file_name'] == self.best_file)].values)
+                
+                for p in points:
+
+                    step = p[0]
+                    stepname = p[1]
+                    posx = p[2]
+                    posy = p[3]
+                    posz = p[4]
+                    file = p[5]
+
+                    step_index = str(step)
+                 
+                    speedcolor = [40, 40, 40, 0]
+                    radius = 10
+
+                    #print(vel, speedcolor)
+                    
+                    self.md = gl.MeshData.cylinder(rows=1, cols=40, radius=[radius,radius], length=0.4)
+
+                    if not step_index in self.balls:
+                        self.balls[step_index] = gl.GLMeshItem(meshdata=self.md, drawEdges=False, smooth=False, drawFaces=False, glOptions='additive', shader='shaded', color=(speedcolor[0], speedcolor[1], speedcolor[2],0))
+                        self.balls[step_index].scale(1.5, 1.5, 1.5)
+                        self.w.addItem(self.balls[step_index])
+
+                    if self.last_balls_positions.get(step_index):
+                        last_pos = self.last_balls_positions.get(step_index)
+                    else: 
+                        last_pos = [0,0,0]
+
+                    transx = float(posx) - float(last_pos[0])
+                    transy = float(posz) - float(last_pos[1])
+                    transz = float(posy) - float(last_pos[2])
+
+                    #self.balls[step_index].resetTransform()
+                    #self.balls[step_index].rotate(1,0,0,1,True)
+                    self.balls[step_index].translate(transx,transy,transz)
+                    self.balls[step_index].setColor((speedcolor[0], speedcolor[1], speedcolor[2], 0))
+
+                    self.last_balls_positions[step_index] = [posx,posz,posy]
+                    
+            
             
             #dibujo el checkpoint = checkpoint en azul
             data = self.df[(self.df['STEP'] == checkpoint) & (self.df['file_name'] == self.best_file)]
@@ -484,13 +517,6 @@ class Ghost3d(object):
                     #print(vel, speedcolor)
                     
                     self.md = gl.MeshData.cylinder(rows=1, cols=40, radius=[10,10], length=0.4)
-
-                    colors = np.ones((self.md.faceCount(), 4), dtype=float)
-                    colors[::1,0] = 1
-                    colors[::1,1] = 0
-                    colors[::1,2] = 0
-                    colors[:,1] = np.linspace(0, 1, colors.shape[0])
-                    #self.md.setFaceColors(colors)
 
                     if not step_index in self.balls:
                         self.balls[step_index] = gl.GLMeshItem(meshdata=self.md, drawEdges=False, smooth=False, drawFaces=True, glOptions='additive', shader='shaded', color=(QtGui.QColor(speedcolor[0], speedcolor[1], speedcolor[2])))
@@ -523,7 +549,7 @@ class Ghost3d(object):
 
                 points = list(self.df[(self.df['STEP'] > checkpoint) & (self.df['file_name'] == self.best_file)].values)
                 
-                for p in points:
+                for p in points[:2]:
 
                     step = p[0]
                     stepname = p[1]
@@ -539,13 +565,6 @@ class Ghost3d(object):
                     #print(vel, speedcolor)
                     
                     self.md = gl.MeshData.cylinder(rows=1, cols=40, radius=[10,10], length=0.4)
-
-                    colors = np.ones((self.md.faceCount(), 4), dtype=float)
-                    colors[::1,0] = 1
-                    colors[::1,1] = 0
-                    colors[::1,2] = 0
-                    colors[:,1] = np.linspace(0, 1, colors.shape[0])
-                    #self.md.setFaceColors(colors)
 
                     if not step_index in self.balls:
                         self.balls[step_index] = gl.GLMeshItem(meshdata=self.md, drawEdges=False, smooth=False, drawFaces=True, glOptions='additive', shader='shaded', color=(QtGui.QColor(speedcolor[0], speedcolor[1], speedcolor[2])))

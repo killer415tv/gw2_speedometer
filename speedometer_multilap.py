@@ -1199,7 +1199,8 @@ class Meter():
                     checkpoint(1, "*", [143,25,-281])
                     checkpoint(1, "*", [142,25,-291])
                     checkpoint(2, "*", [-179,11,95])
-                    checkpoint(3, "end", [-178, 22, 391])
+                    checkpoint(3, "*", [-271,13,279])
+                    checkpoint(4, "end", [-178, 22, 391])
 
                 if guildhall_name.get() == "DRFT-2 Wayfar Out":
                     checkpoint(0,"start",[236.18545532226562,182.43496704101562,1193.39501953125])

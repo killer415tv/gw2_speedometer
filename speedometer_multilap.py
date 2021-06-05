@@ -2633,7 +2633,7 @@ class Countdown():
         
         self.localcountdown = tk.StringVar(self.root,"")
 
-        self.time = tk.Label(self.root, textvariable=self.localcountdown, justify = tk.CENTER, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 80, "bold"))
+        self.time = tk.Label(self.root, textvariable=self.localcountdown, justify = tk.CENTER, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 60, "bold"))
         self.time.place(x=0, y=0)
 
         self.toggleTrans()
@@ -2698,7 +2698,7 @@ class Message():
                                 bg='#222')
         self.outer_drifting_box = self.canvas.create_rectangle(1,1,499,219, outline="white", width="1")
 
-        self.time = tk.Label(self.root, textvariable=self.localcountdown, justify = tk.CENTER, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 30))
+        self.time = tk.Label(self.root, textvariable=self.localcountdown, justify = tk.CENTER, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console",20))
         #self.time.place(x=0, y=0)
         self.btn = tk.Button(self.root, text="Ok", padx= 20,font=("Lucida Console", 10),command=lambda:self.hide())
         self.time.pack(expand=True, padx=2)

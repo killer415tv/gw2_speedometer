@@ -427,7 +427,7 @@ class Ghost3d(object):
                     self.md = gl.MeshData.cylinder(rows=1, cols=40, radius=[radius,radius], length=0.4)
 
                     if not step_index in self.balls:
-                        self.balls[step_index] = gl.GLMeshItem(meshdata=self.md, drawEdges=False, smooth=False, drawFaces=True, glOptions='additive', shader='shaded', color=(QtGui.QColor(speedcolor[0], speedcolor[1], speedcolor[2])))
+                        self.balls[step_index] = gl.GLMeshItem(meshdata=self.md, drawEdges=False, smooth=True, drawFaces=True, glOptions='additive', shader='balloon', color=(QtGui.QColor(speedcolor[0], speedcolor[1], speedcolor[2])))
                         self.balls[step_index].scale(1.5, 1.5, 1.5)
                         self.w.addItem(self.balls[step_index])
 
@@ -473,7 +473,7 @@ class Ghost3d(object):
                     self.md = gl.MeshData.cylinder(rows=1, cols=40, radius=[radius,radius], length=0.4)
 
                     if not step_index in self.balls:
-                        self.balls[step_index] = gl.GLMeshItem(meshdata=self.md, drawEdges=False, smooth=False, drawFaces=False, glOptions='additive', shader='shaded', color=(speedcolor[0], speedcolor[1], speedcolor[2],0))
+                        self.balls[step_index] = gl.GLMeshItem(meshdata=self.md, drawEdges=False, smooth=True, drawFaces=False, glOptions='additive', shader='balloon', color=(speedcolor[0], speedcolor[1], speedcolor[2],0))
                         self.balls[step_index].scale(1.5, 1.5, 1.5)
                         self.w.addItem(self.balls[step_index])
 
@@ -519,7 +519,7 @@ class Ghost3d(object):
                     self.md = gl.MeshData.cylinder(rows=1, cols=40, radius=[10,10], length=0.4)
 
                     if not step_index in self.balls:
-                        self.balls[step_index] = gl.GLMeshItem(meshdata=self.md, drawEdges=False, smooth=False, drawFaces=True, glOptions='additive', shader='shaded', color=(QtGui.QColor(speedcolor[0], speedcolor[1], speedcolor[2])))
+                        self.balls[step_index] = gl.GLMeshItem(meshdata=self.md, drawEdges=False, smooth=True, drawFaces=True, glOptions='additive', shader='balloon', color=(QtGui.QColor(speedcolor[0], speedcolor[1], speedcolor[2])))
                         self.balls[step_index].scale(1.5, 1.5, 1.5)
                         self.w.addItem(self.balls[step_index])
 
@@ -567,7 +567,7 @@ class Ghost3d(object):
                     self.md = gl.MeshData.cylinder(rows=1, cols=40, radius=[10,10], length=0.4)
 
                     if not step_index in self.balls:
-                        self.balls[step_index] = gl.GLMeshItem(meshdata=self.md, drawEdges=False, smooth=False, drawFaces=True, glOptions='additive', shader='shaded', color=(QtGui.QColor(speedcolor[0], speedcolor[1], speedcolor[2])))
+                        self.balls[step_index] = gl.GLMeshItem(meshdata=self.md, drawEdges=False, smooth=True, drawFaces=True, glOptions='additive', shader='balloon', color=(QtGui.QColor(speedcolor[0], speedcolor[1], speedcolor[2])))
                         self.balls[step_index].scale(1.5, 1.5, 1.5)
                         self.w.addItem(self.balls[step_index])
 

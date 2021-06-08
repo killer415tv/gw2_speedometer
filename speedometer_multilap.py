@@ -722,8 +722,7 @@ class Meter():
             global racer
 
             # reset , tp position
-            step = coords
-            arraystep = (ctypes.c_float * len(step))(*step)
+            arraystep = (ctypes.c_float * len(coords))(*coords)
             #la distancia de 5 es como si fuera una esfera de tamaño similar a una esfera de carreras de tiria
             if distance.euclidean(_3Dpos, arraystep) < 5 and (pressedQ == 0 or different(last_checkpoint_position, arraystep)):
                 if 'racer' in globals():
@@ -765,15 +764,36 @@ class Meter():
             global lap
 
             global magic_angle
-
             global upload
-
             global racer
-
             global map_position_last_time_send
-
             global next_step
 
+
+            if step == -1:
+                arraystep = (ctypes.c_float * len(coords))(*coords)
+                #la distancia de 5 es como si fuera una esfera de tamaño similar a una esfera de carreras de tiria
+                if distance.euclidean(_3Dpos, arraystep) < 5 and (pressedQ == 0 or different(last_checkpoint_position, arraystep)):
+                    if 'racer' in globals():
+                        racer.saveCheckpoint(0)
+                        
+                    last_checkpoint_position = arraystep
+                    if enable_livesplit_hotkey == 1:
+                        keyboard_.press(live_reset)
+                        keyboard_.release(live_reset)
+                    pressedQ = 0.5
+                    #cerrar fichero si hubiera una sesión anterior
+                    filename = ""
+                    total_timer = _time
+                    lap_timer = _time
+                    #print("----------------------------------")
+                    #print("GOING TO MAP TP = RESET RUN ")
+                    #print("----------------------------------")
+                    self.steps_txt.set("")
+                    self.step1_txt.set("")
+                    self.vartime.set("")
+                    self.distance.set("")
+                    lap = 1
             
 
             total_laps = int(guildhall_laps.get()[:1])
@@ -1030,7 +1050,7 @@ class Meter():
 
                 if guildhall_name.get() == "GWTC":
                     #GWTC Checkpoints
-                    checkTP([3.18, 61.32, -35.58]) # use this position when you take te map TP , to stop log file
+                    checkpoint(-1,"reset", [3.18, 61.32, -35.58]) # use this position when you take te map TP , to stop log file
                     checkpoint(0, "start", [49.9, 564.5, 31.9])
                     checkpoint(1, "*", [-30.5, 495.9, 219.6])
                     checkpoint(2, "*", [-156, 363.1, 157.4])
@@ -1041,7 +1061,7 @@ class Meter():
 
                 if guildhall_name.get() == "RACE Downhill":
                     #race Checkpoints
-                    checkTP([35.67, 111.35, -7.02]) # use this position when you take te map TP , to stop log file
+                    checkpoint(-1,"reset", [35.67, 111.35, -7.02]) # use this position when you take te map TP , to stop log file
                     checkpoint(0, "start", [105, 453, 152])
                     checkpoint(1, "*", [75, 388, 132]) #el saltito
                     checkpoint(2, "*", [207, 278,-271]) #las dos aguilas
@@ -1050,7 +1070,7 @@ class Meter():
 
                 if guildhall_name.get() == "RACE Hillclimb":
                     #race Checkpoints
-                    checkTP([35.67, 111.35, -7.02]) # use this position when you take te map TP , to stop log file
+                    checkpoint(-1,"reset", [35.67, 111.35, -7.02]) # use this position when you take te map TP , to stop log file
                     checkpoint(0, "start", [-66, 6, -275])
                     checkpoint(1, "*", [-271, 69, 43]) #estructura parecida al puente
                     checkpoint(2, "*", [225, 285, -145]) #equivalente a las aguilas
@@ -1059,7 +1079,7 @@ class Meter():
 
                 if guildhall_name.get() == "RACE Full Mountain Run":
                     #race Checkpoints
-                    checkTP([35.67, 111.35, -7.02]) # use this position when you take te map TP , to stop log file
+                    checkpoint(-1,"reset", [35.67, 111.35, -7.02]) # use this position when you take te map TP , to stop log file
                     checkpoint(0, "start", [18.96, 453, 85.98])
                     checkpoint(1, "*", [-81.6, 380.74, 104.90]) 
                     checkpoint(2, "*", [207, 278, -271]) 
@@ -1072,7 +1092,7 @@ class Meter():
 
                 if guildhall_name.get() == "EQE":
                     #eqe Checkpoints
-                    checkTP([114.48, 9.07, 37.47]) # use this position when you take te map TP , to stop log file
+                    checkpoint(-1,"reset", [114.48, 9.07, 37.47]) # use this position when you take te map TP , to stop log file
                     checkpoint(0, "start", [186.02, 140.6, 198.7])
                     checkpoint(1, "*", [-78.8, 23.9, -94.5])
                     checkpoint(2, "*", [104, 142.6, -44])
@@ -1081,7 +1101,7 @@ class Meter():
 
                 if guildhall_name.get() == "SoTD":
                     #SoTD Checkpoints
-                    checkTP([3.18, 61.32, -35.58]) # use this position when you take te map TP , to stop log file
+                    checkpoint(-1,"reset", [3.18, 61.32, -35.58]) # use this position when you take te map TP , to stop log file
                     checkpoint(0, "start", [93.41, 512.07, -6.85])
                     checkpoint(1, "*", [-39.83, -0.34, 74.95])
                     checkpoint(2, "*", [5.39, 88.43, 170.73])
@@ -1091,7 +1111,7 @@ class Meter():
 
                 if guildhall_name.get() == "LRS":
                     #SoTD Checkpoints
-                    checkTP([3.18, 61.32, -35.58]) # use this position when you take te map TP , to stop log file
+                    checkpoint(-1,"reset", [3.18, 61.32, -35.58]) # use this position when you take te map TP , to stop log file
                     checkpoint(0, "start", [25.83, 575.20, -14.51])
                     checkpoint(1, "*", [182.53, 488.21, 59.85])
                     checkpoint(2, "*", [203.48, 261.82, -96.09])
@@ -1101,7 +1121,7 @@ class Meter():
 
                 if guildhall_name.get() == "HUR":
                     #HUR Checkpoints
-                    checkTP([35.67, 111.35, -7.02]) # use this position when you take te map TP , to stop log file
+                    checkpoint(-1,"reset", [35.67, 111.35, -7.02]) # use this position when you take te map TP , to stop log file
                     checkpoint(0, "start", [42.57, 103.83, -282.71])
                     checkpoint(1, "*", [-253.95, 162.94, 284.7])
                     checkpoint(2, "*", [81.8, 0.56, -323.83])
@@ -1111,41 +1131,118 @@ class Meter():
                     checkpoint(6,"end", [42.5, 103.87, -187.45])
 
                 if guildhall_name.get() == "TYRIA INF.LEAP":
-                    checkTP([240.4, 2.7, -549.4])
-                    checkpoint(0, "start", [172.968, 5.71193, -548.169])
-                    checkpoint(1, "*", [-46.6852, 62.7075, -106.757])
-                    checkpoint(2, "*", [-425.45, 52.2022, -118.072])
-                    checkpoint(3, "*", [-69.0608, 43.4203, -192.177])
-                    checkpoint(4,"end", [166.077, 1.25356, -488.581])
+                    checkpoint(0,"start", [172.08766174316406,6.024808883666992,-547.970458984375])
+                    checkpoint(-1,"reset", [239.65151977539062,2.9369618892669678,-550.4412231445312])
+                    checkpoint(1,"*", [29.13327980041504,55.82658004760742,-583.2632446289062])
+                    checkpoint(2,"*", [-51.2392692565918,79.49896240234375,-379.94647216796875])
+                    checkpoint(3,"*", [-9.615543365478516,78.45231628417969,-309.3282470703125])
+                    checkpoint(4,"*", [-48.472530364990234,62.86130142211914,-106.99578094482422])
+                    checkpoint(5,"*", [-100.83071899414062,71.53402709960938,52.68389129638672])
+                    checkpoint(6,"*", [-91.94183349609375,61.61763381958008,112.29816436767578])
+                    checkpoint(7,"*", [-147.08193969726562,71.2541275024414,198.99038696289062])
+                    checkpoint(8,"*", [-417.5687561035156,74.10258483886719,162.71331787109375])
+                    checkpoint(9,"*", [-488.59130859375,71.60765838623047,27.125934600830078])
+                    checkpoint(10,"*", [-427.56011962890625,52.862422943115234,-114.37564849853516])
+                    checkpoint(11,"*", [-320.72216796875,9.928861618041992,-265.4931335449219])
+                    checkpoint(12,"*", [-46.586875915527344,51.671600341796875,-164.40892028808594])
+                    checkpoint(13,"*", [50.92682647705078,42.65714645385742,-338.25128173828125])
+                    checkpoint(14,"end",[166.60678100585938,1.3314199447631836,-490.23712158203125])
+
 
                 if guildhall_name.get() == "TYRIA DIESSA PLATEAU":
-                    checkTP([-135.9, 30.3, -530.7])
-                    checkpoint(0, "start", [-102.2, 27.2, -529.1])
-                    checkpoint(1, "end", [-166.1, 30.8, -505.5])
+                    checkpoint(0,"start", [-104.83451843261719,27.776851654052734,-524.923828125])
+                    checkpoint(-1,"reset", [-147.5781707763672,32.125404357910156,-532.2943725585938])
+                    checkpoint(1,"*", [1.1407662630081177,19.605104446411133,-578.863037109375])
+                    checkpoint(2,"*", [676.86279296875,20.384946823120117,-336.33447265625])
+                    checkpoint(3,"*", [703.8831787109375,26.951656341552734,260.63909912109375])
+                    checkpoint(4,"*", [609.3909301757812,24.277347564697266,369.7010803222656])
+                    checkpoint(5,"*", [369.9383239746094,3.642069101333618,270.60150146484375])
+                    checkpoint(6,"*", [504.962646484375,27.541580200195312,35.69978713989258])
+                    checkpoint(7,"*", [233.28945922851562,38.541439056396484,-69.48370361328125])
+                    checkpoint(8,"*", [132.38165283203125,17.785154342651367,2.164975166320801])
+                    checkpoint(9,"*", [-432.2799987792969,42.51692199707031,-42.65890121459961])
+                    checkpoint(10,"*", [-357.3988952636719,41.89646530151367,-167.71923828125])
+                    checkpoint(11,"*", [-401.38409423828125,28.78837013244629,-361.96881103515625])
+                    checkpoint(12,"end",[-161.61705017089844,30.59449577331543,-507.6558532714844])
 
                 if guildhall_name.get() == "TYRIA SNOWDEN DRIFTS":
-                    checkTP([256.5, 33.8, -70.9])
-                    checkpoint(0, "start", [234.6, 20.4, -133.7])
-                    checkpoint(1, "end", [253.2, 26.6, -98])
+                    checkpoint(0,"start", [241.68540954589844,21.559755325317383,-125.37120819091797])
+                    checkpoint(-1,"reset", [261.70538330078125,35.725868225097656,-59.49063491821289])
+                    checkpoint(1,"*", [-5.7246994972229,80.48108673095703,-242.01596069335938])
+                    checkpoint(2,"*", [-75.52835845947266,48.116947174072266,-86.60132598876953])
+                    checkpoint(3,"*", [-28.39924430847168,59.33915710449219,-12.004525184631348])
+                    checkpoint(4,"*", [73.7730941772461,52.45607376098633,-35.24717712402344])
+                    checkpoint(5,"*", [199.7474365234375,27.030221939086914,29.305269241333008])
+                    checkpoint(6,"*", [333.5821228027344,31.937904357910156,96.81157684326172])
+                    checkpoint(7,"*", [324.86370849609375,36.481956481933594,-15.774405479431152])
+                    checkpoint(8,"end",[253.3621826171875,26.54821014404297,-98.40397644042969])
 
                 if guildhall_name.get() == "TYRIA GENDARRAN":
-                    checkTP([308.67, 35.4, 515.4])
-                    checkpoint(0, "start", [225.7, 7.5, 480.2])
-                    checkpoint(1, "end", [283.9, 12.9, 463.9])
+                    checkpoint(0,"start", [233.21591186523438,8.56054401397705,477.771240234375])
+                    checkpoint(-1,"reset", [308.26007080078125,35.16044998168945,515.2572021484375])
+                    checkpoint(1,"*", [-108.59925079345703,16.908260345458984,340.125244140625])
+                    checkpoint(2,"*", [-220.9199981689453,28.74785041809082,-32.014652252197266])
+                    checkpoint(3,"*", [-307.2057189941406,7.515278339385986,-235.68634033203125])
+                    checkpoint(4,"*", [-173.0546417236328,5.826416492462158,-436.0346984863281])
+                    checkpoint(5,"*", [-59.84772872924805,13.091215133666992,-420.60833740234375])
+                    checkpoint(6,"*", [439.3578796386719,9.453458786010742,-430.45904541015625])
+                    checkpoint(7,"*", [491.85968017578125,1.7009484767913818,-160.43212890625])
+                    checkpoint(8,"*", [521.2687377929688,11.1598482131958,-70.7208023071289])
+                    checkpoint(9,"*", [604.9369506835938,8.81571102142334,-21.48897933959961])
+                    checkpoint(10,"*", [581.4658813476562,24.684406280517578,275.7775573730469])
+                    checkpoint(11,"*", [461.9334716796875,50.010581970214844,373.51275634765625])
+                    checkpoint(12,"*", [355.84332275390625,2.554835557937622,456.06304931640625])
+                    checkpoint(13,"end",[289.72845458984375,12.304443359375,464.3570556640625])
 
                 if guildhall_name.get() == "TYRIA BRISBAN WILD.":
-                    checkTP([-843.3, 65.4, 385.3])
-                    checkpoint(0, "start", [-796.7, 65.3, 347.1])
-                    checkpoint(1, "end", [-820.6, 66.1, 454.4])
+                    checkpoint(0,"start", [-799.442138671875,65.7823257446289,355.7180480957031])
+                    checkpoint(-1,"reset", [-851.652587890625,66.03923797607422,391.6478576660156])
+                    checkpoint(1,"*", [-699.8272705078125,23.893230438232422,-44.24618911743164])
+                    checkpoint(2,"*", [-611.359619140625,40.56562423706055,-113.68000030517578])
+                    checkpoint(3,"*", [-618.2125244140625,27.34697151184082,-303.1869201660156])
+                    checkpoint(4,"*", [-393.02789306640625,4.553216934204102,-559.7305908203125])
+                    checkpoint(5,"*", [-299.12213134765625,27.9654541015625,-435.876953125])
+                    checkpoint(6,"*", [-377.175048828125,20.820322036743164,-267.90020751953125])
+                    checkpoint(7,"*", [33.68626022338867,43.313297271728516,-233.00523376464844])
+                    checkpoint(8,"*", [258.9540710449219,46.97104263305664,-222.0779266357422])
+                    checkpoint(9,"*", [326.4122314453125,41.9850959777832,-387.8382873535156])
+                    checkpoint(10,"*", [300.7703857421875,28.654491424560547,-543.6235961914062])
+                    checkpoint(11,"*", [357.5238952636719,35.345149993896484,-630.9033203125])
+                    checkpoint(12,"*", [665.6546630859375,55.883975982666016,-568.7774047851562])
+                    checkpoint(13,"*", [851.6265258789062,45.196346282958984,-61.594444274902344])
+                    checkpoint(14,"*", [824.1830444335938,78.1462631225586,324.7612609863281])
+                    checkpoint(15,"*", [865.7689208984375,41.68893051147461,525.5531616210938])
+                    checkpoint(16,"*", [496.33392333984375,92.67289733886719,552.6304321289062])
+                    checkpoint(17,"*", [99.04247283935547,66.29413604736328,605.229248046875])
+                    checkpoint(18,"*", [-47.385406494140625,-0.24002154171466827,603.7735595703125])
+                    checkpoint(19,"*", [-133.09849548339844,0.28277185559272766,690.7421875])
+                    checkpoint(20,"*", [-558.9813232421875,43.84546661376953,622.4324340820312])
+                    checkpoint(21,"*", [-702.5592651367188,63.19841766357422,536.9096069335938])
+                    checkpoint(22,"end",[-826.1544189453125,66.1941909790039,445.2254333496094])
 
                 if guildhall_name.get() == "TYRIA GROTHMAR VALLEY":
-                    checkTP([486.4, 19.8, 164.5])
-                    checkTP([516.6, 20.7, 151.03])
-                    checkpoint(0, "start", [461.03, 27.4, 261.8])
-                    checkpoint(1, "end", [511.1, 16.2, 191.8])
+                    checkpoint(0,"start", [465.6228332519531,27.168245315551758,258.44146728515625])
+                    checkpoint(-1,"reset", [515.8200073242188,20.60076332092285,151.648681640625])
+                    checkpoint(1,"*", [332.18426513671875,64.0356674194336,328.2277526855469])
+                    checkpoint(2,"*", [-233.25413513183594,25.687461853027344,364.53253173828125])
+                    checkpoint(3,"*", [-286.15069580078125,2.4846606254577637,246.47425842285156])
+                    checkpoint(4,"*", [-32.641300201416016,21.47239112854004,140.7539825439453])
+                    checkpoint(5,"*", [-61.54493713378906,15.462581634521484,45.632171630859375])
+                    checkpoint(6,"*", [-426.6194763183594,54.90696716308594,-77.02539825439453])
+                    checkpoint(7,"*", [-494.7391357421875,103.20759582519531,-274.52392578125])
+                    checkpoint(8,"*", [-400.7825622558594,77.3409652709961,-315.7843933105469])
+                    checkpoint(9,"*", [-289.7224426269531,29.51124382019043,-258.2286682128906])
+                    checkpoint(10,"*", [-140.0670623779297,15.343700408935547,-632.8471069335938])
+                    checkpoint(11,"*", [-74.65828704833984,42.41508102416992,-607.2628173828125])
+                    checkpoint(12,"*", [85.6784896850586,54.044246673583984,-375.0093688964844])
+                    checkpoint(13,"*", [235.5856475830078,34.27231216430664,-275.458984375])
+                    checkpoint(14,"*", [378.7042541503906,15.718698501586914,29.149442672729492])
+                    checkpoint(15,"*", [494.23297119140625,-0.06953207403421402,117.8377456665039])
+                    checkpoint(16,"*", [583.8775024414062,18.935264587402344,246.39712524414062])
+                    checkpoint(17,"end",[507.4120788574219,16.257854461669922,193.37490844726562])
 
                 if guildhall_name.get() == "OLLO Akina":
-                    checkTP([114, 9,37]) # use this position when you take te map TP , to stop log file
+                    checkpoint(-1,"reset", [114, 9,37]) # use this position when you take te map TP , to stop log file
                     checkpoint(0, "start", [-387, 997, -273.4])
                     checkpoint(1, "*", [97.3, 842.8, -75])
                     checkpoint(2, "end", [-314, 997, -378.2])
@@ -1161,26 +1258,26 @@ class Meter():
                     checkpoint(6,"*",[205.88778686523438,29.56764030456543,217.02557373046875])
                     checkpoint(7,"*",[208.2991485595703,36.79213333129883,5.360412120819092])
                     checkpoint(8,"end",[109.66463470458984,36.829837799072266,-21.301481246948242])
-                    checkTP([114.61094665527344,9.075913429260254,37.21352005004883])
+                    checkpoint(-1,"reset", [114.61094665527344,9.075913429260254,37.21352005004883])
 
                 if guildhall_name.get() == "VAW Left path":
-                    checkTP([35.67, 111.35, -7.02]) # use this position when you take te map TP , to stop log file
+                    checkpoint(-1,"reset", [35.67, 111.35, -7.02]) # use this position when you take te map TP , to stop log file
                     checkpoint(0, "start", [-293.9,  525.1,  293.7])
                     checkpoint(1, "end", [-255.1, 3.8, 303.8])
 
                 if guildhall_name.get() == "VAW Right path":
-                    checkTP([35.67, 111.35, -7.02]) # use this position when you take te map TP , to stop log file
+                    checkpoint(-1,"reset", [35.67, 111.35, -7.02]) # use this position when you take te map TP , to stop log file
                     checkpoint(0, "start", [-293.9,  525.1,  293.7])
                     checkpoint(1, "end", [-255.1, 3.8, 303.8])
 
                 if guildhall_name.get() == "GeeK":
-                    checkTP([114, 9,37]) # use this position when you take te map TP , to stop log file
+                    checkpoint(-1,"reset", [114, 9,37]) # use this position when you take te map TP , to stop log file
                     checkpoint(0, "start", [89, 50.4, 67.67])
                     checkpoint(1, "end", [206.5, 62.9, 141.5])
                 
                 if guildhall_name.get() == "UAoT":
                     #UAoT Checkpoints
-                    checkTP([114.48, 9.07, 37.47]) # use this position when you take te map TP , to stop log file
+                    checkpoint(-1,"reset", [114.48, 9.07, 37.47]) # use this position when you take te map TP , to stop log file
                     checkpoint(0, "start", [179, 96, 183.5])
                     checkpoint(1, "*", [-150, 59, 321])
                     checkpoint(2, "*", [27, 237, -80])
@@ -1188,12 +1285,12 @@ class Meter():
                     checkpoint(4, "end", [302, 96, 215])
                 
                 if guildhall_name.get() == "INDI":
-                    checkTP([3.1, 61, -35]) # use this position when you take te map TP , to stop log file
+                    checkpoint(-1,"reset", [3.1, 61, -35]) # use this position when you take te map TP , to stop log file
                     checkpoint(0, "start", [0, 730.6,-43])
                     checkpoint(1, "end", [0.5, 59, -115])
 
                 if guildhall_name.get() == "DRFT-1 Fractal Actual Speedway":
-                    checkTP([-156, 31, 431]) # use this position when you take te map TP , to stop log file
+                    checkpoint(-1,"reset", [-156, 31, 431]) # use this position when you take te map TP , to stop log file
                     checkpoint(0, "start", [-117, 22, 348])
                     checkpoint(1, "*", [144,25,-271])
                     checkpoint(1, "*", [143,25,-281])
@@ -1213,7 +1310,7 @@ class Meter():
                     checkpoint(7,"*",[-249.95533752441406,74.66495513916016,-399.3951721191406])
                     checkpoint(8,"*",[18.190637588500977,25.067520141601562,-869.16259765625])
                     checkpoint(9,"end",[70.45439910888672,8.777570724487305,-1082.09912109375])
-                    checkTP([264.8414001464844,197.06907653808594,1235.7269287109375])
+                    checkpoint(-1,"reset", [264.8414001464844,197.06907653808594,1235.7269287109375])
 
                 if guildhall_name.get() == "DRFT-3 Summers Sunset":
                     checkpoint(0,"start",[-117.07197570800781,-0.026282841339707375,202.3591766357422])
@@ -1228,7 +1325,7 @@ class Meter():
                     checkpoint(9,"*",[-413.52783203125,5.071121692657471,-240.91851806640625])
                     checkpoint(10,"*",[-204.90223693847656,0.7035499811172485,-80.8447265625])
                     checkpoint(11,"end",[-162.6918487548828,3.4913501739501953,100.76415252685547])
-                    checkTP([545.7351684570312,0.991686999797821,145.00607299804688])
+                    checkpoint(-1,"reset", [545.7351684570312,0.991686999797821,145.00607299804688])
 
 
                 if guildhall_name.get() == "DRFT-4 Mossheart Memory":
@@ -1244,7 +1341,7 @@ class Meter():
                     checkpoint(9,"*",[275.9913635253906,29.38922691345215,-427.5582275390625])
                     checkpoint(10,"*",[370.9323425292969,33.57604217529297,-629.8128662109375])
                     checkpoint(11,"end",[656.0433959960938,51.61550521850586,-575.2821655273438])
-                    checkTP([252.3805389404297,52.90296936035156,-636.0989379882812])
+                    checkpoint(-1,"reset", [252.3805389404297,52.90296936035156,-636.0989379882812])
 
                 if guildhall_name.get() == "DRFT-5 Roller Coaster Canyon":
                     checkpoint(0,"start",[189.24212646484375,38.04368209838867,412.3811340332031])
@@ -1260,7 +1357,7 @@ class Meter():
                     checkpoint(10,"*",[1076.2242431640625,13.433802604675293,430.6039123535156])
                     checkpoint(11,"*",[796.7359619140625,41.71104049682617,468.15771484375])
                     checkpoint(12,"end",[352.8476867675781,45.145347595214844,425.576416015625])
-                    checkTP([243.18453979492188,78.04730987548828,521.9669189453125])
+                    checkpoint(-1,"reset", [243.18453979492188,78.04730987548828,521.9669189453125])
 
 
                 if guildhall_name.get() == "DRFT-6 Centurion Circuit":
@@ -1273,7 +1370,7 @@ class Meter():
                     checkpoint(6,"*",[-75.8969497680664,13.366032600402832,-146.5823974609375])
                     checkpoint(7,"*",[-22.72895622253418,104.4173812866211,-1.7704955339431763])
                     checkpoint(8,"end",[20.252696990966797,168.30413818359375,86.17316436767578])
-                    checkTP([81.61611938476562,168.58372497558594,47.076927185058594])
+                    checkpoint(-1,"reset", [81.61611938476562,168.58372497558594,47.076927185058594])
 
 
                 if guildhall_name.get() == "DRFT-7 Dredgehaunt Cliffs":
@@ -1285,7 +1382,7 @@ class Meter():
                     checkpoint(5,"*",[167.4985809326172,50.757049560546875,-545.6727294921875])
                     checkpoint(6,"*",[138.0374755859375,70.06675720214844,-493.1942443847656])
                     checkpoint(7,"end",[-46.31200408935547,60.5682258605957,-566.6380615234375])
-                    checkTP([9.354050636291504,65.31747436523438,-751.1548461914062])
+                    checkpoint(-1,"reset", [9.354050636291504,65.31747436523438,-751.1548461914062])
 
 
                 if guildhall_name.get() == "DRFT-8 Icy Rising Ramparts":
@@ -1296,7 +1393,7 @@ class Meter():
                     checkpoint(4,"*",[131.88671875,50.89085006713867,50.434326171875])
                     checkpoint(5,"*",[217.90818786621094,74.62855529785156,226.0938720703125])
                     checkpoint(6,"end",[575.1735229492188,58.270286560058594,365.3240661621094])
-                    checkTP([650.6351928710938,61.81232833862305,520.927001953125])
+                    checkpoint(-1,"reset", [650.6351928710938,61.81232833862305,520.927001953125])
 
                 if guildhall_name.get() == "DRFT-9 Soulthirst Savannah of Svanier":
                     checkpoint(0,"start",[803.3325805664062,136.01504516601562,153.9782257080078])
@@ -1307,7 +1404,7 @@ class Meter():
                     checkpoint(5,"*",[817.55029296875,113.25086975097656,232.247802734375])
                     checkpoint(6,"*",[726.7265014648438,128.68972778320312,251.99386596679688])
                     checkpoint(7,"end",[724.0528564453125,137.1461639404297,214.591064453125])
-                    checkTP([1127.3040771484375,47.6551399230957,-118.5078125])
+                    checkpoint(-1,"reset", [1127.3040771484375,47.6551399230957,-118.5078125])
 
 
                 if guildhall_name.get() == "DRFT-10 Toxic Turnpike":
@@ -1320,7 +1417,7 @@ class Meter():
                     checkpoint(6,"*",[612.9382934570312,83.97993469238281,155.996826171875])
                     checkpoint(7,"*",[627.3564453125,79.93864440917969,373.3465881347656])
                     checkpoint(8,"end",[557.4955444335938,52.8920783996582,464.1280822753906])
-                    checkTP([485.0301208496094,37.27165603637695,539.51708984375])
+                    checkpoint(-1,"reset", [485.0301208496094,37.27165603637695,539.51708984375])
 
 
                 if guildhall_name.get() == "DRFT-11 Estuary of Twilight":
@@ -1332,7 +1429,7 @@ class Meter():
                     checkpoint(5,"*",[-80.55955505371094,3.1585092544555664,1055.0838623046875])
                     checkpoint(6,"*",[-243.66128540039062,1.2709424495697021,1019.9541625976562])
                     checkpoint(7,"end",[-187.4603271484375,19.422760009765625,668.4896850585938])
-                    checkTP([-213.1799774169922,55.91027069091797,446.1829528808594])
+                    checkpoint(-1,"reset", [-213.1799774169922,55.91027069091797,446.1829528808594])
 
 
                 if guildhall_name.get() == "DRFT-12 Celedon Circle":
@@ -1343,7 +1440,7 @@ class Meter():
                     checkpoint(4,"*",[38.39978790283203,18.88983154296875,-668.1705322265625])
                     checkpoint(5,"*",[-39.359962463378906,9.778656005859375,-722.13916015625])
                     checkpoint(6,"end",[-68.65498352050781,-0.2025335431098938,-932.6437377929688])
-                    checkTP([-173.44895935058594,4.851062774658203,-1010.41650390625])
+                    checkpoint(-1,"reset", [-173.44895935058594,4.851062774658203,-1010.41650390625])
 
 
                 if guildhall_name.get() == "DRFT-13 Thermo Reactor Escape":
@@ -1358,7 +1455,7 @@ class Meter():
                     checkpoint(8,"*",[-173.07815551757812,25.64794921875,508.05267333984375])
                     checkpoint(9,"*",[-67.14794158935547,11.553140640258789,327.2286682128906])
                     checkpoint(10,"end",[181.4370880126953,27.945026397705078,239.04833984375])
-                    checkTP([166.6081085205078,32.82973861694336,271.2810363769531])
+                    checkpoint(-1,"reset", [166.6081085205078,32.82973861694336,271.2810363769531])
 
                 if guildhall_name.get() == "DRFT-14 Jormags Jumpscare":
                     checkpoint(0,"start",[569.9375610351562,50.231842041015625,465.77166748046875])
@@ -1374,7 +1471,7 @@ class Meter():
                     checkpoint(10,"*",[470.2713317871094,25.34433937072754,168.29811096191406])
                     checkpoint(11,"*",[594.4365844726562,21.244632720947266,305.04095458984375])
                     checkpoint(12,"end",[661.1888427734375,39.34746551513672,462.04925537109375])
-                    checkTP([741.5009765625,127.52398681640625,771.8026123046875])
+                    checkpoint(-1,"reset", [741.5009765625,127.52398681640625,771.8026123046875])
 
                 if guildhall_name.get() == "DRFT-GP-1 Lions Summer Sights":
                     checkpoint(0,"start",[-291.50177001953125,33.43931198120117,-365.4147033691406])
@@ -1401,7 +1498,7 @@ class Meter():
                     checkpoint(21,"*",[194.4971160888672,30.973176956176758,-322.2392578125])
                     checkpoint(22,"*",[-23.896034240722656,37.33087921142578,-320.6465148925781])
                     checkpoint(23,"end",[-216.6181182861328,31.319185256958008,-353.88165283203125])
-                    checkTP([-92.85139465332031,9.955810546875,-223.57749938964844])
+                    checkpoint(-1,"reset", [-92.85139465332031,9.955810546875,-223.57749938964844])
                 if guildhall_name.get() == "DRFT-GP-2 Sandswept Shore Sprint":
                     checkpoint(0,"start",[-544.0419921875,0.31721049547195435,1014.862060546875])
                     checkpoint(1,"*",[-311.1061706542969,3.732792854309082,750.316162109375])
@@ -1417,7 +1514,7 @@ class Meter():
                     checkpoint(11,"*",[-105.0680923461914,6.339461326599121,653.8186645507812])
                     checkpoint(12,"*",[-400.7470397949219,0.9481762051582336,780.3505249023438])
                     checkpoint(13,"end",[-502.1472473144531,1.6342060565948486,910.4564208984375])
-                    checkTP([-99.79989624023438,7.133966445922852,709.6367797851562])
+                    checkpoint(-1,"reset", [-99.79989624023438,7.133966445922852,709.6367797851562])
                 if guildhall_name.get() == "DRFT-GP-3 Inquest Isle Invasion":
 
                     checkpoint(0,"start",[-153.13572692871094,2.3076281547546387,-77.4347152709961])
@@ -1430,7 +1527,7 @@ class Meter():
                     checkpoint(7,"*",[-403.6644592285156,-0.40145934224128723,-593.4263000488281])
                     checkpoint(8,"*",[-472.6644592285156,-0.30145934224128723,-370.4263000488281])
                     checkpoint(9,"end",[-223.18630981445312,0.7399634122848511,-81.19659423828125])
-                    checkTP([521.0791015625,8.74111557006836,120.58473205566406])
+                    checkpoint(-1,"reset", [521.0791015625,8.74111557006836,120.58473205566406])
                 if guildhall_name.get() == "DRFT-GP-4 Triple Trek Periphery":
                     checkpoint(0,"start",[142.01397705078125,2.7381067276000977,-43.56310272216797])
                     checkpoint(1,"*",[32.260528564453125,0.9025144577026367,9.47095012664795])
@@ -1441,7 +1538,7 @@ class Meter():
                     checkpoint(6,"*",[545.3038940429688,34.874671936035156,-184.90989685058594])
                     checkpoint(7,"*",[348.4444885253906,1.4226492643356323,-95.94324493408203])
                     checkpoint(8,"end",[234.2526397705078,2.7598352432250977,-83.74826049804688])
-                    checkTP([151.7235870361328,8.812746047973633,-92.4794692993164])
+                    checkpoint(-1,"reset", [151.7235870361328,8.812746047973633,-92.4794692993164])
                 if guildhall_name.get() == "DRFT-GP-5 Beachin Crabwalk":
                     checkpoint(0,"start",[-383.92169189453125,46.209877014160156,-235.84828186035156])
                     checkpoint(1,"*",[-122.37680053710938,39.26274490356445,-247.13525390625])
@@ -1456,7 +1553,7 @@ class Meter():
                     checkpoint(10,"*",[-123.32205963134766,39.122764587402344,-247.27691650390625])
                     checkpoint(11,"*",[-285.9521789550781,52.25719451904297,-188.34300231933594])
                     checkpoint(12,"end",[-417.37591552734375,44.911865234375,-181.865478515625])
-                    checkTP([-539.3897094726562,31.712434768676758,-411.2883605957031])
+                    checkpoint(-1,"reset", [-539.3897094726562,31.712434768676758,-411.2883605957031])
                 
 
 
@@ -2056,7 +2153,7 @@ class Racer():
         guildhall_laps.set("1 lap")
 
 
-        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.6.5""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
+        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.6.9""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
         self.t_1.place(x=0, y=10)
         self.t_2 = tk.Label(self.root, text="""Choose map to race""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_2.place(x=0, y=40)

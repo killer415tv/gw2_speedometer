@@ -31,9 +31,7 @@ import requests
 from configparser import RawConfigParser
 import shlex, subprocess
 
-
 np.seterr(divide='ignore', invalid='ignore')
-
 
 # this variable adjust the position of the gauge +250 for bottom position or -250 for upper position , 0 is default and center on screen
 position_up_down_offset = -250
@@ -142,13 +140,9 @@ map_position_last_time_send = 0
 
 next_step = 0
 
-
-
 #Force sound at start
 if audio:
     playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "dong.wav", block=False)
-
-
 
 #-----------------------------
 #  END CONFIGURATION VARIABLES
@@ -187,7 +181,6 @@ def loadfont(fontpath, private=True, enumerable=False):
     return bool(numFontsAdded)
 
 loadfont(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "font.ttf")
-
 
 class Configuration():
     def __init__(self, master=None, **kw):
@@ -432,6 +425,10 @@ class MumbleLink:
 
 class Meter():
 
+    def setOnTopfullscreen(self):
+        self.root.attributes('-topmost', 1)
+        self.root.after(500, self.setOnTopfullscreen)
+
     def on_press(self,key):
         global filename_timer
         global drift_key
@@ -454,7 +451,6 @@ class Meter():
            
         except AttributeError:
             None
-
 
     def __init__(self, master=None, **kw):
         global fundo
@@ -594,6 +590,9 @@ class Meter():
         self.canvas.pack(side='top', fill='both', expand='yes')
 
         self.move = False
+
+        self.setOnTopfullscreen()
+
         #self.scale.pack()
 
     def toggleTrans(self):
@@ -1769,6 +1768,10 @@ class Meter():
 
 class Racer():
 
+    def setOnTopfullscreen(self):
+        self.root.attributes('-topmost', 1)
+        self.root.after(5000, self.setOnTopfullscreen)
+
     def on_message(self, client, userdata, message):
 
         global countdowntxt
@@ -2153,7 +2156,7 @@ class Racer():
         guildhall_laps.set("1 lap")
 
 
-        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.6.9""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
+        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.6.12""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
         self.t_1.place(x=0, y=10)
         self.t_2 = tk.Label(self.root, text="""Choose map to race""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_2.place(x=0, y=40)
@@ -2625,9 +2628,9 @@ class Racer():
         if not log:
             self.t_4_6.configure(state=DISABLED)
 
-
         self.toggleTrans()
 
+        self.setOnTopfullscreen()
 
     def listen_for_result(self):
         #update the timestamp result
@@ -2699,6 +2702,11 @@ class Racer():
             self.root.after(100, self.listen_for_result)
 
 class Countdown():
+
+    def setOnTopfullscreen(self):
+        self.root.attributes('-topmost', 1)
+        self.root.after(500, self.setOnTopfullscreen)
+
     def __init__(self):
         
         global countdowntxt
@@ -2735,6 +2743,7 @@ class Countdown():
 
         self.toggleTrans()
         self.checkCountdowntxt()
+        self.setOnTopfullscreen()
 
     def toggleTrans(self):
         if (self.move):
@@ -2759,6 +2768,11 @@ class Countdown():
             self.root.after(500, self.checkCountdowntxt)
 
 class Message():
+
+    def setOnTopfullscreen(self):
+        self.root.attributes('-topmost', 1)
+        self.root.after(500, self.setOnTopfullscreen)
+
     def __init__(self):
         
         global countdowntxt
@@ -2805,6 +2819,7 @@ class Message():
 
         self.toggleTrans()
         self.hide()
+        self.setOnTopfullscreen()
         #self.checkCountdowntxt()  y
 
     def toggleTrans(self):
@@ -2833,8 +2848,6 @@ class Message():
         self.show()
         self.root.lift()
         #self.root.after(5000, self.hide)
-
-
 
 if __name__ == '__main__':
  

@@ -1523,9 +1523,10 @@ class Meter():
                     checkpoint(4,"*",[594.784423828125,-0.3246295928955078,-203.34113693237305])
                     checkpoint(5,"*",[403.7969970703125,-0.18220704793930054,-529.399169921875])
                     checkpoint(6,"*",[263.2414855957031,0.27951872944831848,-669.9658203125])
-                    checkpoint(7,"*",[-403.6644592285156,-0.40145934224128723,-593.4263000488281])
-                    checkpoint(8,"*",[-472.6644592285156,-0.30145934224128723,-370.4263000488281])
-                    checkpoint(9,"end",[-223.18630981445312,0.7399634122848511,-81.19659423828125])
+                    checkpoint(7,"*",[97.99069213867188,-0.518017053604126,-930.4939575195312])
+                    checkpoint(8,"*",[-403.6644592285156,-0.40145934224128723,-593.4263000488281])
+                    checkpoint(9,"*",[-472.6644592285156,-0.30145934224128723,-370.4263000488281])
+                    checkpoint(10,"end",[-223.18630981445312,0.7399634122848511,-81.19659423828125])
                     checkpoint(-1,"reset", [521.0791015625,8.74111557006836,120.58473205566406])
                 if guildhall_name.get() == "DRFT-GP-4 Triple Trek Periphery":
                     checkpoint(0,"start",[142.01397705078125,2.7381067276000977,-43.56310272216797])
@@ -2156,7 +2157,7 @@ class Racer():
         guildhall_laps.set("1 lap")
 
 
-        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.6.12""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
+        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.6.13""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
         self.t_1.place(x=0, y=10)
         self.t_2 = tk.Label(self.root, text="""Choose map to race""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_2.place(x=0, y=40)

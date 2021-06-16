@@ -838,7 +838,7 @@ class Meter():
                             total_distance = 0
                             total_timer = _time
                             lap_timer = _time
-                            filename = "/logs/" + guildhall_name.get() + "_log_" + str(round(_time)) + ".csv"
+                            filename = guildhall_name.get() + "_log_" + str(round(_time)) + ".csv"
                             self.steps_txt.set("")
                             if log:
                                 #print("----------------------------------")

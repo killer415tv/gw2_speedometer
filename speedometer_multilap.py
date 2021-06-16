@@ -838,7 +838,7 @@ class Meter():
                             total_distance = 0
                             total_timer = _time
                             lap_timer = _time
-                            filename = guildhall_name.get() + "_log_" + str(_time) + ".csv"
+                            filename = "/logs/" + guildhall_name.get() + "_log_" + str(round(_time)) + ".csv"
                             self.steps_txt.set("")
                             if log:
                                 #print("----------------------------------")
@@ -1046,6 +1046,20 @@ class Meter():
             pressedQ = max(pressedQ - timer, 0)
 
             if show_checkpoints_window: 
+
+                if guildhall_name.get() == "FLY-1 Verdant Brink Hunt":
+                    checkpoint(0,"start",[877.1676635742188,428.8018798828125,50.82432174682617])
+                    checkpoint(-1,"reset",[932.6641845703125,418.795166015625,53.32091522216797])
+                    checkpoint(1,"*",[819.204345703125,323.963623046875,39.1912956237793])
+                    checkpoint(2,"*",[603.0380249023438,335.5285949707031,93.37494659423828])
+                    checkpoint(3,"*",[564.6641235351562,336.8139343261719,303.9140319824219])
+                    checkpoint(4,"*",[533.5425415039062,336.4484558105469,406.2262878417969])
+                    checkpoint(5,"*",[439.9372253417969,365.7117919921875,266.8668518066406])
+                    checkpoint(6,"*",[550.8067016601562,366.7596130371094,261.3218688964844])
+                    checkpoint(7,"*",[730.404296875,368.8663330078125,234.38641357421875])
+                    checkpoint(8,"*",[925.6776123046875,361.9156494140625,312.4433898925781])
+                    checkpoint(9,"*",[814.8397216796875,340.30828857421875,386.6462097167969])
+                    checkpoint(10,"end",[660.4026489257812,339.56341552734375,357.9527282714844])
 
                 if guildhall_name.get() == "GWTC":
                     #GWTC Checkpoints
@@ -2157,7 +2171,7 @@ class Racer():
         guildhall_laps.set("1 lap")
 
 
-        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.6.13""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
+        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.6.16""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
         self.t_1.place(x=0, y=10)
         self.t_2 = tk.Label(self.root, text="""Choose map to race""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_2.place(x=0, y=40)
@@ -2168,7 +2182,8 @@ class Racer():
             "DRFT-1 Fractal Actual Speedway", "DRFT-2 Wayfar Out", "DRFT-3 Summers Sunset", "DRFT-4 Mossheart Memory", "DRFT-5 Roller Coaster Canyon", 
             "DRFT-6 Centurion Circuit", "DRFT-7 Dredgehaunt Cliffs", "DRFT-8 Icy Rising Ramparts", "DRFT-9 Soulthirst Savannah of Svanier", "DRFT-10 Toxic Turnpike", 
             "DRFT-11 Estuary of Twilight", "DRFT-12 Celedon Circle", "DRFT-13 Thermo Reactor Escape", "DRFT-14 Jormags Jumpscare", 
-            "DRFT-GP-1 Lions Summer Sights","DRFT-GP-2 Sandswept Shore Sprint","DRFT-GP-3 Inquest Isle Invasion","DRFT-GP-4 Triple Trek Periphery","DRFT-GP-5 Beachin Crabwalk"]
+            "DRFT-GP-1 Lions Summer Sights","DRFT-GP-2 Sandswept Shore Sprint","DRFT-GP-3 Inquest Isle Invasion","DRFT-GP-4 Triple Trek Periphery","DRFT-GP-5 Beachin Crabwalk",
+            "FLY-1 Verdant Brink Hunt"]
         self.t_3 = tk.OptionMenu(self.root, guildhall_name, *self.choices, command = self.saveGuildhall)
         self.t_3.config(font=("Lucida Console", 10))
         self.t_3["highlightthickness"] = 0

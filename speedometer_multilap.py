@@ -7,7 +7,10 @@ import mmap
 import time
 import datetime
 import math
+import scipy.spatial.transform._rotation_groups
 from scipy.spatial import distance
+import pynput.keyboard._win32 
+import pynput.mouse._win32 
 from pynput.keyboard import Key, Controller
 from pynput import keyboard
 import csv

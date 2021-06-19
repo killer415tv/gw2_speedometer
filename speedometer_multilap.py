@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import simpledialog
 from tkinter import *
+from tkinter import colorchooser
 from math import pi, cos, sin
 import ctypes
 import mmap
@@ -101,6 +102,8 @@ hud_drift_hold = 0
 drift_key = 'c' # for special keys like ALT use 'Key.alt_l' more info https://pynput.readthedocs.io/en/latest/_modules/pynput/keyboard/_base.html#Key
 #show race assistant window, map selection and multiplayer
 show_checkpoints_window = 1 
+
+player_color = "#333333"
 
 client = ""
 mapId = 0
@@ -216,6 +219,7 @@ class Configuration():
         global hud_max_speed
         global racer
         global meter
+        global player_color
 
         cfg.add_section("general")
 
@@ -240,6 +244,7 @@ class Configuration():
         cfg.set("general", "show_checkpoints_window", show_checkpoints_window)
         cfg.set("general", "hud_drift_hold", hud_drift_hold)
         cfg.set("general", "drift_key", drift_key)
+        cfg.set("general", "player_color", player_color)
         if 'racer' in globals():
             cfg.set("general", "geometry_speedometer", meter.root.geometry())
         if 'meter' in globals():
@@ -274,6 +279,7 @@ class Configuration():
         global geometry_racer
         global hud_angles_airboost
         global hud_max_speed
+        global player_color
 
 
         if (cfg.read(["./config.txt"])):
@@ -320,6 +326,8 @@ class Configuration():
                 hud_drift_hold = int(cfg.get("general", "hud_drift_hold"))
             if (cfg.has_option("general", "drift_key")):
                 drift_key = (cfg.get("general", "drift_key"))
+            if (cfg.has_option("general", "player_color")):
+                player_color = (cfg.get("general", "player_color"))
             if (cfg.has_option("general", "geometry_speedometer")):
                 geometry_speedometer = (cfg.get("general", "geometry_speedometer"))
             if (cfg.has_option("general", "geometry_racer")):
@@ -771,6 +779,8 @@ class Meter():
             global map_position_last_time_send
             global next_step
 
+            global player_color
+
 
             if step == -1:
                 arraystep = (ctypes.c_float * len(coords))(*coords)
@@ -1036,7 +1046,7 @@ class Meter():
         if 'racer' in globals() and client != "":
             if map_position_last_time_send != round(_time*10/2):
                 map_position_last_time_send = round(_time*10/2)
-                racer.sendMQTT({"option": "position", "x": ml.data.fAvatarPosition[0], "y": ml.data.fAvatarPosition[1], "z": ml.data.fAvatarPosition[2], "user": racer.username.get(), "map": guildhall_name.get()})
+                racer.sendMQTT({"option": "position", "x": ml.data.fAvatarPosition[0], "y": ml.data.fAvatarPosition[1], "z": ml.data.fAvatarPosition[2], "user": racer.username.get(), "map": guildhall_name.get(), "color": player_color})
         
 
         if show_checkpoints_window and 'racer' in globals():  
@@ -1839,6 +1849,15 @@ class Racer():
 
             # guardar tiempo de checkpoint
             # falta mostrar por pantalla el ranking de partida
+        if received.get('option') == "321GO-custom":
+            #print("3!!")
+            self.thread_queue.put(received.get('message'))
+            countdowntxt = received.get('message')
+            playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "ding.wav", block=False)
+            self.timestamps = []
+
+            # limpiar ranking de partida
+            # falta mostrar por pantalla el 3 2 1
         if received.get('option') == "321GO-3":
             #print("3!!")
             self.thread_queue.put("3...")
@@ -2032,6 +2051,8 @@ class Racer():
             self.conf_13_2.configure(fg="black"); self.conf_13_2.configure(bg=self.color_trans_bg)
             self.conf_14_1.configure(fg=self.color_trans_fg); self.conf_14_1.configure(bg=self.color_trans_bg)
             self.conf_14_2.configure(fg="black"); self.conf_14_2.configure(bg=self.color_trans_bg)
+            self.conf_15_1.configure(bg=self.color_trans_bg)
+            self.conf_15_2.configure(fg=self.color_trans_fg); self.conf_15_2.configure(bg="#222222")
             self.conf_save.configure(fg=self.color_trans_fg); self.conf_save.configure(bg="#222222")
             self.conf.configure(fg=self.color_trans_fg); self.conf.configure(bg="#222222")
 
@@ -2087,6 +2108,8 @@ class Racer():
             self.conf_13_2.configure(fg=self.color_normal_fg); self.conf_13_2.configure(bg=self.color_normal_bg)
             self.conf_14_1.configure(fg=self.color_normal_fg); self.conf_14_1.configure(bg=self.color_normal_bg)
             self.conf_14_2.configure(fg=self.color_normal_fg); self.conf_14_2.configure(bg=self.color_normal_bg)
+            self.conf_15_1.configure(bg=self.color_normal_bg)
+            self.conf_15_2.configure(fg=self.color_normal_fg); self.conf_15_2.configure(bg=self.color_normal_bg)
             self.conf_save.configure(fg=self.color_normal_fg); self.conf_save.configure(bg=self.color_normal_bg)
             self.conf.configure(fg=self.color_normal_fg); self.conf.configure(bg=self.color_normal_bg)
 
@@ -2129,13 +2152,15 @@ class Racer():
 
             except:
                 self.map_ranking_var.set("")
-            
+    
     def __init__(self):
         
         global guildhall_name
         global guildhall_laps
         global upload
         global geometry_racer
+        global player_color
+
 
         self.mapOpen = False
         self.move = True
@@ -2174,7 +2199,7 @@ class Racer():
         guildhall_laps.set("1 lap")
 
 
-        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.6.16""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
+        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.6.17""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
         self.t_1.place(x=0, y=10)
         self.t_2 = tk.Label(self.root, text="""Choose map to race""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_2.place(x=0, y=40)
@@ -2216,6 +2241,7 @@ class Racer():
         global enable_ghost_keys
         global speed_in_3D
         global log
+        global player_color
 
 
         def conf_toggle(field):
@@ -2224,7 +2250,15 @@ class Racer():
             else:
                 globals()[field] = 1
 
-        
+        def choose_color():
+ 
+            global player_color 
+            # variable to store hexadecimal code of color
+            player_color = colorchooser.askcolor(title ="Choose color")[1]
+            if (player_color):
+                print(player_color)
+                self.conf_15_1.configure(fg=player_color)
+                conf_save()
 
         def conf_save():
             print("saved and restart")
@@ -2437,10 +2471,19 @@ class Racer():
             borderwidth=0, command=lambda:conf_toggle("hud_max_speed"))
         self.conf_14_2.place(x=310, y=44 + 13 * 20)
 
+ 
+
+
+        self.conf_15_1 = tk.Label(self.root, text="■", justify = tk.LEFT, padx = 0, fg = player_color, bg=self.bg.get(), font=("Lucida Console", 15))
+        self.conf_15_1.place(x=311, y=42 + 14 * 20)
+
+        #SAVE OPTIONS
+        self.conf_15_2 = tk.Button(self.root, text='Change color', command=lambda:choose_color() ,font=("Lucida Console", 10))
+        self.conf_15_2.place(x=336, y=44 + 14 * 20, width=120, height=23)
 
         #SAVE OPTIONS
         self.conf_save = tk.Button(self.root, text='SAVE & RESTART', command=lambda:conf_save() ,font=("Lucida Console", 10))
-        self.conf_save.place(x=320, y=44 + 15 * 20, width=120, height=27)
+        self.conf_save.place(x=320, y=44 + 16 * 20, width=120, height=27)
 
 
         def changeConfigVisibility():
@@ -2477,7 +2520,9 @@ class Racer():
                 self.conf_13_2.place(x=310, y=44 + 12 * 20)
                 self.conf_14_1.place(x=314, y=44 + 13 * 20)
                 self.conf_14_2.place(x=310, y=44 + 13 * 20)
-                self.conf_save.place(x=320, y=44 + 15 * 20, width=120, height=27)
+                self.conf_15_1.place(x=311, y=42 + 14 * 20)
+                self.conf_15_2.place(x=336, y=44 + 14 * 20, width=120, height=23)
+                self.conf_save.place(x=320, y=48 + 15 * 20, width=120, height=27)
 
 
                 show_config = 0
@@ -2513,6 +2558,8 @@ class Racer():
                 self.conf_13_2.place_forget()
                 self.conf_14_1.place_forget()
                 self.conf_14_2.place_forget()
+                self.conf_15_1.place_forget()
+                self.conf_15_2.place_forget()
                 self.conf_move.place_forget()
                 self.conf_save.place_forget()
 
@@ -2745,7 +2792,7 @@ class Countdown():
         self.fg.set(self.color_normal_fg)
         self.bg.set(self.color_normal_bg)
 
-        windowWidth = 500
+        windowWidth = 700
         windowHeight = 100
         positionRight = int(root.winfo_screenwidth()/2 - windowWidth/2)
         positionDown = int(root.winfo_screenheight()/2 - windowHeight/2)

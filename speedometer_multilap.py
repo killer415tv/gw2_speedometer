@@ -505,8 +505,8 @@ class Meter():
         if hud_angles_airboost:
             self.airdrift_angle_tk = tk.IntVar(self.root, 0.0)
             
-            self.outer_airdrift_box = self.canvas.create_rectangle(20 + 356, 30,30 + 356, 100, outline="white", width="1", tags="airdrift_meter_border")
-            self.inner_airdrift_box = self.canvas.create_rectangle(23 + 356, 33,27 + 356, 97, outline="#ff5436", fill='#ff5436', width="5", tags="airdrift_meter")
+            self.outer_airdrift_box = self.canvas.create_rectangle(20 + 356, 30,30 + 356, 100, outline="#666666", width="1", tags="airdrift_meter_border")
+            self.inner_airdrift_box = self.canvas.create_rectangle(23 + 356, 33,27 + 356, 97, outline="#666666", fill='#666666', width="5", tags="airdrift_meter")
             self.airdrift_label = tk.Label(self.root, textvariable = self.airdrift_angle_tk, fg = "white", bg="#666666", font=("Digital-7 Mono", 9)).place(x = 17 + 356, y = 102)
 
         if hud_acceleration:
@@ -1676,8 +1676,12 @@ class Meter():
                                 self.canvas.coords(i, 23 + 356, 97-pixels , 27 + 356, 97)
                                 self.canvas.itemconfig(i, outline="#7897ff")
                                 self.canvas.itemconfig(i, fill="#7897ff")
-                                self.canvas.itemconfig(b, outline="white")
-
+                                self.canvas.itemconfig(b, outline="#666666")
+                                
+                                if (beetleangle > 5):
+                                    self.canvas.itemconfig(i, outline="#7897ff")
+                                    self.canvas.itemconfig(i, fill="#7897ff")
+                                    self.canvas.itemconfig(b, outline="white")
                                 if (beetleangle > magic_angle):
                                     self.canvas.itemconfig(i, outline="#ff8a36")
                                     self.canvas.itemconfig(i, fill="#ff8a36")

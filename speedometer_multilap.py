@@ -555,7 +555,7 @@ class Meter():
         
 
         if hud_gauge:
-            self.numero = tk.Label(self.root, textvariable = self.var100, fg = "white", bg="#666666", font=("Digital-7 Mono", 50)).place(relx = 1, x = -412, y = 75, anchor = 'ne')
+            self.numero = tk.Label(self.root, textvariable = self.var100, fg = "white", bg="#666666", font=("Digital-7 Mono", 50)).place(relx = 1, x = -412, y = 73, anchor = 'ne')
             self.canvas.create_arc(2*10, 2*15, 2*winw-10, 2*winw-10, extent=108, start=36,style='arc', outline="#666666", width="35", tags="arc")
             self.canvas.create_arc(2*10, 2*15, 2*winw-10, 2*winw-10, extent=108, start=36,style='arc', outline="white", width="16", tags="arcbg")
             self.canvas.create_arc(2*10, 2*15, 2*winw-10, 2*winw-10, extent=108, start=36,style='arc', outline="#666666", width="14", tags="arcbg")
@@ -586,15 +586,13 @@ class Meter():
 
         #if hud_timer:
             self.vartime = tk.StringVar(self.root, "")
-            self.timenum_label = tk.Label(self.root, textvariable = self.vartime, fg = "#aaaaaa", bg="#666666", font=("Digital-7 Mono", 20)).place(x = 144, y = 145)
+            self.timenum_label = tk.Label(self.root, textvariable = self.vartime, fg = "#eee", bg="#666666", font=("Digital-7 Mono", 20)).place(x = 144, y = 145)
             self.distance = tk.StringVar(self.root, "")
-            self.distance_label = tk.Label(self.root, textvariable = self.distance, fg = "#aaaaaa", bg="#666666", font=("Digital-7 Mono", 15)).place(x = 144, y = 170)
+            self.distance_label = tk.Label(self.root, textvariable = self.distance, fg = "#eee", bg="#666666", font=("Digital-7 Mono", 15)).place(x = 144, y = 170)
             self.steps_txt = tk.StringVar(self.root, "")
-            self.steps0 = tk.Label(self.root, textvariable = self.steps_txt, fg = "white", bg="#666666", font=("Lucida Console", 15, "bold")).place(x = 395, y = 0)
+            self.steps0 = tk.Label(self.root, textvariable = self.steps_txt, fg = "#fff", bg="#666666", font=("Lucida Console", 9, "bold")).place(anchor="center", x = 204, y = 202)
             self.step1_txt = tk.StringVar(self.root, "")
-            self.steps1 = tk.Label(self.root, textvariable = self.step1_txt, fg = "white", bg="#666666", font=("Lucida Console", 9)).place(x = 395+10, y = 15+10)
-
-        
+            self.steps1 = tk.Label(self.root, textvariable = self.step1_txt, fg = "#eeeeee", bg="#666666", font=("Digital-7 Mono", 10)).place(anchor="center",x = 200, y = 143)
 
         self.canvas.create_circle(204, 202, 171, fill="#666", outline="#666666", width=4)
 
@@ -844,15 +842,14 @@ class Meter():
 
                         if int(lap) == 1:
                             
-                            self.steps_txt.set("")
-                            self.step1_txt.set("")
+                            self.steps_txt.set(guildhall_name.get() )
+                            self.step1_txt.set(str(lap) + "/"+ str(total_laps) + " T0" + " " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(0), "%M:%S:%f")[:-3])
                             self.vartime.set("")
                             self.distance.set("")
                             total_distance = 0
                             total_timer = _time
                             lap_timer = _time
                             filename = guildhall_name.get() + "_log_" + str(round(_time)) + ".csv"
-                            self.steps_txt.set("")
                             if log:
                                 #print("----------------------------------")
                                 #print("NEW LOG FILE - " + filename)
@@ -870,10 +867,9 @@ class Meter():
                             #cross the start on second lap
                             newline = ""
                             
-                            self.step1_txt.set(newline + str(lap) + "/"+ str(total_laps) + " TS" + " " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime_lap), "%M:%S:%f")[:-3])
+                            self.step1_txt.set(str(lap) + "/"+ str(total_laps) + " T0" + " " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime_lap), "%M:%S:%f")[:-3])
 
                             filename = guildhall_name.get() + "_log_" + str(_time) + ".csv"
-                            self.steps_txt.set("")
                             if log:
                                 #print("----------------------------------")
                                 #print("NEW LOG FILE - " + filename)
@@ -925,7 +921,7 @@ class Meter():
                                 #print("CHECKPOINT FINAL RACE: " + datefinish)
                                 #print("----------------------------------")
                                 newline = self.step1_txt.get() + "\n"
-                                self.step1_txt.set(newline + str(lap) + "/"+ str(total_laps) + " TF " + datefinish)
+                                self.step1_txt.set(str(lap) + "/"+ str(total_laps) + " TF " + datefinish)
                                 if hud_timer:
                                     self.vartime.set(datefinish)
                                 
@@ -953,7 +949,7 @@ class Meter():
                                 #print("----------------------------------")
                                 #print("CHECKPOINT FINAL LAP : " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime), "%M:%S:%f")[:-3])
                                 #print("----------------------------------")
-                                self.step1_txt.set(newline + str(lap) + "/"+ str(total_laps) + " TF " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime_lap), "%M:%S:%f")[:-3])
+                                self.step1_txt.set(str(lap) + "/"+ str(total_laps) + " TF " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime_lap), "%M:%S:%f")[:-3])
 
                                 if show_checkpoints_window and racer.session_id.get() != "":
                                     #mqtt se manda el tiempo como inicio
@@ -990,11 +986,11 @@ class Meter():
                         #print("----------------------------------")
                         #print("CHECKPOINT " + str(step) + ": " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime), "%M:%S:%f")[:-3])
                         #print("----------------------------------")
-                        self.steps_txt.set(guildhall_name.get() + " Times")
+                        self.steps_txt.set(guildhall_name.get() )
                         newline = self.step1_txt.get() + "\n "
                         if step == 1 and lap == 1:
                             newline = " "
-                        self.step1_txt.set(newline + str(lap) + "/"+ str(total_laps) + " T" + str(step) + " " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime_lap), "%M:%S:%f")[:-3])
+                        self.step1_txt.set(str(lap) + "/"+ str(total_laps) + " T" + str(step) + " " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime_lap), "%M:%S:%f")[:-3])
                         if audio:
                             playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "dong.wav", block=False)
                         if show_checkpoints_window and racer.session_id.get() != "":
@@ -1805,6 +1801,7 @@ class Racer():
         global countdowntxt
 
         #print("message received " ,json.loads(str(message.payload.decode("utf-8"))))
+        print(str(message.payload.decode("utf-8")))
         received = json.loads(str(message.payload.decode("utf-8")))
     
         if received.get('option') == "s":
@@ -2199,7 +2196,7 @@ class Racer():
         guildhall_laps.set("1 lap")
 
 
-        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.6.19""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
+        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.6.22""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
         self.t_1.place(x=0, y=10)
         self.t_2 = tk.Label(self.root, text="""Choose map to race""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_2.place(x=0, y=40)

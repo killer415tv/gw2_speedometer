@@ -1801,7 +1801,6 @@ class Racer():
         global countdowntxt
 
         #print("message received " ,json.loads(str(message.payload.decode("utf-8"))))
-        print(str(message.payload.decode("utf-8")))
         received = json.loads(str(message.payload.decode("utf-8")))
     
         if received.get('option') == "s":
@@ -1931,7 +1930,6 @@ class Racer():
     def open_multiplayer_map(self):
         if not self.mapOpen:
             self.session_id.get()
-            print( os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "map_realtime_multiplayer.py" )
             subprocess.Popen(["python", os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "map_realtime_multiplayer.py", self.session_id.get()])
             self.mapOpen = True
 
@@ -2253,7 +2251,6 @@ class Racer():
             # variable to store hexadecimal code of color
             player_color = colorchooser.askcolor(title ="Choose color")[1]
             if (player_color):
-                print(player_color)
                 self.conf_15_1.configure(fg=player_color)
                 conf_save()
 
@@ -2263,7 +2260,6 @@ class Racer():
 
             conf.saveConf()
 
-            print( sys.argv[0] )
             subprocess.Popen(["python", sys.argv[0]])
             sys.exit()
 

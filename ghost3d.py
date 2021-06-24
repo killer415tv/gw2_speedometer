@@ -333,6 +333,8 @@ class Ghost3d(object):
                             endpoint = [-417.37591552734375,44.911865234375,-181.865478515625]
                         elif guildhall_name.get() == "FLY-1 Verdant Brink Hunt":
                             endpoint = [660.4026489257812,339.56341552734375,357.9527282714844]
+                        elif guildhall_name.get() == "EVENT Dragon Bash":
+                            endpoint = [161.00820922851562,302.1965026855469,-73.2139892578125]
 
                         
                         

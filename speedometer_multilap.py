@@ -72,7 +72,7 @@ live_reset='k' #key binded for reset
 #Log all the timed splits to file CSV , needed for upload to ranking
 log = 1  # 1 = on , 0 = off 
 #Play dong.wav file when you open the program and when you go through a checkpoint
-audio = 1  # 1 = on , 0 = off
+audio = 0  # 1 = on , 0 = off
 #ghost_mode
 enable_ghost_keys = 1
 ghost_start = 't'
@@ -92,9 +92,9 @@ hud_acceleration = 0 # 1 = on , 0 = off
 
 #show Angle meter, shows angles between velocity and mouse camera , and velocity and avatar angle 
 hud_angles = 0 # 1 = on , 0 = off 
-hud_angles_bubbles = 1 # 1 = on , 0 = off
-hud_angles_airboost = 1
-hud_max_speed = 1
+hud_angles_bubbles = 0 # 1 = on , 0 = off
+hud_angles_airboost = 0
+hud_max_speed = 0
 magic_angle = 58 # angle for hud_angles_bubbles, to show a visual guide of the magic angle
 
 #show drift hold meter
@@ -1056,6 +1056,37 @@ class Meter():
 
             if show_checkpoints_window: 
 
+                if guildhall_name.get() == "EVENT Dragon Bash":
+                    checkpoint(0,"start",[68.57379150390625,301.9970703125,-41.2094612121582])
+                    checkpoint(1,"*",[-22.57027816772461,305.0397033691406,-20.125741958618164])
+                    checkpoint(2,"*",[-83.86954498291016,305.051025390625,37.18354415893555])
+                    checkpoint(3,"*",[-131.85147094726562,293.6063537597656,65.0433578491211])
+                    checkpoint(4,"*",[-212.85818481445312,286.59039306640625,60.400733947753906])
+                    checkpoint(5,"*",[-306.17242431640625,277.73223876953125,45.66388702392578])
+                    checkpoint(6,"*",[-315.29730224609375,268.4012145996094,81.18096160888672])
+                    checkpoint(7,"*",[-266.1584777832031,268.4024963378906,86.53128814697266])
+                    checkpoint(8,"*",[-243.79942321777344,268.3611755371094,171.0406036376953])
+                    checkpoint(9,"*",[-93.27214813232422,268.2345275878906,268.48614501953125])
+                    checkpoint(10,"*",[-33.45008850097656,248.70083618164062,363.9506530761719])
+                    checkpoint(11,"*",[60.99707794189453,241.28463745117188,388.96160888671875])
+                    checkpoint(12,"*",[128.56944274902344,267.1532287597656,313.84661865234375])
+                    checkpoint(13,"*",[163.58673095703125,234.2012939453125,182.09007263183594])
+                    checkpoint(14,"*",[275.9076232910156,237.77268981933594,171.0234375])
+                    checkpoint(15,"*",[379.5106201171875,216.3720245361328,217.50531005859375])
+                    checkpoint(16,"*",[407.4767150878906,212.11538696289062,331.1707763671875])
+                    checkpoint(17,"*",[503.72955322265625,214.20912170410156,356.55438232421875])
+                    checkpoint(18,"*",[603.52587890625,220.21192932128906,306.3197937011719])
+                    checkpoint(19,"*",[627.747314453125,237.47006225585938,181.9019317626953])
+                    checkpoint(20,"*",[560.2664794921875,251.78448486328125,86.61962890625])
+                    checkpoint(21,"*",[555.0912475585938,256.8807373046875,29.81451988220215])
+                    checkpoint(22,"*",[490.7671813964844,298.2248840332031,-79.01435852050781])
+                    checkpoint(23,"*",[484.04400634765625,310.2279357910156,-196.42703247070312])
+                    checkpoint(24,"*",[411.65643310546875,310.1990051269531,-228.62759399414062])
+                    checkpoint(25,"*",[309.7533264160156,302.7648620605469,-206.40066528320312])
+                    checkpoint(26,"*",[230.67495727539062,302.0447998046875,-120.46470642089844])
+                    checkpoint(27,"end",[161.00820922851562,302.1965026855469,-73.2139892578125])
+                    checkpoint(-1,"reset",[160.72866821289062,301.9792175292969,-50.434452056884766])
+
                 if guildhall_name.get() == "FLY-1 Verdant Brink Hunt":
                     checkpoint(0,"start",[877.1676635742188,428.8018798828125,50.82432174682617])
                     checkpoint(-1,"reset",[932.6641845703125,418.795166015625,53.32091522216797])
@@ -1268,19 +1299,6 @@ class Meter():
                     checkpoint(0, "start", [-387, 997, -273.4])
                     checkpoint(1, "*", [97.3, 842.8, -75])
                     checkpoint(2, "end", [-314, 997, -378.2])
-
-                if guildhall_name.get() == "OLLO Shortcut":
-
-                    checkpoint(0,"start",[24.269977569580078,16.183862686157227,-40.50206756591797])
-                    checkpoint(1,"*",[9.049388885498047,39.9488525390625,82.58651733398438])
-                    checkpoint(2,"*",[-11.155280113220215,40.044132232666016,289.6002502441406])
-                    checkpoint(3,"*",[99.26748657226562,23.069229125976562,192.68919372558594])
-                    checkpoint(4,"*",[98.61570739746094,23.08808135986328,282.6737365722656])
-                    checkpoint(5,"*",[139.25704956054688,42.244361877441406,346.36370849609375])
-                    checkpoint(6,"*",[205.88778686523438,29.56764030456543,217.02557373046875])
-                    checkpoint(7,"*",[208.2991485595703,36.79213333129883,5.360412120819092])
-                    checkpoint(8,"end",[109.66463470458984,36.829837799072266,-21.301481246948242])
-                    checkpoint(-1,"reset", [114.61094665527344,9.075913429260254,37.21352005004883])
 
                 if guildhall_name.get() == "VAW Left path":
                     checkpoint(-1,"reset", [35.67, 111.35, -7.02]) # use this position when you take te map TP , to stop log file
@@ -2198,19 +2216,19 @@ class Racer():
         guildhall_laps.set("1 lap")
 
 
-        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.6.22""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
+        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.6.24""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
         self.t_1.place(x=0, y=10)
         self.t_2 = tk.Label(self.root, text="""Choose map to race""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_2.place(x=0, y=40)
         
-        self.choices = ['None, im free!', "OLLO Akina", "OLLO Shortcut", 'RACE Downhill', 'RACE Hillclimb', 'RACE Full Mountain Run', 
+        self.choices = ['None, im free!', "OLLO Akina", 'RACE Downhill', 'RACE Hillclimb', 'RACE Full Mountain Run', 
             'GeeK','INDI', 'UAoT', 'VAW Left path', 'VAW Right path', 'GWTC', 'EQE', 'SoTD', 'LRS', 'HUR', 
             "TYRIA INF.LEAP", "TYRIA DIESSA PLATEAU", "TYRIA SNOWDEN DRIFTS", "TYRIA GENDARRAN", "TYRIA BRISBAN WILD.", "TYRIA GROTHMAR VALLEY",
             "DRFT-1 Fractal Actual Speedway", "DRFT-2 Wayfar Out", "DRFT-3 Summers Sunset", "DRFT-4 Mossheart Memory", "DRFT-5 Roller Coaster Canyon", 
             "DRFT-6 Centurion Circuit", "DRFT-7 Dredgehaunt Cliffs", "DRFT-8 Icy Rising Ramparts", "DRFT-9 Soulthirst Savannah of Svanier", "DRFT-10 Toxic Turnpike", 
             "DRFT-11 Estuary of Twilight", "DRFT-12 Celedon Circle", "DRFT-13 Thermo Reactor Escape", "DRFT-14 Jormags Jumpscare", 
             "DRFT-GP-1 Lions Summer Sights","DRFT-GP-2 Sandswept Shore Sprint","DRFT-GP-3 Inquest Isle Invasion","DRFT-GP-4 Triple Trek Periphery","DRFT-GP-5 Beachin Crabwalk",
-            "FLY-1 Verdant Brink Hunt"]
+            "EVENT Dragon Bash", "FLY-1 Verdant Brink Hunt"]
         self.t_3 = tk.OptionMenu(self.root, guildhall_name, *self.choices, command = self.saveGuildhall)
         self.t_3.config(font=("Lucida Console", 10))
         self.t_3["highlightthickness"] = 0

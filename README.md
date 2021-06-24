@@ -1,4 +1,4 @@
-# RACE ASSISTANT v.1.6.22
+# RACE ASSISTANT v1.6.24
 
 ![LOGO](https://user-images.githubusercontent.com/44058571/116699002-597dcc00-a9c5-11eb-8c08-e11e52794992.jpg)
 
@@ -67,6 +67,10 @@ http://beetlerank.bounceme.net/
  - DRFT-GP-3 Inquest Isle Invasion
  - DRFT-GP-4 Triple Trek Periphery
  - DRFT-GP-5 Beachin Crabwalk
+## EVENTS
+ - Dragon Bash
+## Griffon maps
+ - FLY-1 Verdant Brink Hunt
 
 
 

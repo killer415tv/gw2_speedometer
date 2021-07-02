@@ -21,6 +21,7 @@ from playsound import playsound
 from datetime import date
 import json
 import pandas as pd
+import ssl
 
 import random
 
@@ -903,7 +904,7 @@ class Meter():
                                         'Origin': 'null',
                                         'Referer': 'null'
                                     }
-                                    response = requests.post('http://beetlerank.bounceme.net/upload-log',data={'user': json.loads(ml.data.identity)["name"], 'guildhall': guildhall_name.get()}, files={'file': open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + filename,'rb')}, headers=headers)
+                                    response = requests.post('https://beetlerank.com/upload-log',data={'user': json.loads(ml.data.identity)["name"], 'guildhall': guildhall_name.get()}, files={'file': open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + filename,'rb')}, headers=headers)
                                     print("Log uploaded to web")
                                     print(response.text)
                                     if response.text and int(total_laps) == 1:
@@ -1966,10 +1967,12 @@ class Racer():
         self.race_status.set("Waiting to start...")
         #print(self.username.get() + " JOINED RACE: " + self.session_id.get())
         #subscribición al topico
-        broker_address="beetlerank.bounceme.net"
+        broker_address="beetlerank.com"
         #broker_address="iot.eclipse.org"
         #print("creating new instance")
-        client = mqtt.Client(self.username.get() + str(random.random())) #create new instance
+        client = mqtt.Client(client_id=self.username.get() + str(random.random())) #create new instance
+        #client.tls_set("./chain.pem")
+        #client.tls_insecure_set(True)
         client.on_message=self.on_message #attach function to callback
         #print("connecting to broker")
         client.connect(broker_address) #connect to broker
@@ -2163,7 +2166,7 @@ class Racer():
                     'Origin': 'null',
                     'Referer': 'null'
                 }
-                response = requests.get('http://beetlerank.bounceme.net/rank/api/' + str(guildhall_name.get()), headers)
+                response = requests.get('https://beetlerank.com/rank/api/' + str(guildhall_name.get()), headers)
             
                 self.map_ranking_var.set(response.text)
 
@@ -2216,7 +2219,7 @@ class Racer():
         guildhall_laps.set("1 lap")
 
 
-        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.6.24""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
+        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.7.2""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
         self.t_1.place(x=0, y=10)
         self.t_2 = tk.Label(self.root, text="""Choose map to race""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_2.place(x=0, y=40)

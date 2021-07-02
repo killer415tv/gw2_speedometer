@@ -21,7 +21,6 @@ from playsound import playsound
 from datetime import date
 import json
 import pandas as pd
-import ssl
 
 import random
 

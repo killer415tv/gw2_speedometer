@@ -250,6 +250,7 @@ class Ghost3d(object):
                     #print(last_elem)
                     try:
                         last_elem_array = (ctypes.c_float * len(last_elem))(*last_elem)
+                        last_elem_array = [last_elem_array[0],last_elem_array[1],last_elem_array[2]]
 
                         #CHECK POSITION TO RESTART THE GHOST
                         endpoint = [0,0,0]
@@ -297,60 +298,57 @@ class Ghost3d(object):
                             endpoint = [-178, 22, 391]
                         elif guildhall_name == "DRFT-2 Wayfar Out":
                             endpoint = [70.45439910888672,8.777570724487305,-1082.09912109375]
-                        elif guildhall_name.get() == "DRFT-3 Summers Sunset":
+                        elif guildhall_name == "DRFT-3 Summers Sunset":
                             endpoint = [-162.6918487548828,3.4913501739501953,100.76415252685547]
-                        elif guildhall_name.get() == "DRFT-4 Mossheart Memory":
+                        elif guildhall_name == "DRFT-4 Mossheart Memory":
                             endpoint = [656.0433959960938,51.61550521850586,-575.2821655273438]
-                        elif guildhall_name.get() == "DRFT-5 Roller Coaster Canyon":
+                        elif guildhall_name == "DRFT-5 Roller Coaster Canyon":
                             endpoint = [352.8476867675781,45.145347595214844,425.576416015625]
-                        elif guildhall_name.get() == "DRFT-6 Centurion Circuit":
+                        elif guildhall_name == "DRFT-6 Centurion Circuit":
                             endpoint = [20.252696990966797,168.30413818359375,86.17316436767578]
-                        elif guildhall_name.get() == "DRFT-7 Dredgehaunt Cliffs":
+                        elif guildhall_name == "DRFT-7 Dredgehaunt Cliffs":
                             endpoint = [-46.31200408935547,60.5682258605957,-566.6380615234375]
-                        elif guildhall_name.get() == "DRFT-8 Icy Rising Ramparts":
+                        elif guildhall_name == "DRFT-8 Icy Rising Ramparts":
                             endpoint = [575.1735229492188,58.270286560058594,365.3240661621094]
-                        elif guildhall_name.get() == "DRFT-9 Soulthirst Savannah of Svanier":
+                        elif guildhall_name == "DRFT-9 Soulthirst Savannah of Svanier":
                             endpoint = [724.0528564453125,137.1461639404297,214.591064453125]
-                        elif guildhall_name.get() == "DRFT-10 Toxic Turnpike":
+                        elif guildhall_name == "DRFT-10 Toxic Turnpike":
                             endpoint = [557.4955444335938,52.8920783996582,464.1280822753906]
-                        elif guildhall_name.get() == "DRFT-11 Estuary of Twilight":
+                        elif guildhall_name == "DRFT-11 Estuary of Twilight":
                             endpoint = [-187.4603271484375,19.422760009765625,668.4896850585938]
-                        elif guildhall_name.get() == "DRFT-12 Celedon Circle":
+                        elif guildhall_name == "DRFT-12 Celedon Circle":
                             endpoint = [-68.65498352050781,-0.2025335431098938,-932.6437377929688]
-                        elif guildhall_name.get() == "DRFT-13 Thermo Reactor Escape":
+                        elif guildhall_name == "DRFT-13 Thermo Reactor Escape":
                             endpoint = [181.4370880126953,27.945026397705078,239.04833984375]
-                        elif guildhall_name.get() == "DRFT-14 Jormags Jumpscare":
+                        elif guildhall_name == "DRFT-14 Jormags Jumpscare":
                             endpoint = [661.1888427734375,39.34746551513672,462.04925537109375]
-                        elif guildhall_name.get() == "DRFT-GP-1 Lions Summer Sights":
+                        elif guildhall_name == "DRFT-GP-1 Lions Summer Sights":
                             endpoint = [-216.6181182861328,31.319185256958008,-353.88165283203125]
-                        elif guildhall_name.get() == "DRFT-GP-2 Sandswept Shore Sprint":
+                        elif guildhall_name == "DRFT-GP-2 Sandswept Shore Sprint":
                             endpoint = [-502.1472473144531,1.6342060565948486,910.4564208984375]
-                        elif guildhall_name.get() == "DRFT-GP-3 Inquest Isle Invasion":
+                        elif guildhall_name == "DRFT-GP-3 Inquest Isle Invasion":
                             endpoint = [-223.18630981445312,0.7399634122848511,-81.19659423828125]
-                        elif guildhall_name.get() == "DRFT-GP-4 Triple Trek Periphery":
+                        elif guildhall_name == "DRFT-GP-4 Triple Trek Periphery":
                             endpoint = [234.2526397705078,2.7598352432250977,-83.74826049804688]
-                        elif guildhall_name.get() == "DRFT-GP-5 Beachin Crabwalk":
+                        elif guildhall_name == "DRFT-GP-5 Beachin Crabwalk":
                             endpoint = [-417.37591552734375,44.911865234375,-181.865478515625]
-                        elif guildhall_name.get() == "FLY-1 Verdant Brink Hunt":
+                        elif guildhall_name == "FLY-1 Verdant Brink Hunt":
                             endpoint = [660.4026489257812,339.56341552734375,357.9527282714844]
-                        elif guildhall_name.get() == "EVENT Dragon Bash":
+                        elif guildhall_name == "EVENT Dragon Bash":
                             endpoint = [161.00820922851562,302.1965026855469,-73.2139892578125]
 
-                        
-                        
-                    
                         try:
-                            if distance.euclidean(endpoint, last_elem_array) < 20:
+                            if distance.euclidean(endpoint, last_elem_array) < 40:
                                 #candidato a válido
                                 time = list(data.values[-1])[6]
                                 if time < min_time:
                                     min_time = time
                                     self.best_file = x
                         except:
-                            print("File",x,"is corrupted, you can delete it")
+                            print("File",x,"is corrupted, you can delete it 1")
 
                     except:
-                        print("File",x,"is corrupted, you can delete it")
+                        print("File",x,"is corrupted, you can delete it 2")
 
                 if min_time == 99999:
                     print("-----------------------------------------------")

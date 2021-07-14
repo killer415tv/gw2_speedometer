@@ -322,6 +322,14 @@ class Ghost3d(object):
                             endpoint = [181.4370880126953,27.945026397705078,239.04833984375]
                         elif guildhall_name == "DRFT-14 Jormags Jumpscare":
                             endpoint = [661.1888427734375,39.34746551513672,462.04925537109375]
+                        elif guildhall_name == "DRFT-15 Triple Trek - Amber Ambush":
+                            endpoint = [180.6116486,16.85618973,-164.8156738]
+                        elif guildhall_name == "DRFT-16 Triple Trek - Cobalt Catastrophe":
+                            endpoint = [176.0186462,15.73690414,-152.4803772]
+                        elif guildhall_name == "DRFT-17 Triple Trek - Crimson Chaos":
+                            endpoint = [217.15728759765625,8.513725280761719,-96.43672943115234]
+                        elif guildhall_name == "DRFT-18 Triple Trek - Medley":
+                            endpoint = [175.4340515,15.59510422,-151.4719696]
                         elif guildhall_name == "DRFT-GP-1 Lions Summer Sights":
                             endpoint = [-216.6181182861328,31.319185256958008,-353.88165283203125]
                         elif guildhall_name == "DRFT-GP-2 Sandswept Shore Sprint":

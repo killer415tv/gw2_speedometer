@@ -231,6 +231,18 @@ class Ghost3d(object):
             path = os.path.dirname(os.path.abspath(sys.argv[0])) + "/"                  
             self.all_files = glob.glob(os.path.join(path, guildhall_name+"_log*.csv"))
 
+
+            self.checkpoints_file = os.path.dirname(os.path.abspath(sys.argv[0])) + "\\maps\\" + guildhall_name + ".csv"
+
+            print("-----------------------------------------------")
+            print("- THE SELECTED MAP IS" , guildhall_name )
+            print("- CHECKPOINTS FILE" , self.checkpoints_file )
+
+            checkpoints_list = pd.DataFrame()
+            file_df = pd.read_csv(self.checkpoints_file)
+            checkpoints_list = checkpoints_list.append(file_df)
+
+
             if len(self.all_files) > 0:
                 self.df = pd.DataFrame()
                 for file_ in self.all_files:
@@ -243,6 +255,7 @@ class Ghost3d(object):
                 min_time = 99999
                 self.best_file = ''
 
+        
                 for x in self.all_files:
                     data = self.df[(self.df['file_name'] == x)]
                     #print(list(data.values[-1]))
@@ -253,98 +266,9 @@ class Ghost3d(object):
                         last_elem_array = [last_elem_array[0],last_elem_array[1],last_elem_array[2]]
 
                         #CHECK POSITION TO RESTART THE GHOST
-                        endpoint = [0,0,0]
-                        if guildhall_name == "VAW Left path":
-                            endpoint = [-255.1, 3.8, 303.8]
-                        elif guildhall_name == "VAW Right path":
-                            endpoint = [-255.1, 3.8, 303.8]
-                        elif guildhall_name == "GeeK":
-                            endpoint = [206.5, 62.9, 141.5]
-                        elif guildhall_name == "GWTC":
-                            endpoint = [-37.9, 1.74, -26.7]
-                        elif guildhall_name == "RACE Downhill":
-                            endpoint = [-90, 6,-283]
-                        elif guildhall_name == "RACE Hillclimb":
-                            endpoint = [68,453,110]
-                        elif guildhall_name == "RACE Full Mountain Run":
-                            endpoint = [27.91, 453, 41.5]
-                        elif guildhall_name == "EQE":
-                            endpoint = [117, 158, 256]
-                        elif guildhall_name == "SoTD":
-                            endpoint = [61.96, 512.09, -58.64]
-                        elif guildhall_name == "LRS":
-                            endpoint = [-26.74, 0.55, -51.33]
-                        elif guildhall_name == "HUR":
-                            endpoint = [42.5, 103.87, -187.45]
-                        elif guildhall_name == "TYRIA INF.LEAP":
-                            endpoint = [166.077, 1.25356, -488.581]
-                        elif guildhall_name == "TYRIA DIESSA PLATEAU":
-                            endpoint = [-166.1, 30.8, -505.5]
-                        elif guildhall_name == "TYRIA SNOWDEN DRIFTS":
-                            endpoint = [253.2, 26.6, -98]
-                        elif guildhall_name == "TYRIA GENDARRAN":
-                            endpoint = [283.9, 12.9, 463.9]
-                        elif guildhall_name == "TYRIA BRISBAN WILD.":
-                            endpoint = [-820.6, 66.1, 454.4]
-                        elif guildhall_name == "TYRIA GROTHMAR VALLEY":
-                            endpoint = [511.1, 16.2, 191.8]
-                        elif guildhall_name == "OLLO Akina":
-                            endpoint = [-314, 997, -378.2]
-                        elif guildhall_name == "UAoT":
-                            endpoint = [302, 96, 215]
-                        elif guildhall_name == "INDI":
-                            endpoint = [0.5, 59, -115]
-                        elif guildhall_name == "DRFT-1 Fractal Actual Speedway":
-                            endpoint = [-178, 22, 391]
-                        elif guildhall_name == "DRFT-2 Wayfar Out":
-                            endpoint = [70.45439910888672,8.777570724487305,-1082.09912109375]
-                        elif guildhall_name == "DRFT-3 Summers Sunset":
-                            endpoint = [-162.6918487548828,3.4913501739501953,100.76415252685547]
-                        elif guildhall_name == "DRFT-4 Mossheart Memory":
-                            endpoint = [656.0433959960938,51.61550521850586,-575.2821655273438]
-                        elif guildhall_name == "DRFT-5 Roller Coaster Canyon":
-                            endpoint = [352.8476867675781,45.145347595214844,425.576416015625]
-                        elif guildhall_name == "DRFT-6 Centurion Circuit":
-                            endpoint = [20.252696990966797,168.30413818359375,86.17316436767578]
-                        elif guildhall_name == "DRFT-7 Dredgehaunt Cliffs":
-                            endpoint = [-46.31200408935547,60.5682258605957,-566.6380615234375]
-                        elif guildhall_name == "DRFT-8 Icy Rising Ramparts":
-                            endpoint = [575.1735229492188,58.270286560058594,365.3240661621094]
-                        elif guildhall_name == "DRFT-9 Soulthirst Savannah of Svanier":
-                            endpoint = [724.0528564453125,137.1461639404297,214.591064453125]
-                        elif guildhall_name == "DRFT-10 Toxic Turnpike":
-                            endpoint = [557.4955444335938,52.8920783996582,464.1280822753906]
-                        elif guildhall_name == "DRFT-11 Estuary of Twilight":
-                            endpoint = [-187.4603271484375,19.422760009765625,668.4896850585938]
-                        elif guildhall_name == "DRFT-12 Celedon Circle":
-                            endpoint = [-68.65498352050781,-0.2025335431098938,-932.6437377929688]
-                        elif guildhall_name == "DRFT-13 Thermo Reactor Escape":
-                            endpoint = [181.4370880126953,27.945026397705078,239.04833984375]
-                        elif guildhall_name == "DRFT-14 Jormags Jumpscare":
-                            endpoint = [661.1888427734375,39.34746551513672,462.04925537109375]
-                        elif guildhall_name == "DRFT-15 Triple Trek - Amber Ambush":
-                            endpoint = [180.6116486,16.85618973,-164.8156738]
-                        elif guildhall_name == "DRFT-16 Triple Trek - Cobalt Catastrophe":
-                            endpoint = [176.0186462,15.73690414,-152.4803772]
-                        elif guildhall_name == "DRFT-17 Triple Trek - Crimson Chaos":
-                            endpoint = [217.15728759765625,8.513725280761719,-96.43672943115234]
-                        elif guildhall_name == "DRFT-18 Triple Trek - Medley":
-                            endpoint = [175.4340515,15.59510422,-151.4719696]
-                        elif guildhall_name == "DRFT-GP-1 Lions Summer Sights":
-                            endpoint = [-216.6181182861328,31.319185256958008,-353.88165283203125]
-                        elif guildhall_name == "DRFT-GP-2 Sandswept Shore Sprint":
-                            endpoint = [-502.1472473144531,1.6342060565948486,910.4564208984375]
-                        elif guildhall_name == "DRFT-GP-3 Inquest Isle Invasion":
-                            endpoint = [-223.18630981445312,0.7399634122848511,-81.19659423828125]
-                        elif guildhall_name == "DRFT-GP-4 Triple Trek Periphery":
-                            endpoint = [234.2526397705078,2.7598352432250977,-83.74826049804688]
-                        elif guildhall_name == "DRFT-GP-5 Beachin Crabwalk":
-                            endpoint = [-417.37591552734375,44.911865234375,-181.865478515625]
-                        elif guildhall_name == "FLY-1 Verdant Brink Hunt":
-                            endpoint = [660.4026489257812,339.56341552734375,357.9527282714844]
-                        elif guildhall_name == "EVENT Dragon Bash":
-                            endpoint = [161.00820922851562,302.1965026855469,-73.2139892578125]
 
+                        endpoint = [checkpoints_list.loc[checkpoints_list['STEPNAME'] == 'end'].X.values,checkpoints_list.loc[checkpoints_list['STEPNAME'] == 'end'].Y.values,checkpoints_list.loc[checkpoints_list['STEPNAME'] == 'end'].Z.values]
+                        
                         try:
                             if distance.euclidean(endpoint, last_elem_array) < 40:
                                 #candidato a válido

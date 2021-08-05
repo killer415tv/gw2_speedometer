@@ -854,12 +854,20 @@ class Meter():
                             total_distance = 0
                             total_timer = _time
                             lap_timer = _time
+                            #esta línea es la clave
+
+                            #paso 1 - comprobar que existe la carpeta /logs
+                            if os.path.isdir(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\logs") == False:
+                                os.mkdir(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\logs")
+                            
+
+
                             filename = guildhall_name.get() + "_log_" + str(round(_time)) + ".csv"
                             if log:
                                 #print("----------------------------------")
                                 #print("NEW LOG FILE - " + filename)
                                 #print("----------------------------------")
-                                writer = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + filename,'a',newline='', encoding='utf-8')
+                                writer = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\logs\\" + filename,'a',newline='', encoding='utf-8')
                                 writer.seek(0,2)
                                 writer.writelines( (',').join(["X","Y","Z","SPEED","ANGLE_CAM", "ANGLE_BEETLE","TIME", "ACCELERATION"]))
                             if show_checkpoints_window and racer.session_id.get() != "":
@@ -879,7 +887,7 @@ class Meter():
                                 #print("----------------------------------")
                                 #print("NEW LOG FILE - " + filename)
                                 #print("----------------------------------")
-                                writer = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + filename,'a',newline='', encoding='utf-8')
+                                writer = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\logs\\" + filename,'a',newline='', encoding='utf-8')
                                 writer.seek(0,2)
                                 writer.writelines( (',').join(["X","Y","Z","SPEED","ANGLE_CAM", "ANGLE_BEETLE","TIME", "ACCELERATION"]))
                             if show_checkpoints_window and racer.session_id.get() != "":
@@ -902,13 +910,17 @@ class Meter():
                                 playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "dong.wav", block=False)
 
                             #upload log to 
+
+                            old_filename = filename
+                            filename = ""
+
                             if upload.get() == 1:
                                 if log:
                                     headers = {
                                         'Origin': 'null',
                                         'Referer': 'null'
                                     }
-                                    response = requests.post('https://www.beetlerank.com/upload-log',data={'user': json.loads(ml.data.identity)["name"], 'guildhall': guildhall_name.get()}, files={'file': open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + filename,'rb')}, headers=headers)
+                                    response = requests.post('https://www.beetlerank.com/upload-log',data={'user': json.loads(ml.data.identity)["name"], 'guildhall': guildhall_name.get()}, files={'file': open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\logs\\" + old_filename,'rb')}, headers=headers)
                                     print("Log uploaded to web")
                                     print(response.text)
                                     if response.text and int(total_laps) == 1:
@@ -916,12 +928,18 @@ class Meter():
                                     racer.saveGuildhall(guildhall_name.get())
 
                             if int(lap) == int(total_laps):
-                                datefinish = datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime_lap), "%M:%S:%f")[:-3]
+                                
+                                last_filename_df = pd.DataFrame()
+                                file_df = pd.read_csv(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\logs\\" + old_filename)
+                                last_filename_df = last_filename_df.append(file_df)
+
+                                datefinish = datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(last_filename_df.values[-1][6]), "%M:%S:%f")[:-3]
+
                                 if enable_livesplit_hotkey == 1:
                                     keyboard_.press(live_start)
                                     keyboard_.release(live_start)
 
-                                filename = ""
+                                #filename = ""
                                 #print("----------------------------------")
                                 #print("CHECKPOINT FINAL RACE: " + datefinish)
                                 #print("----------------------------------")
@@ -1247,7 +1265,7 @@ class Meter():
                     if hud_distance:
                         self.distance.set(str(round(total_distance)) + "m.")
                     if log:
-                        writer = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + filename,'a',newline='', encoding='utf-8')
+                        writer = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\logs\\" + filename,'a',newline='', encoding='utf-8')
                         writer.seek(0,2)
                         writer.writelines("\r")
                         writer.writelines( (',').join([str(_3Dpos[0]),str(_3Dpos[1]),str(_3Dpos[2]),str(round((velocity*100/10000)*99/72)),str(angle_between_res1),str(angle_between_res2), str(_time - lap_timer), str(acceleration)]))
@@ -1703,7 +1721,7 @@ class Racer():
         guildhall_laps.set("1 lap")
 
 
-        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.8.3""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
+        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.8.5""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
         self.t_1.place(x=0, y=10)
         self.t_2 = tk.Label(self.root, text="""Choose map to race""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_2.place(x=0, y=40)

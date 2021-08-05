@@ -227,7 +227,7 @@ class Ghost3d(object):
             print("---------- ZONE:", guildhall_name, "------------")
                     
             #obtener los ficheros de replay
-            path = os.path.dirname(os.path.abspath(sys.argv[0])) + "/"                  
+            path = os.path.dirname(os.path.abspath(sys.argv[0])) + "\\logs\\"                   
             self.all_files = glob.glob(os.path.join(path, guildhall_name+"_log*.csv"))
 
             self.checkpoints_file = os.path.dirname(os.path.abspath(sys.argv[0])) + "\\maps\\" + guildhall_name + ".csv"

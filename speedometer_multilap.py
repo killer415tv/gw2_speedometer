@@ -588,14 +588,14 @@ class Meter():
 
 
         #if hud_timer:
-            self.vartime = tk.StringVar(self.root, "")
-            self.timenum_label = tk.Label(self.root, textvariable = self.vartime, fg = "#eee", bg="#666666", font=("Digital-7 Mono", 20)).place(x = 144, y = 145)
-            self.distance = tk.StringVar(self.root, "")
-            self.distance_label = tk.Label(self.root, textvariable = self.distance, fg = "#eee", bg="#666666", font=("Digital-7 Mono", 15)).place(x = 144, y = 170)
-            self.steps_txt = tk.StringVar(self.root, "")
-            self.steps0 = tk.Label(self.root, textvariable = self.steps_txt, fg = "#fff", bg="#666666", font=("Lucida Console", 9, "bold")).place(anchor="center", x = 204, y = 202)
-            self.step1_txt = tk.StringVar(self.root, "")
-            self.steps1 = tk.Label(self.root, textvariable = self.step1_txt, fg = "#eeeeee", bg="#666666", font=("Digital-7 Mono", 10)).place(anchor="center",x = 200, y = 143)
+        self.vartime = tk.StringVar(self.root, "")
+        self.timenum_label = tk.Label(self.root, textvariable = self.vartime, fg = "#eee", bg="#666666", font=("Digital-7 Mono", 20)).place(x = 144, y = 145)
+        self.distance = tk.StringVar(self.root, "")
+        self.distance_label = tk.Label(self.root, textvariable = self.distance, fg = "#eee", bg="#666666", font=("Digital-7 Mono", 15)).place(x = 144, y = 170)
+        self.steps_txt = tk.StringVar(self.root, "")
+        self.steps0 = tk.Label(self.root, textvariable = self.steps_txt, fg = "#fff", bg="#666666", font=("Lucida Console", 9, "bold")).place(anchor="center", x = 204, y = 202)
+        self.step1_txt = tk.StringVar(self.root, "")
+        self.steps1 = tk.Label(self.root, textvariable = self.step1_txt, fg = "#eeeeee", bg="#666666", font=("Digital-7 Mono", 10)).place(anchor="center",x = 200, y = 143)
 
         self.canvas.create_circle(204, 202, 171, fill="#666", outline="#666666", width=4)
 

@@ -61,6 +61,39 @@ forceFile = False
 
 splitTime = 1  #check time diff each 1 secs
 
+from ctypes import windll, byref, create_unicode_buffer, create_string_buffer
+FR_PRIVATE  = 0x10
+FR_NOT_ENUM = 0x20
+
+def loadfont(fontpath, private=True, enumerable=False):
+    '''
+    Makes fonts located in file `fontpath` available to the font system.
+
+    `private`     if True, other processes cannot see this font, and this 
+                  font will be unloaded when the process dies
+    `enumerable`  if True, this font will appear when enumerating fonts
+
+    See https://msdn.microsoft.com/en-us/library/dd183327(VS.85).aspx
+
+    '''
+    # This function was taken from
+    # https://github.com/ifwe/digsby/blob/f5fe00244744aa131e07f09348d10563f3d8fa99/digsby/src/gui/native/win/winfonts.py#L15
+    # This function is written for Python 2.x. For 3.x, you
+    # have to convert the isinstance checks to bytes and str
+    if isinstance(fontpath, bytes):
+        pathbuf = create_string_buffer(fontpath)
+        AddFontResourceEx = windll.gdi32.AddFontResourceExA
+    elif isinstance(fontpath, str):
+        pathbuf = create_unicode_buffer(fontpath)
+        AddFontResourceEx = windll.gdi32.AddFontResourceExW
+    else:
+        raise TypeError('fontpath must be of type str or unicode')
+
+    flags = (FR_PRIVATE if private else 0) | (FR_NOT_ENUM if not enumerable else 0)
+    numFontsAdded = AddFontResourceEx(byref(pathbuf), flags, 0)
+    return bool(numFontsAdded)
+
+loadfont(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "font.ttf")
 
 
 class Link(ctypes.Structure):
@@ -335,7 +368,7 @@ class Ghost3d(object):
         self.wtime.setLayout(layout)
 
         self.label = QtGui.QLabel(str(timer))
-        self.label.setFont(QtGui.QFont('Lucida Console', 20))
+        self.label.setFont(QtGui.QFont("Digital-7 Mono", 25))
         self.label.setStyleSheet("background: rgba(255, 0, 0, 0);");
         
         #my_font = QFont("Times New Roman", 12)
@@ -478,9 +511,9 @@ class Ghost3d(object):
                 self.label.setText('<font color=\"white\">Ghost is waiting to start</font>')
             else:
                 if diffTimer > 0:
-                    self.label.setText('<font color=\"red\">' + str(round(diffTimer*10)/10) + '</font>')
+                    self.label.setText('<font color=\"red\">+' + datetime.strftime(datetime.utcfromtimestamp(abs(diffTimer)), "%M:%S:%f")[:-3] + '</font>')
                 else:
-                    self.label.setText('<font color=\"Lime\">' + str(round(diffTimer*10)/10) + '</font>')
+                    self.label.setText('<font color=\"Lime\">-' + datetime.strftime(datetime.utcfromtimestamp(abs(diffTimer)), "%M:%S:%f")[:-3] +  '</font>')
                 
 
                 
@@ -573,6 +606,7 @@ class Ghost3d(object):
         timer2.start(1)
 
         self.start()
+
 
 
 if __name__ == '__main__':

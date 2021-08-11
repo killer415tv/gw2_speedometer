@@ -588,14 +588,14 @@ class Meter():
 
 
         #if hud_timer:
-            self.vartime = tk.StringVar(self.root, "")
-            self.timenum_label = tk.Label(self.root, textvariable = self.vartime, fg = "#eee", bg="#666666", font=("Digital-7 Mono", 20)).place(x = 144, y = 145)
-            self.distance = tk.StringVar(self.root, "")
-            self.distance_label = tk.Label(self.root, textvariable = self.distance, fg = "#eee", bg="#666666", font=("Digital-7 Mono", 15)).place(x = 144, y = 170)
-            self.steps_txt = tk.StringVar(self.root, "")
-            self.steps0 = tk.Label(self.root, textvariable = self.steps_txt, fg = "#fff", bg="#666666", font=("Lucida Console", 9, "bold")).place(anchor="center", x = 204, y = 202)
-            self.step1_txt = tk.StringVar(self.root, "")
-            self.steps1 = tk.Label(self.root, textvariable = self.step1_txt, fg = "#eeeeee", bg="#666666", font=("Digital-7 Mono", 10)).place(anchor="center",x = 200, y = 143)
+        self.vartime = tk.StringVar(self.root, "")
+        self.timenum_label = tk.Label(self.root, textvariable = self.vartime, fg = "#eee", bg="#666666", font=("Digital-7 Mono", 20)).place(x = 144, y = 145)
+        self.distance = tk.StringVar(self.root, "")
+        self.distance_label = tk.Label(self.root, textvariable = self.distance, fg = "#eee", bg="#666666", font=("Digital-7 Mono", 15)).place(x = 144, y = 170)
+        self.steps_txt = tk.StringVar(self.root, "")
+        self.steps0 = tk.Label(self.root, textvariable = self.steps_txt, fg = "#fff", bg="#666666", font=("Lucida Console", 9, "bold")).place(anchor="center", x = 204, y = 202)
+        self.step1_txt = tk.StringVar(self.root, "")
+        self.steps1 = tk.Label(self.root, textvariable = self.step1_txt, fg = "#eeeeee", bg="#666666", font=("Digital-7 Mono", 10)).place(anchor="center",x = 200, y = 143)
 
         self.canvas.create_circle(204, 202, 171, fill="#666", outline="#666666", width=4)
 
@@ -757,7 +757,7 @@ class Meter():
                 self.distance.set("")
                 lap = 1
 
-        def checkpoint(step, stepName, coords):
+        def checkpoint(step, stepName, coords, radius):
 
             global checkpoints_list
 
@@ -785,10 +785,17 @@ class Meter():
 
             global player_color
 
+            #if csv checkpoints has no radius , default is 5 for reset and 15 for the rest
+            if radius == 0:
+                if step == -1:
+                    radius = 5
+                else: 
+                    radius = 15
+
             if step == -1:
                 arraystep = (ctypes.c_float * len(coords))(*coords)
                 #la distancia de 5 es como si fuera una esfera de tamaño similar a una esfera de carreras de tiria
-                if distance.euclidean(_3Dpos, arraystep) < 5 and (pressedQ == 0 or different(last_checkpoint_position, arraystep)):
+                if distance.euclidean(_3Dpos, arraystep) < radius and (pressedQ == 0 or different(last_checkpoint_position, arraystep)):
                     if 'racer' in globals():
                         racer.saveCheckpoint(0)
                         
@@ -818,7 +825,7 @@ class Meter():
 
                 step0 = coords
                 arraystep0 = (ctypes.c_float * len(step0))(*step0)
-                if distance.euclidean(_3Dpos, arraystep0) < 15 and (pressedQ == 0 or different(last_checkpoint_position, arraystep0)):
+                if distance.euclidean(_3Dpos, arraystep0) < radius and (pressedQ == 0 or different(last_checkpoint_position, arraystep0)):
                     
                     if 'racer' in globals():
                         if stepName == "end":
@@ -1082,8 +1089,12 @@ class Meter():
                 # check checkpoints
                 if len(checkpoints_list):
                     for index, checkpoint_data in checkpoints_list.iterrows():
+                        if "RADIUS" in checkpoint_data:
+                            radius = checkpoint_data['RADIUS']
+                        else:
+                            radius = 0
                         #print(checkpoint_data['STEP'], checkpoint_data['STEPNAME'], [checkpoint_data['X'],checkpoint_data['Y'],checkpoint_data['Z']] )
-                        checkpoint(checkpoint_data['STEP'], checkpoint_data['STEPNAME'], [checkpoint_data['X'],checkpoint_data['Y'],checkpoint_data['Z']] )
+                        checkpoint(checkpoint_data['STEP'], checkpoint_data['STEPNAME'], [checkpoint_data['X'],checkpoint_data['Y'],checkpoint_data['Z']], radius )
 
             #DEBUG
             #print(list(_pos) , flush=True)
@@ -1721,7 +1732,7 @@ class Racer():
         guildhall_laps.set("1 lap")
 
 
-        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.8.5""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
+        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.8.11""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
         self.t_1.place(x=0, y=10)
         self.t_2 = tk.Label(self.root, text="""Choose map to race""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_2.place(x=0, y=40)

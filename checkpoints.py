@@ -411,17 +411,27 @@ class Ghost3d(object):
                 
                 for p in points:
 
-                    step = p[0]
-                    stepname = p[1]
-                    posx = p[2]
-                    posy = p[3]
-                    posz = p[4]
-                    file = p[5]
+                    if len(p) == 6:
+                        step = p[0]
+                        stepname = p[1]
+                        posx = p[2]
+                        posy = p[3]
+                        posz = p[4]
+                        radius = 5 #default size for reset
+                        file = p[5]
+                    else:
+                        step = p[0]
+                        stepname = p[1]
+                        posx = p[2]
+                        posy = p[3]
+                        posz = p[4]
+                        radius = p[5] * 0.666
+                        file = p[6]
 
                     step_index = str(step)
                 
                     speedcolor = [255, 182, 24, 255]
-                    radius = 5
+                    #radius = 5
                     #print(vel, speedcolor)
                     
                     self.md = gl.MeshData.cylinder(rows=1, cols=40, radius=[radius,radius], length=0.4)
@@ -456,17 +466,27 @@ class Ghost3d(object):
                 
                 for p in points:
 
-                    step = p[0]
-                    stepname = p[1]
-                    posx = p[2]
-                    posy = p[3]
-                    posz = p[4]
-                    file = p[5]
+                    if len(p) == 6:
+                        step = p[0]
+                        stepname = p[1]
+                        posx = p[2]
+                        posy = p[3]
+                        posz = p[4]
+                        radius = 10 #default size for reset
+                        file = p[5]
+                    else:
+                        step = p[0]
+                        stepname = p[1]
+                        posx = p[2]
+                        posy = p[3]
+                        posz = p[4]
+                        radius = p[5] * 0.666
+                        file = p[6]
 
                     step_index = str(step)
                  
                     speedcolor = [40, 40, 40, 0]
-                    radius = 10
+                    #radius = 10
 
                     #print(vel, speedcolor)
                     
@@ -503,20 +523,32 @@ class Ghost3d(object):
                 
                 for p in points:
 
-                    step = p[0]
-                    stepname = p[1]
-                    posx = p[2]
-                    posy = p[3]
-                    posz = p[4]
-                    file = p[5]
+                    if len(p) == 6:
+                        step = p[0]
+                        stepname = p[1]
+                        posx = p[2]
+                        posy = p[3]
+                        posz = p[4]
+                        radius = 10 #default size for reset
+                        file = p[5]
+                    else:
+                        step = p[0]
+                        stepname = p[1]
+                        posx = p[2]
+                        posy = p[3]
+                        posz = p[4]
+                        radius = p[5] * 0.666
+                        file = p[6]
 
                     step_index = str(step)
 
                     speedcolor = [44, 44, 255]
 
+                    #radius = 10
+
                     #print(vel, speedcolor)
                     
-                    self.md = gl.MeshData.cylinder(rows=1, cols=40, radius=[10,10], length=0.4)
+                    self.md = gl.MeshData.cylinder(rows=1, cols=40, radius=[radius,radius], length=0.4)
 
                     if not step_index in self.balls:
                         self.balls[step_index] = gl.GLMeshItem(meshdata=self.md, drawEdges=False, smooth=True, drawFaces=True, glOptions='additive', shader='balloon', color=(QtGui.QColor(speedcolor[0], speedcolor[1], speedcolor[2])))
@@ -551,20 +583,34 @@ class Ghost3d(object):
                 
                 for p in points[:2]:
 
-                    step = p[0]
-                    stepname = p[1]
-                    posx = p[2]
-                    posy = p[3]
-                    posz = p[4]
-                    file = p[5]
+                    
+
+                    if len(p) == 6:
+                        step = p[0]
+                        stepname = p[1]
+                        posx = p[2]
+                        posy = p[3]
+                        posz = p[4]
+                        radius = 10 #default size for reset
+                        file = p[5]
+                    else:
+                        step = p[0]
+                        stepname = p[1]
+                        posx = p[2]
+                        posy = p[3]
+                        posz = p[4]
+                        radius = p[5] * 0.666
+                        file = p[6]
 
                     step_index = str(step)
 
                     speedcolor = [200, 200, 200]
 
                     #print(vel, speedcolor)
+
+                    #radius = 10
                     
-                    self.md = gl.MeshData.cylinder(rows=1, cols=40, radius=[10,10], length=0.4)
+                    self.md = gl.MeshData.cylinder(rows=1, cols=40, radius=[radius,radius], length=0.4)
 
                     if not step_index in self.balls:
                         self.balls[step_index] = gl.GLMeshItem(meshdata=self.md, drawEdges=False, smooth=True, drawFaces=True, glOptions='additive', shader='balloon', color=(QtGui.QColor(speedcolor[0], speedcolor[1], speedcolor[2])))

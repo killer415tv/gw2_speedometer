@@ -58,6 +58,7 @@ guildhall_name = ""
 filename_timer = 99999
 ghost_number = 1
 forceFile = False
+min_time = 99999
 
 splitTime = 1  #check time diff each 1 secs
 
@@ -231,6 +232,7 @@ class Ghost3d(object):
         
         global guildhall_name
         global forceFile
+        global min_time
 
         forceFile = False
         #force file to the one you drag an drop on the script
@@ -332,7 +334,6 @@ class Ghost3d(object):
                     file_df = pd.read_csv(self.best_file)
                     file_df['file_name'] = self.best_file
                     self.df = self.df.append(file_df)
-                    min_time = 99999
                     print("-----------------------------------------------")
                     print("- LOAD LOG FILE" , self.best_file )
                     print("-----------------------------------------------")
@@ -345,6 +346,7 @@ class Ghost3d(object):
         global fAvatarPosition
         global guildhall_name
         global timer
+        global min_time
 
         self.file_ready = False
 
@@ -485,6 +487,7 @@ class Ghost3d(object):
         global filename_timer
         global splitTime
         global fAvatarPosition
+        global min_time
 
 
         timer = time.perf_counter() - filename_timer
@@ -508,7 +511,7 @@ class Ghost3d(object):
             #print( str(round(diffTimer)) + " segs" )
 
             if timer < 0:
-                self.label.setText('<font color=\"white\">Ghost is waiting to start</font>')
+                self.label.setText('<font color=\"white\">Ghost is waiting to start - ' + datetime.strftime(datetime.utcfromtimestamp(min_time), "%M:%S:%f")[:-3] +'</font>')
             else:
                 if diffTimer > 0:
                     self.label.setText('<font color=\"red\">+' + datetime.strftime(datetime.utcfromtimestamp(abs(diffTimer)), "%M:%S:%f")[:-3] + '</font>')

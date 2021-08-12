@@ -372,14 +372,16 @@ class Ghost3d(object):
         self.label = QtGui.QLabel(str(timer))
         self.label.setFont(QtGui.QFont("Digital-7 Mono", 25))
         self.label.setStyleSheet("background: rgba(255, 0, 0, 0);");
+
+        self.labelspeed = QtGui.QLabel("Initial Speed: 000")
+        self.labelspeed.setFont(QtGui.QFont("Digital-7 Mono", 23))
+        self.labelspeed.setStyleSheet("background: rgba(255, 0, 0, 0);");
         
         #my_font = QFont("Times New Roman", 12)
         #my_button.setFont(my_font)
 
         self.wtime.layout().addWidget(self.label)
-
-
-        
+        self.wtime.layout().addWidget(self.labelspeed)
 
 
         windowWidth = self.root.winfo_screenwidth()
@@ -537,6 +539,14 @@ class Ghost3d(object):
                 posz = userpos[2]
                 vel = userpos[3]
                 file = userpos[8]
+
+                strvel = str(vel)
+                strvel = strvel.zfill(3)
+                if self.labelspeed:
+                    if (timer < 0):
+                        self.labelspeed.setText('<font color=\"white\">Initial Speed : ' + str(strvel) +'</font>')
+                    else:
+                        self.labelspeed.setText('<font color=\"white\">Speed : ' + str(strvel) +'</font>')
 
                 #self.createMarker(posx+900,posy+500,posz,vel,30,datetime.fromtimestamp(int(file.split("\\")[4][:-4].split("_")[2].split(".")[0])))
 

@@ -1081,7 +1081,7 @@ class Meter():
             else: 
                 racer.username.set("anon")
 
-        if _lastTime + timer <= _time and _tick != _lastTick and _pos != _lastPos :
+        if _lastTime + timer <= _time and _tick != _lastTick :
             pressedQ = max(pressedQ - timer, 0)
 
             if show_checkpoints_window: 
@@ -1106,153 +1106,153 @@ class Meter():
             total_distance = total_distance + dst
             velocity = dst * 39.3700787 / timer
             
-            if velocity > 0.0:
+            #if velocity > 0.0:
 
-                #calcular el vector unitario
-                angle_between_res1 = 0
-                angle_between_res2 = 0
+            #calcular el vector unitario
+            angle_between_res1 = 0
+            angle_between_res2 = 0
 
-                if True:
-                    def unit_vector(a):
-                        return a/ np.linalg.norm(a)
+            if True:
+                def unit_vector(a):
+                    return a/ np.linalg.norm(a)
 
-                    def angle_between(v1, v2):
-                        arg1 = np.cross(v1, v2)
-                        arg2 = np.dot(v1, v2)
-                        angle = np.arctan2(arg1, arg2)
-                        return np.degrees(angle)
+                def angle_between(v1, v2):
+                    arg1 = np.cross(v1, v2)
+                    arg2 = np.dot(v1, v2)
+                    angle = np.arctan2(arg1, arg2)
+                    return np.degrees(angle)
 
-                    def angle_between2(v1, v2):
-                        dot_pr = v1.dot(v2)
-                        norms = np.linalg.norm(v1) * np.linalg.norm(v2)
+                def angle_between2(v1, v2):
+                    dot_pr = v1.dot(v2)
+                    norms = np.linalg.norm(v1) * np.linalg.norm(v2)
+                
+                    return str(round(np.rad2deg(np.arccos(dot_pr / norms))))
+
+                # construimos un vector con la posición actual y la anterior
+                if speed_in_3D == 1:
+                    Y_index = 2
+                else:
+                    Y_index = 1
+                a = np.array([_pos[0] - _lastPos[0], _pos[Y_index] - _lastPos[Y_index]])
+                b = np.array([ml.data.fCameraFront[0], ml.data.fCameraFront[2]])
+                c = np.array([ml.data.fAvatarFront[0], ml.data.fAvatarFront[2]])
+                
+                # si el vector es nulo , no hacemos nada, no hay movimiento
+                if _pos[0] - _lastPos[0] == 0 or _pos[Y_index] - _lastPos[Y_index] == 0:
+                    # self.step3_txt.set("stop")
+                    stop = 1
+                else:
+                    # si nos estamos moviendo, calculamos el vector unitario del vector velocidad
+                    uv = unit_vector(a)
+                    # calculamos el vector unitario del angulo de camara
+                    uc = unit_vector(b)
+                    # calculamos el vector unitario del angulo de camara (avatarFront)
+                    uaf = unit_vector(c)
                     
-                        return str(round(np.rad2deg(np.arccos(dot_pr / norms))))
+                    #self.steps_txt.set("Angles :") 
 
-                    # construimos un vector con la posición actual y la anterior
-                    if speed_in_3D == 1:
-                        Y_index = 2
-                    else:
-                        Y_index = 1
-                    a = np.array([_pos[0] - _lastPos[0], _pos[Y_index] - _lastPos[Y_index]])
-                    b = np.array([ml.data.fCameraFront[0], ml.data.fCameraFront[2]])
-                    c = np.array([ml.data.fAvatarFront[0], ml.data.fAvatarFront[2]])
-                    
-                    # si el vector es nulo , no hacemos nada, no hay movimiento
-                    if _pos[0] - _lastPos[0] == 0 or _pos[Y_index] - _lastPos[Y_index] == 0:
-                        # self.step3_txt.set("stop")
-                        stop = 1
-                    else:
-                        # si nos estamos moviendo, calculamos el vector unitario del vector velocidad
-                        uv = unit_vector(a)
-                        # calculamos el vector unitario del angulo de camara
-                        uc = unit_vector(b)
-                        # calculamos el vector unitario del angulo de camara (avatarFront)
-                        uaf = unit_vector(c)
-                        
-                        #self.steps_txt.set("Angles :") 
+                    #self.step3_txt.set("vel: " + str(round(float(uv[0]),2)) + ' ' + str(round(float(uv[1]),2)) )
+                    #self.step4_txt.set("ava: " + str(round(float(uaf[0]),2)) + ' ' + str(round(float(uaf[1]),2)) )
+                    #self.step2_txt.set("cam: "+ str(round(float(uc[0]),2)) + ' ' + str(round(float(uc[1]),2)) )
 
-                        #self.step3_txt.set("vel: " + str(round(float(uv[0]),2)) + ' ' + str(round(float(uv[1]),2)) )
-                        #self.step4_txt.set("ava: " + str(round(float(uaf[0]),2)) + ' ' + str(round(float(uaf[1]),2)) )
-                        #self.step2_txt.set("cam: "+ str(round(float(uc[0]),2)) + ' ' + str(round(float(uc[1]),2)) )
+                    angle_between_res1 = float(angle_between(uc, uv))
+                    angle_between_res2 = float(angle_between(uaf, uv))
+                    if math.isnan(angle_between_res1) == False and math.isnan(angle_between_res2) == False:
 
-                        angle_between_res1 = float(angle_between(uc, uv))
-                        angle_between_res2 = float(angle_between(uaf, uv))
-                        if math.isnan(angle_between_res1) == False and math.isnan(angle_between_res2) == False:
-
-                            if hud_max_speed:
-                                
-                                aa = int(angle_between_res2)
-                                bb = 0
-
-                                if aa < -90:
-                                    bb = (72) 
-                                elif aa >= -90 and aa < -45:
-                                    bb = (((aa+90) * (aa+90)) / 50) 
-                                elif int(aa) >= -45 and int(aa) < 45:
-                                    bb = ((aa * aa) / 50)
-                                elif aa >= 45 and aa < 90: 
-                                    bb = (((aa-90) * (aa-90)) / 50)
-                                else:
-                                    bb = (72) 
-
-                                self.max_speed.set(min(bb + 72, 100))
-
-                            if hud_angles:
-                                self.anglevar.set(str(int(angle_between_res1)) + "º/ " + str(int(angle_between_res2)) + "º")
+                        if hud_max_speed:
                             
-                            if hud_angles_airboost:
-                                global magic_angle
+                            aa = int(angle_between_res2)
+                            bb = 0
 
-                                i = self.canvas.find_withtag("airdrift_meter")
-                                b = self.canvas.find_withtag("airdrift_meter_border")
-                                beetleangle = abs(int(angle_between_res2))
-                                self.airdrift_angle_tk.set(beetleangle)
-                                pixels = min(64,round(beetleangle * 64 / magic_angle))
-                                self.canvas.coords(i, 23 + 356, 97-pixels , 27 + 356, 97)
+                            if aa < -90:
+                                bb = (72) 
+                            elif aa >= -90 and aa < -45:
+                                bb = (((aa+90) * (aa+90)) / 50) 
+                            elif int(aa) >= -45 and int(aa) < 45:
+                                bb = ((aa * aa) / 50)
+                            elif aa >= 45 and aa < 90: 
+                                bb = (((aa-90) * (aa-90)) / 50)
+                            else:
+                                bb = (72) 
+
+                            self.max_speed.set(min(bb + 72, 100))
+
+                        if hud_angles:
+                            self.anglevar.set(str(int(angle_between_res1)) + "º/ " + str(int(angle_between_res2)) + "º")
+                        
+                        if hud_angles_airboost:
+                            global magic_angle
+
+                            i = self.canvas.find_withtag("airdrift_meter")
+                            b = self.canvas.find_withtag("airdrift_meter_border")
+                            beetleangle = abs(int(angle_between_res2))
+                            self.airdrift_angle_tk.set(beetleangle)
+                            pixels = min(64,round(beetleangle * 64 / magic_angle))
+                            self.canvas.coords(i, 23 + 356, 97-pixels , 27 + 356, 97)
+                            self.canvas.itemconfig(i, outline="#7897ff")
+                            self.canvas.itemconfig(i, fill="#7897ff")
+                            self.canvas.itemconfig(b, outline="#666666")
+                            
+                            if (beetleangle > 5):
                                 self.canvas.itemconfig(i, outline="#7897ff")
                                 self.canvas.itemconfig(i, fill="#7897ff")
-                                self.canvas.itemconfig(b, outline="#666666")
-                                
-                                if (beetleangle > 5):
-                                    self.canvas.itemconfig(i, outline="#7897ff")
-                                    self.canvas.itemconfig(i, fill="#7897ff")
-                                    self.canvas.itemconfig(b, outline="white")
-                                if (beetleangle > magic_angle):
-                                    self.canvas.itemconfig(i, outline="#ff8a36")
-                                    self.canvas.itemconfig(i, fill="#ff8a36")
-                                    self.canvas.itemconfig(b, outline="#ff8a36")
-                                if (beetleangle > magic_angle + 10):
-                                    self.canvas.itemconfig(i, outline="#de1f18")
-                                    self.canvas.itemconfig(i, fill="#de1f18")
-                                    self.canvas.itemconfig(b, outline="#de1f18")
-                            
+                                self.canvas.itemconfig(b, outline="white")
+                            if (beetleangle > magic_angle):
+                                self.canvas.itemconfig(i, outline="#ff8a36")
+                                self.canvas.itemconfig(i, fill="#ff8a36")
+                                self.canvas.itemconfig(b, outline="#ff8a36")
+                            if (beetleangle > magic_angle + 10):
+                                self.canvas.itemconfig(i, outline="#de1f18")
+                                self.canvas.itemconfig(i, fill="#de1f18")
+                                self.canvas.itemconfig(b, outline="#de1f18")
+                        
 
-                            if hud_angles_bubbles:
-                                full_straight_vector = [0,-1]
+                        if hud_angles_bubbles:
+                            full_straight_vector = [0,-1]
 
-                                #forzamos el vector velocidad siempre alante
-                                uv = full_straight_vector
-                                #creamos un vector camara girando el velocidad 
-                                theta = np.radians(angle_between_res1/2)
-                                c, s = np.cos(theta), np.sin(theta)
-                                R = np.array(((c,-s), (s, c)))
-                                uc = np.dot(R, uv)
-                                #creamos un vector avatar front girando la velocidad
-                                theta = np.radians(angle_between_res2/2)
-                                c, s = np.cos(theta), np.sin(theta)
-                                R = np.array(((c,-s), (s, c)))
-                                uaf = np.dot(R, uv)
+                            #forzamos el vector velocidad siempre alante
+                            uv = full_straight_vector
+                            #creamos un vector camara girando el velocidad 
+                            theta = np.radians(angle_between_res1/2)
+                            c, s = np.cos(theta), np.sin(theta)
+                            R = np.array(((c,-s), (s, c)))
+                            uc = np.dot(R, uv)
+                            #creamos un vector avatar front girando la velocidad
+                            theta = np.radians(angle_between_res2/2)
+                            c, s = np.cos(theta), np.sin(theta)
+                            R = np.array(((c,-s), (s, c)))
+                            uaf = np.dot(R, uv)
 
-                                #uc = [cos(angle_between_res1),sin(angle_between_res1)]
+                            #uc = [cos(angle_between_res1),sin(angle_between_res1)]
 
-                                theta = np.radians(magic_angle/2)
-                                c, s = np.cos(theta), np.sin(theta)
-                                R = np.array(((c,-s), (s, c)))
-                                r50v = np.dot(R, uv)
-                                theta = np.radians(-magic_angle/2)
-                                c, s = np.cos(theta), np.sin(theta)
-                                R = np.array(((c,-s), (s, c)))
-                                l50v = np.dot(R, uv)
-                            
-                                #representamos con dos circulos el angulo de velocidad y el de camara
-                                left_tick = self.canvas.find_withtag("left_50_angle")
-                                # forzamos la representación del angulo velocidad a ponerse arriba en 0º
-                                self.canvas.coords(left_tick, 200 + 195 * float(r50v[0])-4,  195 + 195 * float(r50v[1])-4 , 200 + 195 * float(r50v[0])+4 ,  195 + 195 * float(r50v[1])+4 )
-                                #representamos con dos circulos el angulo de velocidad y el de camara
-                                right_tick = self.canvas.find_withtag("right_50_angle")
-                                # forzamos la representación del angulo velocidad a ponerse arriba en 0º
-                                self.canvas.coords(right_tick, 200 + 190 * float(l50v[0])-4,  195 + 190 * float(l50v[1])-4 , 200 + 190 * float(l50v[0])+4 ,  195 + 190 * float(l50v[1])+4 )
+                            theta = np.radians(magic_angle/2)
+                            c, s = np.cos(theta), np.sin(theta)
+                            R = np.array(((c,-s), (s, c)))
+                            r50v = np.dot(R, uv)
+                            theta = np.radians(-magic_angle/2)
+                            c, s = np.cos(theta), np.sin(theta)
+                            R = np.array(((c,-s), (s, c)))
+                            l50v = np.dot(R, uv)
+                        
+                            #representamos con dos circulos el angulo de velocidad y el de camara
+                            left_tick = self.canvas.find_withtag("left_50_angle")
+                            # forzamos la representación del angulo velocidad a ponerse arriba en 0º
+                            self.canvas.coords(left_tick, 200 + 195 * float(r50v[0])-4,  195 + 195 * float(r50v[1])-4 , 200 + 195 * float(r50v[0])+4 ,  195 + 195 * float(r50v[1])+4 )
+                            #representamos con dos circulos el angulo de velocidad y el de camara
+                            right_tick = self.canvas.find_withtag("right_50_angle")
+                            # forzamos la representación del angulo velocidad a ponerse arriba en 0º
+                            self.canvas.coords(right_tick, 200 + 190 * float(l50v[0])-4,  195 + 190 * float(l50v[1])-4 , 200 + 190 * float(l50v[0])+4 ,  195 + 190 * float(l50v[1])+4 )
 
-                                #representamos con dos circulos el angulo de velocidad y el de camara
-                                speed_circle = self.canvas.find_withtag("speed_angle")
-                                # forzamos la representación del angulo velocidad a ponerse arriba en 0º
-                                self.canvas.coords(speed_circle, 200 + 190 * float(uv[0])-4,  195 + 190 * float(uv[1])-4 , 200 + 190 * float(uv[0])+4 ,  195 + 190 * float(uv[1])+4 )
-                                camera_circle = self.canvas.find_withtag("camera_angle")
-                                # el angulo de la camara hay que forzarlo a ser relativo al de velocidad
-                                self.canvas.coords(camera_circle, 200 + 190 * float(uc[0])-8,  195 + 190 * float(uc[1])-8 , 200 + 190 * float(uc[0])+8 ,  195 + 190 * float(uc[1])+8 )
-                                avatar_circle = self.canvas.find_withtag("avatar_angle")
-                                # el angulo de la camara hay que forzarlo a ser relativo al de velocidad
-                                self.canvas.coords(avatar_circle, 200 + 190 * float(uaf[0])-11,  195 + 190 * float(uaf[1])-11 , 200 + 190 * float(uaf[0])+11 ,  195 + 190 * float(uaf[1])+11 )
+                            #representamos con dos circulos el angulo de velocidad y el de camara
+                            speed_circle = self.canvas.find_withtag("speed_angle")
+                            # forzamos la representación del angulo velocidad a ponerse arriba en 0º
+                            self.canvas.coords(speed_circle, 200 + 190 * float(uv[0])-4,  195 + 190 * float(uv[1])-4 , 200 + 190 * float(uv[0])+4 ,  195 + 190 * float(uv[1])+4 )
+                            camera_circle = self.canvas.find_withtag("camera_angle")
+                            # el angulo de la camara hay que forzarlo a ser relativo al de velocidad
+                            self.canvas.coords(camera_circle, 200 + 190 * float(uc[0])-8,  195 + 190 * float(uc[1])-8 , 200 + 190 * float(uc[0])+8 ,  195 + 190 * float(uc[1])+8 )
+                            avatar_circle = self.canvas.find_withtag("avatar_angle")
+                            # el angulo de la camara hay que forzarlo a ser relativo al de velocidad
+                            self.canvas.coords(avatar_circle, 200 + 190 * float(uaf[0])-11,  195 + 190 * float(uaf[1])-11 , 200 + 190 * float(uaf[0])+11 ,  195 + 190 * float(uaf[1])+11 )
 
                 #calculamos la aceleración
                 acceleration = 0
@@ -1269,19 +1269,20 @@ class Meter():
                             self.accelvar.set(acceleration);
                     
                 #escribir velocidad,tiempo,x,y,z en fichero, solo si está abierto el fichero y si está habilitado el log
+                
                 if filename != "" and round((velocity*100/10000)*99/72) < 150:
                     #print([filename,str(_pos[0]),str(_pos[1]),str(_pos[2]),str(velocity), str(_time - total_timer)])
                     if hud_timer:
                         self.vartime.set(datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(_time - total_timer), "%M:%S:%f")[:-3])
                     if hud_distance:
                         self.distance.set(str(round(total_distance)) + "m.")
-                    if log:
+                    if log and velocity > 0:
                         writer = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\logs\\" + filename,'a',newline='', encoding='utf-8')
                         writer.seek(0,2)
                         writer.writelines("\r")
                         writer.writelines( (',').join([str(_3Dpos[0]),str(_3Dpos[1]),str(_3Dpos[2]),str(round((velocity*100/10000)*99/72)),str(angle_between_res1),str(angle_between_res2), str(_time - lap_timer), str(acceleration)]))
 
-                #print(velocity, flush=True)
+                
                 if velocity > 0:
                     color = "#666666"                
                 if velocity > 4000:
@@ -1292,7 +1293,7 @@ class Meter():
                     color = "#666666" #"#edad18"
                 if velocity > 7250:
                     color = "#de1f18"
-                if round(velocity*100/10000) < 140:
+                if round(velocity*100/10000) < 140 and velocity > 0:
                     self.var.set(round(velocity*100/10000))
                     #self.max_speed.set(72)
                     self.var100.set(round((velocity*100/10000)*99/72))
@@ -1732,7 +1733,7 @@ class Racer():
         guildhall_laps.set("1 lap")
 
 
-        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.8.11""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
+        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.8.12""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
         self.t_1.place(x=0, y=10)
         self.t_2 = tk.Label(self.root, text="""Choose map to race""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_2.place(x=0, y=40)

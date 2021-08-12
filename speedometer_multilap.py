@@ -474,6 +474,7 @@ class Meter():
         global _lastPos
         global geometry_speedometer
         
+        self.lastNonZero = 0
 
         self.root = Tk()
         self.root.config(cursor="none")
@@ -680,6 +681,7 @@ class Meter():
 
         global mapId
         global lastMapId
+
 
         if hud_drift_hold:
             
@@ -1081,7 +1083,7 @@ class Meter():
             else: 
                 racer.username.set("anon")
 
-        if _lastTime + timer <= _time and _tick != _lastTick :
+        if _lastTime + timer <= _time:
             pressedQ = max(pressedQ - timer, 0)
 
             if show_checkpoints_window: 
@@ -1293,15 +1295,22 @@ class Meter():
                     color = "#666666" #"#edad18"
                 if velocity > 7250:
                     color = "#de1f18"
-                if round(velocity*100/10000) < 140 and velocity > 0:
-                    self.var.set(round(velocity*100/10000))
-                    #self.max_speed.set(72)
-                    self.var100.set(round((velocity*100/10000)*99/72))
-                    i = self.canvas.find_withtag("arc")
-                    self.canvas.itemconfig(i, outline=color)
-                    #i = self.canvas.find_withtag("numero")
-                    #self.canvas.itemconfig(i, fg=color)
 
+                if velocity > 0:
+                    self.lastNonZero = time.time()
+                    if round(velocity*100/10000) < 140:
+                        self.var.set(round(velocity*100/10000))
+                        self.var100.set(round((velocity*100/10000)*99/72))
+                        i = self.canvas.find_withtag("arc")
+                        self.canvas.itemconfig(i, outline=color)
+                else:
+                    if time.time() > self.lastNonZero + 0.05:
+                        if round(velocity*100/10000) < 140:
+                            self.var.set(round(velocity*100/10000))
+                            self.var100.set(round((velocity*100/10000)*99/72))
+                            i = self.canvas.find_withtag("arc")
+                            self.canvas.itemconfig(i, outline=color)
+                        
                                     
             _lastTime = _time
             _lastPos = _pos

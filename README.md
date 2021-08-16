@@ -1,4 +1,4 @@
-# RACE ASSISTANT v1.8.3
+# RACE ASSISTANT v1.8.11
 
 ![LOGO](https://user-images.githubusercontent.com/44058571/116699002-597dcc00-a9c5-11eb-8c08-e11e52794992.jpg)
 
@@ -90,12 +90,13 @@ https://www.youtube.com/watch?v=_6Pdw_SvgXc
 # Install
 
 1. Install python for windows (min version 3.9.2) with **add to PATH checked** (https://www.python.org/downloads/) 
-2. Did you check **add to PATH** option when you installed python? check that or you cant continue
-3. Download this program from github, green button on top right and download as a zip. Unpack somewhere on your pc
-4. Execute **"install_dependencies.bat"** and wait until it closes, or execute "pip install -r requirements.txt" in console on the same folder of the program (cmd at windows)
-5. Open guildwars2 game
-6. Execute speedometer_multilap.py file with double click or right click and open with python
-7. Execute ghost3d.py file with double click also to run the ghostmode
+2. Or install from the /installer folder
+3. Did you check **add to PATH** option when you installed python? check that or you cant continue
+4. Download this program from github, green button on top right and download as a zip. Unpack somewhere on your pc
+5. Execute **"/installer/install_requirements.bat"** and wait until it closes, or execute "pip install -r requirements.txt" in console on the same folder of the program (cmd at windows)
+6. Open guildwars2 game
+7. Execute speedometer_multilap.py file with double click or right click and open with python
+8. Execute ghost3d.py file with double click also to run the ghostmode
 
 # Play multiplayer with friends
 1. On speedometer window, select your map and laps 

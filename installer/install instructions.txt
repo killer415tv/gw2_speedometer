@@ -1,0 +1,25 @@
+HOW TO INSTALL NECESARY FILES FOR SPEEDOMETER
+
+STEP 1:
+Install python with the installer
+	- python-3.9.6.exe (32-bit)
+	- python-3.9.6-amd64 (64-bit)
+
+* check add to path in the installer, important!
+
+STEP 2:
+Did you check "add to PATH" option when you installed python? check that or you cant continue
+
+STEP 3:
+Run install_requirements.bat , a console window appears and wait till it finish
+
+STEP 4: 
+All necesary things are installed, you can use the bat files to run the 4 main tools
+	- 1_launch_speedometer.bat
+	- 2_launch_checkpoints_viewer.bat
+	- 3_launch_ghost.bat
+	- 4_launch_map.bat
+
+PD: you dont need to install python again, but it is recommended that the requirements installer be launched when a new version is downloaded
+
+	

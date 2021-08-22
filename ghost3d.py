@@ -247,8 +247,12 @@ class Ghost3d(object):
             self.df = self.df.append(file_df)
             min_time = 99999
             self.best_file = file_
+            min_time = list(self.df.values[-1])[6]
+
             print("-----------------------------------------------")
             print("- FORCE LOAD LOG FILE" , self.best_file )
+            print("- TIME",datetime.strftime(datetime.utcfromtimestamp(min_time), "%M:%S:%f")[:-3] )
+            print("-----------------------------------------------")
             print("- PRESS KEY 'T' TO REPLAY THAT FILE")
             print("- PRESS KEY 'Y' TO STOP THE GHOST AT START")
             print("-----------------------------------------------")
@@ -531,7 +535,7 @@ class Ghost3d(object):
 
             ##print("duro ",len(data))
             if len(data) > 0:
-
+                
                 userpos = list(self.df[(self.df['TIME'] > timer) & (self.df['file_name'] == self.best_file)].values[0])
                 
                 posx = userpos[0]

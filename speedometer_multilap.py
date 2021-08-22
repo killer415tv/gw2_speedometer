@@ -942,8 +942,10 @@ class Meter():
                                 file_df = pd.read_csv(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\logs\\" + old_filename)
                                 last_filename_df = last_filename_df.append(file_df)
 
-                                datefinish = datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(last_filename_df.values[-1][6]), "%M:%S:%f")[:-3]
-
+                                current_time = last_filename_df.values[-1][6]                                
+                                datefinish = datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(current_time), "%M:%S:%f")[:-3]
+                                best_log(current_time, old_filename)
+                                
                                 if enable_livesplit_hotkey == 1:
                                     keyboard_.press(live_start)
                                     keyboard_.release(live_start)
@@ -1028,7 +1030,48 @@ class Meter():
                         if show_checkpoints_window and racer.session_id.get() != "":
                             #mqtt se manda el tiempo como inicio
                             racer.sendMQTT({"option": "c", "step": step, "lap": lap, "time": steptime, "user": racer.username.get()})
-                        
+
+        """
+        function that updates the best time of the track in the file best_log.
+        The file is used by the Ghost to iterate less and find the best run's file name quickly
+        
+        Parameters:
+            - time: time of the run
+            - old_filename: name of the file of the run
+        What the function does :
+            opens best_log.txt
+            read the lines in it
+            empty the file
+            check in the lines if the current track is found
+            if yes checks if the new time is better than the one in the file
+            if yes replaces it
+            writes the lines back in the file
+            
+            if the track has never been run before it writes the new record
+        """
+        def best_log(time, old_filename):
+            current_track = guildhall_name.get()
+            with open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\logs\\" + "best_logs.txt",
+                      'a+',
+                      newline='',
+                      encoding='utf-8') as b_l:
+                b_l.seek(0)
+                tracks = b_l.readlines()
+                b_l.seek(0)
+                b_l.truncate()
+                new_track = True
+                for track in tracks:
+                    if current_track in track:
+                        new_track = False
+                        phrase = track.split(",")
+                        if float(phrase[1]) > time:
+                            track = phrase[0] + "," + str(time) + "," + old_filename + "\r\n"
+                    b_l.write(track)
+                if new_track:
+                    b_l.write(current_track + "," + str(time) + "," + old_filename + "\r\n")
+
+
+
 
         """Fade over time"""
         #print("actualiza", flush=True)

@@ -910,9 +910,7 @@ class Meter():
                         steptime = _time - total_timer
                         steptime_lap = _time - lap_timer
                         pressedQ = 0.5
-                        if enable_ghost_keys:
-                            keyboard_.press(recalculate_ghost)
-                            keyboard_.release(recalculate_ghost)
+                        
 
                         if filename != "":
                             if audio:
@@ -1004,6 +1002,10 @@ class Meter():
                             file.write(str(numero_contador))
                             file.close()
                             """
+
+                            if enable_ghost_keys:
+                                keyboard_.press(recalculate_ghost)
+                                keyboard_.release(recalculate_ghost)
 
                     if stepName == "*":
                         
@@ -1785,7 +1787,7 @@ class Racer():
         guildhall_laps.set("1 lap")
 
 
-        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.8.22""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
+        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.8.26""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
         self.t_1.place(x=0, y=10)
         self.t_2 = tk.Label(self.root, text="""Choose map to race""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_2.place(x=0, y=40)

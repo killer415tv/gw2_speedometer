@@ -147,6 +147,8 @@ map_position_last_time_send = 0
 
 next_step = 0
 
+map_angle = 0
+
 checkpoints_list = []
 
 #Force sound at start
@@ -681,6 +683,7 @@ class Meter():
 
         global mapId
         global lastMapId
+        
 
 
         if hud_drift_hold:
@@ -786,6 +789,7 @@ class Meter():
             global next_step
 
             global player_color
+            global map_angle                                        
 
             #if csv checkpoints has no radius , default is 5 for reset and 15 for the rest
             if radius == 0:
@@ -878,7 +882,7 @@ class Meter():
                                 #print("----------------------------------")
                                 writer = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\logs\\" + filename,'a',newline='', encoding='utf-8')
                                 writer.seek(0,2)
-                                writer.writelines( (',').join(["X","Y","Z","SPEED","ANGLE_CAM", "ANGLE_BEETLE","TIME", "ACCELERATION"]))
+                                writer.writelines( (',').join(["X","Y","Z","SPEED","ANGLE_CAM", "ANGLE_BEETLE","TIME", "ACCELERATION", "MAP_ANGLE"]))
                             if show_checkpoints_window and racer.session_id.get() != "":
                                 #mqtt se manda el tiempo como inicio
                                 racer.sendMQTT({"option": "s", "lap": lap, "time" : 0, "user": racer.username.get()})
@@ -898,7 +902,7 @@ class Meter():
                                 #print("----------------------------------")
                                 writer = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\logs\\" + filename,'a',newline='', encoding='utf-8')
                                 writer.seek(0,2)
-                                writer.writelines( (',').join(["X","Y","Z","SPEED","ANGLE_CAM", "ANGLE_BEETLE","TIME", "ACCELERATION"]))
+                                writer.writelines( (',').join(["X","Y","Z","SPEED","ANGLE_CAM", "ANGLE_BEETLE","TIME", "ACCELERATION", "MAP_ANGLE"]))
                             if show_checkpoints_window and racer.session_id.get() != "":
                                 #mqtt se manda el tiempo como inicio
                                 racer.sendMQTT({"option": "s", "lap": lap, "step": 0, "time" : steptime, "user": racer.username.get()})
@@ -1195,6 +1199,7 @@ class Meter():
                     uc = unit_vector(b)
                     # calculamos el vector unitario del angulo de camara (avatarFront)
                     uaf = unit_vector(c)
+                    map_angle = float(angle_between([0 , 1], uaf))+180
                     
                     #self.steps_txt.set("Angles :") 
 
@@ -1317,6 +1322,9 @@ class Meter():
                     
                 #escribir velocidad,tiempo,x,y,z en fichero, solo si está abierto el fichero y si está habilitado el log
                 
+                def roundstr(a):
+                    return str(round(a * 10000)/10000)
+
                 if filename != "" and round((velocity*100/10000)*99/72) < 150:
                     #print([filename,str(_pos[0]),str(_pos[1]),str(_pos[2]),str(velocity), str(_time - total_timer)])
                     if hud_timer:
@@ -1327,7 +1335,9 @@ class Meter():
                         writer = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\logs\\" + filename,'a',newline='', encoding='utf-8')
                         writer.seek(0,2)
                         writer.writelines("\r")
-                        writer.writelines( (',').join([str(_3Dpos[0]),str(_3Dpos[1]),str(_3Dpos[2]),str(round((velocity*100/10000)*99/72)),str(angle_between_res1),str(angle_between_res2), str(_time - lap_timer), str(acceleration)]))
+                        
+                        map_angle = 0 if 'map_angle' not in globals() else map_angle
+                        writer.writelines( (',').join([roundstr(_3Dpos[0]),roundstr(_3Dpos[1]),roundstr(_3Dpos[2]),str(round((velocity*100/10000)*99/72)),roundstr(angle_between_res1),roundstr(angle_between_res2), str(_time - lap_timer), roundstr(acceleration),roundstr(map_angle)]))
 
                 
                 if velocity > 0:
@@ -1787,7 +1797,7 @@ class Racer():
         guildhall_laps.set("1 lap")
 
 
-        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.8.26""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
+        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.9.4""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
         self.t_1.place(x=0, y=10)
         self.t_2 = tk.Label(self.root, text="""Choose map to race""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_2.place(x=0, y=40)

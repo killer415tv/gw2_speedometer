@@ -650,7 +650,13 @@ class Ghost3d(object):
                 posy = userpos[1]
                 posz = userpos[2]
                 vel = userpos[3]
-                file = userpos[8]
+                # logs sin map_angle
+                if len(userpos) == 9:
+                    file = userpos[8]
+                # logs con map_angle
+                else:
+                    file = userpos[9]
+                
 
                 strvel = str(vel)
                 strvel = strvel.zfill(3)

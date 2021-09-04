@@ -1199,6 +1199,7 @@ class Meter():
                     uc = unit_vector(b)
                     # calculamos el vector unitario del angulo de camara (avatarFront)
                     uaf = unit_vector(c)
+                    global map_angle
                     map_angle = float(angle_between([0 , 1], uaf))+180
                     
                     #self.steps_txt.set("Angles :") 
@@ -1335,8 +1336,6 @@ class Meter():
                         writer = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\logs\\" + filename,'a',newline='', encoding='utf-8')
                         writer.seek(0,2)
                         writer.writelines("\r")
-                        
-                        map_angle = 0 if 'map_angle' not in globals() else map_angle
                         writer.writelines( (',').join([roundstr(_3Dpos[0]),roundstr(_3Dpos[1]),roundstr(_3Dpos[2]),str(round((velocity*100/10000)*99/72)),roundstr(angle_between_res1),roundstr(angle_between_res2), str(_time - lap_timer), roundstr(acceleration),roundstr(map_angle)]))
 
                 

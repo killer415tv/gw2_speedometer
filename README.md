@@ -1,4 +1,4 @@
-# RACE ASSISTANT v1.8.11
+# RACE ASSISTANT v1.9.4
 
 ![LOGO](https://user-images.githubusercontent.com/44058571/116699002-597dcc00-a9c5-11eb-8c08-e11e52794992.jpg)
 
@@ -33,13 +33,17 @@ http://www.beetlerank.com/
  - RACE Full Mountain Run
  - EQE
  - SoTD
- - LRS
  - HUR
- - OLLO Akina
+ - OLLO Drift Heaven
  - Geek
  - VAW (Two paths)
  - UAoT
  - INDI
+ - LRS Jokos Descent
+ - BREAK-A-BONE
+ - OLLO The Line
+ - Yuru Camp Skate Park
+ 
 ## Tyria
  - TYRIA INF.LEAP
  - TYRIA DIESSA PLATEAU
@@ -47,6 +51,7 @@ http://www.beetlerank.com/
  - TYRIA GENDARRAN
  - TYRIA BRISBAN WILD.
  - TYRIA GROTHMAR VALLEY
+ 
 ## DRFT
  - DRFT-1 Fractal Actual Speedway
  - DRFT-2 Wayfar Out
@@ -62,18 +67,31 @@ http://www.beetlerank.com/
  - DRFT-12 Celedon Circle
  - DRFT-13 Thermo Reactor Escape
  - DRFT-14 Jormags Jumpscare
+ - DRFT-15 Triple Trek - Amber Ambush
+ - DRFT-16 Triple Trek - Cobalt Catastrophe
+ - DRFT-17 Triple Trek - Crimson Chaos
+ - DRFT-18 Triple Trek - Medley
  - DRFT-GP-1 Lions Summer Sights
  - DRFT-GP-2 Sandswept Shore Sprint
  - DRFT-GP-3 Inquest Isle Invasion
  - DRFT-GP-4 Triple Trek Periphery
  - DRFT-GP-5 Beachin Crabwalk
+ 
 ## EVENTS
  - Dragon Bash
+ 
 ## Griffon maps
  - FLY-1 Verdant Brink Hunt
 
-
-
+## Jumping puzzles
+ - JP-1 Morgan spiral",
+ - JP-2 Spekks Lab",
+ - JP-3 Chaos Crystal Cavern",
+ - JP-4 Khan Urs Gauntlet",
+ - JP-5 UAoT Djinns JP",
+ - JP-6 Abaddons Ascent",
+ - JP-7 LRS",
+ - JP-8 INDI Shambhala Ascent"
 
 # Demo
 

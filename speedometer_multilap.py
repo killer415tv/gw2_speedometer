@@ -1382,6 +1382,7 @@ class Racer():
     def on_message(self, client, userdata, message):
 
         global countdowntxt
+        global audio
 
         #print("message received " ,json.loads(str(message.payload.decode("utf-8"))))
         received = json.loads(str(message.payload.decode("utf-8")))
@@ -1432,7 +1433,8 @@ class Racer():
             #print("3!!")
             self.thread_queue.put(received.get('message'))
             countdowntxt = received.get('message')
-            playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "ding.wav", block=False)
+            if audio:
+                playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "ding.wav", block=False)
             self.timestamps = []
 
             # limpiar ranking de partida
@@ -1441,7 +1443,8 @@ class Racer():
             #print("3!!")
             self.thread_queue.put("3...")
             countdowntxt = "3"
-            playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "ding.wav", block=False)
+            if audio:
+                playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "ding.wav", block=False)
             self.timestamps = []
 
             # limpiar ranking de partida
@@ -1450,7 +1453,8 @@ class Racer():
             #print("2!!")
             self.thread_queue.put("2...")
             countdowntxt = "2!"
-            playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "ding.wav", block=False)
+            if audio:
+                playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "ding.wav", block=False)
 
             # limpiar ranking de partida
             # falta mostrar por pantalla el 3 2 1
@@ -1458,7 +1462,8 @@ class Racer():
             #print("1!!")
             self.thread_queue.put("1...")
             countdowntxt = "1!!"
-            playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "ding.wav", block=False)
+            if audio:
+                playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "ding.wav", block=False)
 
             # limpiar ranking de partida
             # falta mostrar por pantalla el 3 2 1
@@ -1466,7 +1471,8 @@ class Racer():
             #print("GO GO GO!!")
             self.thread_queue.put("GOGOGOGO")
             countdowntxt = "Brr!"
-            playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "dong.wav", block=False)
+            if audio:
+                playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "dong.wav", block=False)
             # limpiar ranking de partida
             # falta mostrar por pantalla el 3 2 1
 

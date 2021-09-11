@@ -925,36 +925,64 @@ class Menu():
 
         ranking = self.readAPI(guildhall_name)
 
-        self.rank1_label = 'Online:🥇 '+ranking[0]['time'] + " by " +ranking[0]['name']
-        self.rank2_label = 'Online:🥈 '+ranking[1]['time'] + " by " +ranking[1]['name']
-        self.rank3_label = 'Online:🥉 '+ranking[2]['time'] + " by " +ranking[2]['name']
 
-        self.rank1_file = ranking[0]['file']
-        self.rank2_file = ranking[1]['file']
-        self.rank3_file = ranking[2]['file']
+        if len(ranking)>0:
+            self.rank1_label = 'Online:🥇 '+ranking[0]['time'] + " by " +ranking[0]['name']
 
-        rank1 = QPushButton(self.rank1_label)
-        rank1.setStyleSheet("text-align:left;")
-        rank2 = QPushButton(self.rank2_label)
-        rank2.setStyleSheet("text-align:left;")
-        rank3 = QPushButton(self.rank3_label)
-        rank3.setStyleSheet("text-align:left;")
+        if len(ranking)>1:
+            self.rank2_label = 'Online:🥈 '+ranking[1]['time'] + " by " +ranking[1]['name']
+
+        if len(ranking)>2:
+            self.rank3_label = 'Online:🥉 '+ranking[2]['time'] + " by " +ranking[2]['name']
+
+
+        if len(ranking)>0:
+            self.rank1_file = ranking[0]['file']
+
+        if len(ranking)>1:
+            self.rank2_file = ranking[1]['file']
+        
+        if len(ranking)>2:
+            self.rank3_file = ranking[2]['file']
+
+
+        if len(ranking)>0:
+            rank1 = QPushButton(self.rank1_label)
+            rank1.setStyleSheet("text-align:left;")
+
+        if len(ranking)>1:
+            rank2 = QPushButton(self.rank2_label)
+            rank2.setStyleSheet("text-align:left;")
+        
+        if len(ranking)>2:
+            rank3 = QPushButton(self.rank3_label)
+            rank3.setStyleSheet("text-align:left;")
+        
+        
         rank4 = QPushButton('Offline: Search best on /logs folder')
         rank4.setStyleSheet("text-align:left;")
         rank5 = QPushButton('Offline: Load manually a log file')
         rank5.setStyleSheet("text-align:left;")
+
+        if len(ranking)>0:
+            rank1.clicked.connect(self.rank1_click)
+        if len(ranking)>1:
+            rank2.clicked.connect(self.rank2_click)
+        if len(ranking)>2:
+            rank3.clicked.connect(self.rank3_click)
+
+        rank4.clicked.connect(self.rank4_click)
         rank5.clicked.connect(self.open)
 
-        rank1.clicked.connect(self.rank1_click)
-        rank2.clicked.connect(self.rank2_click)
-        rank3.clicked.connect(self.rank3_click)
-        rank4.clicked.connect(self.rank4_click)
-
-
         layout.addWidget(QLabel('Select a rival'))
-        layout.addWidget(rank1)
-        layout.addWidget(rank2)
-        layout.addWidget(rank3)
+        
+        if len(ranking)>0:
+            layout.addWidget(rank1)
+        if len(ranking)>1:
+            layout.addWidget(rank2)
+        if len(ranking)>2:
+            layout.addWidget(rank3)
+        
         layout.addWidget(rank4)
         layout.addWidget(rank5)
         

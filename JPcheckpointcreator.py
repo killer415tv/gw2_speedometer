@@ -54,6 +54,9 @@ fAvatarTop = [0.0, 0.0, 0.0]
 fCameraPosition = [61.54618453979492, 26.199399948120117, 43.35494613647461]
 fCameraFront = [-0.6211158633232117, -0.35765624046325684, 0.6973500847816467]
 
+fov_var = 89.7
+elevation_var = 63
+distance_var = 1
 
 timer = 0
 guildhall_name = ""
@@ -439,6 +442,10 @@ class Ghost3d(object):
         global ghost_number
         global filename_timer
 
+        global fov_var
+        global elevation_var
+        global distance_var
+
         ml.read()
 
         if ml.data.uiVersion == 0:
@@ -457,11 +464,11 @@ class Ghost3d(object):
         angle2 = math.atan2(fCameraFront[2], fCameraFront[0])  # ALWAYS USE THIS
         angle2 *= 180 / math.pi
         if angle2 < 0: angle2 += 360
-        self.w.opts['elevation'] = -(float(fCameraFront[1]) * float(50)) 
-        self.w.opts['distance'] = distance.euclidean(fAvatarPosition, fCameraPosition) *1.3
+        self.w.opts['elevation'] = -(float(fCameraFront[1]) * elevation_var) 
+        self.w.opts['distance'] = distance.euclidean(fAvatarPosition, fCameraPosition) * distance_var
         self.w.opts['azimuth'] = angle2 + 180
-        self.w.opts['center'] = Vector(fAvatarPosition[0],fAvatarPosition[2],fAvatarPosition[1])
-        self.w.opts['fov'] = (fov * 56 / 1.2) + 29 
+        self.w.opts['center'] = Vector(fAvatarPosition[0],fAvatarPosition[2],fAvatarPosition[1]-2)
+        self.w.opts['fov'] = fov * fov_var
         self.w.pan(0,0,3)
 
         #self.loop = self.root.after(1, self.updateCam)

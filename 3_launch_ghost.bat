@@ -1,6 +1,6 @@
 IF EXIST "%~1" (
-    python ghost3d.py "%~1"
+    python ghost_online.py "%~1"
 ) ELSE (
-    python ghost3d.py
+    python ghost_online.py
 )
 pause

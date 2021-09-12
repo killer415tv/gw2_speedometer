@@ -1739,7 +1739,7 @@ class Racer():
         for choice in new_choices:
             self.t_3_2['menu'].add_command(label=choice, command=tk._setit(guildhall_name, choice, self.saveGuildhall))
         
-        self.saveGuildhall(new_choices[0])
+        self.saveGuildhall('-')
 
     def saveGuildhall(self,value):
 
@@ -1751,6 +1751,8 @@ class Racer():
         guildhall_name.set(value)
 
         if guildhall_name.get() == 'SELECT MAP': 
+            return 
+        if guildhall_name.get() == '-': 
             return 
         self.root.focus_set()
 
@@ -1852,7 +1854,9 @@ class Racer():
         #get all list of maps from the maps folder
         path = os.path.dirname(os.path.abspath(sys.argv[0])) + "\\maps"    
         self.cups = [file.rsplit(os.path.sep, 2)[1] for file in glob.glob(os.path.join(path, "*/"))]
-        self.maps = [file.rsplit(os.path.sep, 1)[1][:-4] for file in glob.glob(os.path.join(path, "*.csv"))]    
+        self.maps = [file.rsplit(os.path.sep, 1)[1][:-4] for file in glob.glob(os.path.join(path, "*.csv"))]
+        if len(self.maps) == 0:
+            self.maps = ['-']    
         
         self.t_3 = tk.OptionMenu(self.root, cup_name, *self.cups, command = self.changeCup)
         self.t_3.config(font=("Lucida Console", 8))

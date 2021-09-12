@@ -1,4 +1,4 @@
-# RACE ASSISTANT v1.9.4
+# RACE ASSISTANT v1.9.12
 
 ![LOGO](https://user-images.githubusercontent.com/44058571/116699002-597dcc00-a9c5-11eb-8c08-e11e52794992.jpg)
 

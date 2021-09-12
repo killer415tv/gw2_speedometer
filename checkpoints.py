@@ -61,6 +61,7 @@ distance_var = 1
 
 timer = 0
 guildhall_name = ""
+cup_name = ""
 checkpoint = 0
 filename_timer = 99999
 ghost_number = 1
@@ -198,6 +199,7 @@ class Ghost3d(object):
     def searchGhost(self):
         
         global guildhall_name
+        global cup_name
         global forceFile
         global checkpoint
 
@@ -225,14 +227,19 @@ class Ghost3d(object):
              #actualizamos el nombre del guildhall o mapa
             file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "guildhall.txt")
             guildhall_name = file.read()
+
+            file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "cup.txt")
+            cup_name = file.read()
+
             if guildhall_name != "None, im free!":
 
                 file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "checkpoint.txt")
                 checkpoint = int(file.read())
 
-                self.best_file = os.path.dirname(os.path.abspath(sys.argv[0])) + "\\maps\\" + guildhall_name + ".csv"
+                self.best_file = os.path.dirname(os.path.abspath(sys.argv[0])) + "\\maps\\" + cup_name + "\\" + guildhall_name + ".csv"
 
                 print("-----------------------------------------------")
+                print("- THE SELECTED CUP IS " , cup_name )
                 print("- THE SELECTED MAP IS " , guildhall_name )
                 print("- CHECKPOINTS FILE" , self.best_file )
                 print("-----------------------------------------------")

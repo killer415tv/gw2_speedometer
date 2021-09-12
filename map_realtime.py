@@ -56,6 +56,7 @@ fCameraFront = [-0.6211158633232117, -0.35765624046325684, 0.6973500847816467]
 
 timer = 0
 guildhall_name = ""
+cup_name = ""
 filename_timer = 99999
 ghost_number = 1
 forceFile = False
@@ -198,6 +199,7 @@ class Ghost3d(object):
     def searchGhost(self):
         
         global guildhall_name
+        global cup_name
         global forceFile
 
         forceFile = False
@@ -222,6 +224,9 @@ class Ghost3d(object):
             #actualizamos el nombre del guildhall o mapa
             file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "guildhall.txt")
             guildhall_name = file.read()
+
+            file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "cup.txt")
+            cup_name = file.read()
             
             print("-----------------------------------------------")
             print("---------- ZONE:", guildhall_name, "------------")
@@ -230,9 +235,10 @@ class Ghost3d(object):
             path = os.path.dirname(os.path.abspath(sys.argv[0])) + "\\logs\\"                   
             self.all_files = glob.glob(os.path.join(path, guildhall_name+"_log*.csv"))
 
-            self.checkpoints_file = os.path.dirname(os.path.abspath(sys.argv[0])) + "\\maps\\" + guildhall_name + ".csv"
+            self.checkpoints_file = os.path.dirname(os.path.abspath(sys.argv[0])) + "\\maps\\" + cup_name + "\\" + guildhall_name + ".csv"
 
             print("-----------------------------------------------")
+            print("- THE SELECTED CUP IS" , cup_name )
             print("- THE SELECTED MAP IS" , guildhall_name )
             print("- CHECKPOINTS FILE" , self.checkpoints_file )
 

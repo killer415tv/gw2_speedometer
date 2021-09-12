@@ -106,6 +106,8 @@ show_checkpoints_window = 1
 
 player_color = "#333333"
 
+game_focus = 0
+
 client = ""
 mapId = 0
 lastMapId = 0
@@ -675,6 +677,7 @@ class Meter():
         global total_distance
 
         global guildhall_name
+        global cup_name
         global guildhall_laps
 
         global racer
@@ -683,6 +686,8 @@ class Meter():
 
         global mapId
         global lastMapId
+
+        global game_focus
         
 
 
@@ -1084,28 +1089,31 @@ class Meter():
         #toma de datos nueva
         ml.read()
 
+        game_status = '{0:08b}'.format(ml.context.uiState)
+        game_focus = game_status[4]
+
         mapId = ml.context.mapId
         if (mapId != lastMapId):
             lastMapId = ml.context.mapId
 
             if (guildhall_name.get() != 'None, im free!'):
                 if (ml.context.mapId == 54):
-                    guildhall_name.set("TYRIA BRISBAN WILD.")
+                    racer.changeCup("TYRIACUP")
                     racer.saveGuildhall("TYRIA BRISBAN WILD.")
                 elif (ml.context.mapId == 39):
-                    guildhall_name.set("TYRIA INF.LEAP")
+                    racer.changeCup("TYRIACUP")
                     racer.saveGuildhall("TYRIA INF.LEAP")
                 elif (ml.context.mapId == 32):
-                    guildhall_name.set("TYRIA DIESSA PLATEAU")
+                    racer.changeCup("TYRIACUP")
                     racer.saveGuildhall("TYRIA DIESSA PLATEAU")
                 elif (ml.context.mapId == 31):
-                    guildhall_name.set("TYRIA SNOWDEN DRIFTS")
+                    racer.changeCup("TYRIACUP")
                     racer.saveGuildhall("TYRIA SNOWDEN DRIFTS")
                 elif (ml.context.mapId == 24):
-                    guildhall_name.set("TYRIA GENDARRAN")
+                    racer.changeCup("TYRIACUP")
                     racer.saveGuildhall("TYRIA GENDARRAN")
                 elif (ml.context.mapId == 1330):
-                    guildhall_name.set("TYRIA GROTHMAR VALLEY")
+                    racer.changeCup("TYRIACUP")
                     racer.saveGuildhall("TYRIA GROTHMAR VALLEY")
             
                 
@@ -1565,6 +1573,8 @@ class Racer():
         global lap
         global meter
 
+        global game_focus
+
         if enable_livesplit_hotkey == 1:
             keyboard_.press(live_reset)
             keyboard_.release(live_reset)
@@ -1593,6 +1603,7 @@ class Racer():
             self.t_1.configure(fg=self.color_trans_fg); self.t_1.configure(bg=self.color_trans_bg)
             self.t_2.configure(fg=self.color_trans_fg); self.t_2.configure(bg=self.color_trans_bg)
             self.t_3.configure(fg=self.color_trans_fg); self.t_3.configure(bg="#222222")
+            self.t_3_2.configure(fg=self.color_trans_fg); self.t_3_2.configure(bg="#222222")
             self.t_4.configure(fg=self.color_trans_fg); self.t_4.configure(bg=self.color_trans_bg)
             self.t_4_4.configure(fg=self.color_trans_fg); self.t_4_4.configure(bg=self.color_trans_bg)
             self.t_4_5.configure(fg="black"); self.t_4_5.configure(bg=self.color_trans_bg)
@@ -1650,6 +1661,7 @@ class Racer():
             self.t_1.configure(fg=self.color_normal_fg); self.t_1.configure(bg=self.color_normal_bg)
             self.t_2.configure(fg=self.color_normal_fg); self.t_2.configure(bg=self.color_normal_bg)
             self.t_3.configure(fg=self.color_normal_fg); self.t_3.configure(bg=self.color_normal_bg)
+            self.t_3_2.configure(fg=self.color_normal_fg); self.t_3_2.configure(bg=self.color_normal_bg)
             self.t_4.configure(fg=self.color_normal_fg); self.t_4.configure(bg=self.color_normal_bg)
             self.t_4_4.configure(fg=self.color_normal_fg); self.t_4_4.configure(bg=self.color_normal_bg)
             self.t_4_5.configure(fg=self.color_normal_fg); self.t_4_5.configure(bg=self.color_normal_bg)
@@ -1704,21 +1716,47 @@ class Racer():
         self.move = not self.move
 
     def saveCheckpoint(self,value):
-        #stores in counterDone.txt number of total laps done
         file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "checkpoint.txt", "w")
         file.write(str(value))
         file.close()
 
+    def changeCup(self,value):
+
+        global cup_name
+
+        cup_name.set(value)
+
+        file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "cup.txt", "w")
+        file.write(str(cup_name.get()))
+        file.close()
+
+        guildhall_name.set('SELECT MAP')
+        self.t_3_2['menu'].delete(0, 'end')
+
+        # Insert list of new options (tk._setit hooks them up to var)
+        path = os.path.dirname(os.path.abspath(sys.argv[0])) + "\\maps\\" + value   
+        new_choices = [file.rsplit(os.path.sep, 1)[1][:-4] for file in glob.glob(os.path.join(path, "*.csv"))]   
+        for choice in new_choices:
+            self.t_3_2['menu'].add_command(label=choice, command=tk._setit(guildhall_name, choice, self.saveGuildhall))
+        
+        self.saveGuildhall(new_choices[0])
+
     def saveGuildhall(self,value):
-        #stores in counterDone.txt number of total laps done
+
         global guildhall_name
         global checkpoints_list
+        global cup_name
+        global game_focus
 
+        guildhall_name.set(value)
+
+        if guildhall_name.get() == 'SELECT MAP': 
+            return 
         self.root.focus_set()
-    
+
         #load checkpoints from file and save to variable
 
-        self.checkpoints_file = os.path.dirname(os.path.abspath(sys.argv[0])) + "\\maps\\" + guildhall_name.get() + ".csv"
+        self.checkpoints_file = os.path.dirname(os.path.abspath(sys.argv[0])) + "\\maps\\" + cup_name.get()  + "\\" + guildhall_name.get() + ".csv"
 
         print("-----------------------------------------------")
         print("- THE SELECTED MAP IS" , guildhall_name.get() )
@@ -1760,6 +1798,7 @@ class Racer():
         
         global guildhall_name
         global guildhall_laps
+        global cup_name
         global upload
         global geometry_racer
         global player_color
@@ -1796,35 +1835,45 @@ class Racer():
 
         self.root.after(100, self.listen_for_result)
 
+        cup_name = StringVar(self.root)
+        cup_name.set('CUP')
+
         guildhall_name = StringVar(self.root)
-        guildhall_name.set('SELECT MAP')
+        guildhall_name.set('-')
+
         guildhall_laps = StringVar(self.root)
         guildhall_laps.set("1 lap")
 
-
-        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.9.4""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
+        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.9.12""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
         self.t_1.place(x=0, y=10)
         self.t_2 = tk.Label(self.root, text="""Choose map to race""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_2.place(x=0, y=40)
         
         #get all list of maps from the maps folder
-        path = os.path.dirname(os.path.abspath(sys.argv[0])) + "/maps"    
-        self.choices = [file.rsplit(os.path.sep, 1)[1][:-4] for file in glob.glob(os.path.join(path, "*.csv"))]    
+        path = os.path.dirname(os.path.abspath(sys.argv[0])) + "\\maps"    
+        self.cups = [file.rsplit(os.path.sep, 2)[1] for file in glob.glob(os.path.join(path, "*/"))]
+        self.maps = [file.rsplit(os.path.sep, 1)[1][:-4] for file in glob.glob(os.path.join(path, "*.csv"))]    
         
-        self.t_3 = tk.OptionMenu(self.root, guildhall_name, *self.choices, command = self.saveGuildhall)
-        self.t_3.config(font=("Lucida Console", 10))
+        self.t_3 = tk.OptionMenu(self.root, cup_name, *self.cups, command = self.changeCup)
+        self.t_3.config(font=("Lucida Console", 8))
         self.t_3["highlightthickness"] = 0
         self.t_3["activebackground"] = "#222222"
         self.t_3["activeforeground"] = "white" 
-        self.t_3.place(x=19, y=60, width=150, height=27)
-        
+        self.t_3.place(x=19, y=60, width=180, height=18)
 
+        self.t_3_2 = tk.OptionMenu(self.root, guildhall_name, *self.maps, command = self.saveGuildhall)
+        self.t_3_2.config(font=("Lucida Console", 8))
+        self.t_3_2["highlightthickness"] = 0
+        self.t_3_2["activebackground"] = "#222222"
+        self.t_3_2["activeforeground"] = "white" 
+        self.t_3_2.place(x=19, y=78, width=180, height=18)
+        
         self.laps = ['1 lap', '2 laps', '3 laps', '4 laps', '5 laps', '6 laps', '7 laps']
         self.t_3_5 = OptionMenu(self.root, guildhall_laps, *self.laps)
         self.t_3_5["highlightthickness"] = 0
         self.t_3_5["activebackground"] = "#222222"
         self.t_3_5["activeforeground"] = "white"
-        self.t_3_5.place(x=169, y=60, width=70)
+        self.t_3_5.place(x=199, y=60, width=60, height=36)
 
         global audio
         global hud_gauge
@@ -2161,12 +2210,12 @@ class Racer():
 
                 show_config = 1
 
-        self.conf = tk.Button(self.root, text='CONFIG', command=lambda:changeConfigVisibility(), font=("Lucida Console", 7))
-        self.conf.place(x=239, y=44, width=60, height=15)
+        self.conf = tk.Button(self.root, text='CONFIG', command=lambda:changeConfigVisibility(), font=("Lucida Console", '7'))
+        self.conf.place(x=259, y=44, width=45, height=15)
 
 
-        self.t_3_6 = tk.Button(self.root, text='RESET', command=lambda:self.reset(),font=("Lucida Console", 10))
-        self.t_3_6.place(x=239, y=60, width=60, height=27)
+        self.t_3_6 = tk.Button(self.root, text='RESET', command=lambda:self.reset(),font=("Lucida Console", 9))
+        self.t_3_6.place(x=259, y=60, width=45, height=36)
 
         changeConfigVisibility()
 

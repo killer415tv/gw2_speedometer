@@ -1,0 +1,4 @@
+STEP,STEPNAME,X,Y,Z
+-1,reset,3.1, 61, -35
+0,start, 0, 730.6,-43
+1,end, 0.5, 59, -115

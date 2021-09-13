@@ -75,11 +75,14 @@ forceFile_online = False
 
 timer = 0
 guildhall_name = ""
+cup_name = ""
 check_guildhall_change = ""
 filename_timer = 99999
 ghost_number = 1
 forceFile = False
 min_time = 99999
+
+firstTime = True
 
 splitTime = 1  #check time diff each 1 secs
 
@@ -221,11 +224,16 @@ class Ghost3d():
     def read_guildhall(self):
 
         global guildhall_name
+        global cup_name
         global check_guildhall_change
 
         #check the actual guildhall name from guildhall.txt
         file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "guildhall.txt")
         guildhall_name = file.read()
+
+        #check the actual guildhall name from guildhall.txt
+        file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "cup.txt")
+        cup_name = file.read()
         
         if check_guildhall_change == "":
             check_guildhall_change = guildhall_name
@@ -245,6 +253,7 @@ class Ghost3d():
         global game_focus
         global forceFile
         global stop
+        global firstTime
         
         #if game_focus == '0':
         #    return
@@ -262,6 +271,7 @@ class Ghost3d():
                     first_value = next(value_iterator)
                     
                     self.w.removeItem(first_value)
+                    firstTime = True
                 #only force search again if change map
                 if not forceFile:
                     if map_change:
@@ -284,6 +294,7 @@ class Ghost3d():
                     first_value = next(value_iterator)
                     
                     self.w.removeItem(first_value)
+                    firstTime = True
 
                 self.searchGhost(False)
                 self.balls = {}
@@ -309,6 +320,7 @@ class Ghost3d():
     def searchGhost(self, forceUrl):
         
         global guildhall_name
+        global cup_name
         global check_guildhall_change
         global forceFile
         global min_time
@@ -371,7 +383,7 @@ class Ghost3d():
             self.all_files = glob.glob(os.path.join(path, guildhall_name+"_log*.csv"))
 
             #get the checkpoint file for that guildhall
-            self.checkpoints_file = os.path.dirname(os.path.abspath(sys.argv[0])) + "\\maps\\" + guildhall_name + ".csv"
+            self.checkpoints_file = os.path.dirname(os.path.abspath(sys.argv[0])) + "\\maps\\" + cup_name + "\\" + guildhall_name + ".csv"
             checkpoints_list_temp = pd.DataFrame()
             file_df = pd.read_csv(self.checkpoints_file)
             checkpoints_list = checkpoints_list_temp.append(file_df)
@@ -653,6 +665,8 @@ class Ghost3d():
         global fAvatarPosition
         global min_time
 
+        global firstTime
+
         global stop
         
         if stop:
@@ -703,9 +717,11 @@ class Ghost3d():
                 # logs sin map_angle
                 if len(userpos) == 9:
                     file = userpos[8]
+                    map_angle = 0
                 # logs con map_angle
                 else:
                     file = userpos[9]
+                    map_angle = userpos[8]
                 
 
                 strvel = str(vel)
@@ -729,10 +745,9 @@ class Ghost3d():
                     speedcolor = [235, 55, 52]
 
                 #print(vel, speedcolor)
-                if forceFile:
-                    self.md = gl.MeshData.cylinder(rows=1, cols=4, radius=[0.8, 0.8], length=1.2)
-                else:
-                    self.md = gl.MeshData.sphere(rows=2, cols=4, radius=1.0)
+                
+                # self.md = gl.MeshData.sphere(rows=2, cols=4, radius=1.0)
+                self.md = gl.MeshData.cylinder(rows=1, cols=3, radius=[1.3, 1.3], length=0.5)
 
                 colors = np.ones((self.md.faceCount(), 4), dtype=float)
                 colors[::1,0] = 1
@@ -754,15 +769,27 @@ class Ghost3d():
                 transx = float(posx) - float(last_pos[0])
                 transy = float(posz) - float(last_pos[1])
                 transz = float(posy) - float(last_pos[2])
+                rotate = float(map_angle) - float(self.last_map_angle)
+
+
+                # rotation = float()
+                if firstTime:
+                    print("giramos inicial 90")
+                    #self.balls[file].rotate(90,0,1,0,False)
+                    self.balls[file].rotate(map_angle,0,0,1,True)
+                    self.balls[file].rotate(50,0,0,1,True)
+                    firstTime = False
 
                 #self.balls[file].resetTransform()
-                self.balls[file].rotate(1,0,0,1,True)
+                #self.balls[file].rotate(2,0,0,1,True)
+                self.balls[file].rotate(rotate,0,0,1,True)
+
                 self.balls[file].translate(transx,transy,transz)
 
-                
                 self.balls[file].setColor(QtGui.QColor(speedcolor[0], speedcolor[1], speedcolor[2]))
 
                 self.last_balls_positions[file] = [posx,posz,posy]
+                self.last_map_angle = map_angle
 
         #self.loop = self.root.after(1, self.update)
 
@@ -794,6 +821,7 @@ class Ghost3d():
 
         self.balls = {}
         self.last_balls_positions = {}
+        self.last_map_angle = 0
 
         listener = keyboard.Listener(
             on_press=self.on_press,
@@ -909,11 +937,15 @@ class Menu():
         
         global app 
         global guildhall_name
+        global cup_name
         global chosen_option 
 
         #check the actual guildhall name from guildhall.txt
         file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "guildhall.txt")
         guildhall_name = file.read()
+
+        file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "cup.txt")
+        cup_name = file.read()
 
         self.window = QWidget()
         self.window.setWindowTitle("Ghost Loader v0.1")

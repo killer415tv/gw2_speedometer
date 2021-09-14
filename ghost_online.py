@@ -61,18 +61,19 @@ fCameraPosition = [0.0, 0.0, 0.0]
 fCameraFront =    [0.0, 0.0, 0.0]
 
 app = 0
+map_angle = 0
 
 fov_var = 89.7
 elevation_var = 63
 distance_var = 1
 
 game_focus = 0
-stop = False
 chosen_option = False
 
 file_url = ""
 forceFile_online = False
 
+stop = False
 timer = 0
 guildhall_name = ""
 cup_name = ""
@@ -83,6 +84,7 @@ forceFile = False
 min_time = 99999
 
 firstTime = True
+firstLoad = True
 
 splitTime = 1  #check time diff each 1 secs
 
@@ -252,8 +254,9 @@ class Ghost3d():
         global filename_timer
         global game_focus
         global forceFile
-        global stop
         global firstTime
+        global stop
+        global map_angle
         
         #if game_focus == '0':
         #    return
@@ -263,7 +266,10 @@ class Ghost3d():
                 filename_timer = time.perf_counter()
             if key.char == "y":
                 map_change = self.read_guildhall()
-                print('RESET GHOST')
+                stop = True
+                map_angle = 0
+                self.last_map_angle = 0
+                firstTime = True
 
                 if self.balls != {}:
                     balls = self.balls.values()
@@ -271,17 +277,20 @@ class Ghost3d():
                     first_value = next(value_iterator)
                     
                     self.w.removeItem(first_value)
-                    firstTime = True
                 #only force search again if change map
                 if not forceFile:
                     if map_change:
-                        stop = True
                         self.searchGhost(file_url)
-                        stop = False
                 self.balls = {}
                 self.last_balls_positions = {}
+
                 filename_timer = 99999
+                stop = False
             if key.char == "u":
+                stop = True
+                map_angle = 0
+                self.last_map_angle = 0
+                firstTime = True
                 self.read_guildhall()
                 if forceFile:
                     return 
@@ -301,6 +310,7 @@ class Ghost3d():
                 self.last_balls_positions = {}
                 self.file_ready = True
                 filename_timer = 99999
+                stop = False
         except AttributeError:
             None
         
@@ -359,7 +369,6 @@ class Ghost3d():
             min_time = 99999
             self.best_file = file_url
 
-            print("ultima fila", self.df.values[-1])
 
             min_time = list(self.df.values[-1])[6]
 
@@ -664,8 +673,10 @@ class Ghost3d():
         global splitTime
         global fAvatarPosition
         global min_time
+        global map_angle
 
         global firstTime
+        global firstLoad
 
         global stop
         
@@ -721,7 +732,11 @@ class Ghost3d():
                 # logs con map_angle
                 else:
                     file = userpos[9]
-                    map_angle = userpos[8]
+                    if firstLoad:
+                        map_angle = 0
+                        firstLoad = False
+                    else:
+                        map_angle = userpos[8]
                 
 
                 strvel = str(vel)
@@ -747,7 +762,7 @@ class Ghost3d():
                 #print(vel, speedcolor)
                 
                 # self.md = gl.MeshData.sphere(rows=2, cols=4, radius=1.0)
-                self.md = gl.MeshData.cylinder(rows=1, cols=3, radius=[1.3, 1.3], length=0.5)
+                self.md = gl.MeshData.cylinder(rows=2, cols=20, radius=[1.5, 1.5], length=1)
 
                 colors = np.ones((self.md.faceCount(), 4), dtype=float)
                 colors[::1,0] = 1
@@ -757,7 +772,7 @@ class Ghost3d():
                 #self.md.setFaceColors(colors)
 
                 if not file in self.balls:
-                    self.balls[file] = gl.GLMeshItem(meshdata=self.md, smooth=False, drawFaces=True, glOptions='additive', shader='shaded', color=(QtGui.QColor(speedcolor[0], speedcolor[1], speedcolor[2])))
+                    self.balls[file] = gl.GLMeshItem(meshdata=self.md, smooth=True, drawFaces=True, glOptions='additive', shader='shaded', color=(QtGui.QColor(speedcolor[0], speedcolor[1], speedcolor[2])))
                     self.balls[file].scale(1.5, 1.5, 1.5)
                     self.w.addItem(self.balls[file])
 
@@ -766,23 +781,24 @@ class Ghost3d():
                 else: 
                     last_pos = [0,0,0]
 
+                if firstTime:
+                    map_angle = 0
+
                 transx = float(posx) - float(last_pos[0])
                 transy = float(posz) - float(last_pos[1])
                 transz = float(posy) - float(last_pos[2])
                 rotate = float(map_angle) - float(self.last_map_angle)
-
-
+                
                 # rotation = float()
                 if firstTime:
-                    print("giramos inicial 90")
-                    #self.balls[file].rotate(90,0,1,0,False)
-                    self.balls[file].rotate(map_angle,0,0,1,True)
-                    self.balls[file].rotate(50,0,0,1,True)
+                    self.balls[file].resetTransform()
+                    self.balls[file].rotate(90,0,1,0,True)
+                    self.balls[file].rotate(map_angle,1,0,0,True)
+                    #self.balls[file].rotate(-53,1,0,0,True)
                     firstTime = False
 
                 #self.balls[file].resetTransform()
-                #self.balls[file].rotate(2,0,0,1,True)
-                self.balls[file].rotate(rotate,0,0,1,True)
+                self.balls[file].rotate(-float(rotate),1,0,0,True)
 
                 self.balls[file].translate(transx,transy,transz)
 

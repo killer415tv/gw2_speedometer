@@ -169,6 +169,9 @@ class MumbleLink:
         return ctype_instance
 
 class Ghost3d(object):
+
+    
+
     def on_press(self,key):
         global filename_timer
         try:
@@ -412,6 +415,19 @@ class Ghost3d(object):
 
         checkpoint = int(filedata)
 
+
+        if self.balls != {}:
+            balls = self.balls.values()
+            value_iterator = iter(balls)
+            for element in balls:
+                try:
+                    self.w.removeItem(element)
+                except:
+                    print("")
+            
+        self.balls = {}
+        self.last_balls_positions = {}
+
         #self.label.setText('<font color=\"white\">' + str(checkpoint) + '</font>')
 
         #for x in self.all_files[-ghost_number:]:
@@ -470,9 +486,9 @@ class Ghost3d(object):
                     self.balls[step_index].setColor(QtGui.QColor(speedcolor[0], speedcolor[1], speedcolor[2]))
 
                     self.last_balls_positions[step_index] = [posx,posz,posy]
-
             #dibujo los checkpoints < checkpoint en gris
 
+            """
             data = self.df[(self.df['STEP'] < checkpoint) & (self.df['STEP'] > -1) & (self.df['file_name'] == self.best_file)]
             if len(data) > 0:
 
@@ -526,15 +542,15 @@ class Ghost3d(object):
                     self.balls[step_index].setColor((speedcolor[0], speedcolor[1], speedcolor[2], 0))
 
                     self.last_balls_positions[step_index] = [posx,posz,posy]
-                    
-            
-            
+            """
+
             #dibujo el checkpoint = checkpoint en azul
             data = self.df[(self.df['STEP'] == checkpoint) & (self.df['file_name'] == self.best_file)]
             if len(data) > 0:
 
                 points = list(self.df[(self.df['STEP'] == checkpoint) & (self.df['file_name'] == self.best_file)].values)
                 
+                subindex = 0
                 for p in points:
 
                     if len(p) == 6:
@@ -554,7 +570,10 @@ class Ghost3d(object):
                         radius = p[5] * 0.666
                         file = p[6]
 
-                    step_index = str(step)
+
+
+                    step_index = str(step) + "_" + str(subindex)
+                    subindex = subindex + 1
 
                     speedcolor = [44, 44, 255]
 
@@ -588,16 +607,13 @@ class Ghost3d(object):
 
                     self.last_balls_positions[step_index] = [posx,posz,posy]
 
-            
             #dibujo los siguientes > checkpoint en blancos
-            data = self.df[(self.df['STEP'] > checkpoint) & (self.df['file_name'] == self.best_file)]
+            data = self.df[(self.df['STEP'] == checkpoint + 1) & (self.df['file_name'] == self.best_file)]
             if len(data) > 0:
 
-                points = list(self.df[(self.df['STEP'] > checkpoint) & (self.df['file_name'] == self.best_file)].values)
-                
-                for p in points[:2]:
-
-                    
+                points = list(self.df[(self.df['STEP'] == checkpoint + 1 ) & (self.df['file_name'] == self.best_file)].values)
+                subindex = 0
+                for p in points:
 
                     if len(p) == 6:
                         step = p[0]
@@ -616,7 +632,69 @@ class Ghost3d(object):
                         radius = p[5] * 0.666
                         file = p[6]
 
-                    step_index = str(step)
+                    step_index = str(step) + "_" + str(subindex)
+                    subindex = subindex + 1
+
+                    speedcolor = [44, 218, 235]
+
+                    #print(vel, speedcolor)
+
+                    #radius = 10
+                    
+                    self.md = gl.MeshData.cylinder(rows=1, cols=40, radius=[radius,radius], length=0.4)
+
+                    if not step_index in self.balls:
+                        self.balls[step_index] = gl.GLMeshItem(meshdata=self.md, drawEdges=False, smooth=True, drawFaces=True, glOptions='additive', shader='balloon', color=(QtGui.QColor(speedcolor[0], speedcolor[1], speedcolor[2])))
+                        self.balls[step_index].scale(1.5, 1.5, 1.5)
+                        self.w.addItem(self.balls[step_index])
+
+                    if self.last_balls_positions.get(step_index):
+                        last_pos = self.last_balls_positions.get(step_index)
+                    else: 
+                        last_pos = [0,0,0]
+
+                    transx = float(posx) - float(last_pos[0])
+                    transy = float(posz) - float(last_pos[1])
+                    transz = float(posy) - float(last_pos[2])
+
+                    #self.balls[step_index].resetTransform()
+                    #self.balls[step_index].rotate(1,0,0,1,True)
+                    self.balls[step_index].translate(transx,transy,transz)
+                    
+
+                    
+                    self.balls[step_index].setColor(QtGui.QColor(speedcolor[0], speedcolor[1], speedcolor[2]))
+
+                    self.last_balls_positions[step_index] = [posx,posz,posy]
+
+                        #dibujo los siguientes > checkpoint en blancos
+            
+            data = self.df[(self.df['STEP'] == checkpoint + 2) & (self.df['file_name'] == self.best_file)]
+            if len(data) > 0:
+
+                points = list(self.df[(self.df['STEP'] == checkpoint + 2 ) & (self.df['file_name'] == self.best_file)].values)
+                subindex = 0
+                for p in points:
+
+                    if len(p) == 6:
+                        step = p[0]
+                        stepname = p[1]
+                        posx = p[2]
+                        posy = p[3]
+                        posz = p[4]
+                        radius = 10 #default size for reset
+                        file = p[5]
+                    else:
+                        step = p[0]
+                        stepname = p[1]
+                        posx = p[2]
+                        posy = p[3]
+                        posz = p[4]
+                        radius = p[5] * 0.666
+                        file = p[6]
+
+                    step_index = str(step) + "_" + str(subindex)
+                    subindex = subindex + 1
 
                     speedcolor = [200, 200, 200]
 
@@ -649,8 +727,8 @@ class Ghost3d(object):
                     self.balls[step_index].setColor(QtGui.QColor(speedcolor[0], speedcolor[1], speedcolor[2]))
 
                     self.last_balls_positions[step_index] = [posx,posz,posy]
+ 
 
-                            
   
     def start(self):
         """

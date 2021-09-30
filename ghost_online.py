@@ -940,11 +940,11 @@ class Menu():
         url = "https://www.beetlerank.com/api/top3/"+quote(map)
   
         # store the response of URL
-        response = urlopen(url)
+        response = requests.get(url, verify=True)
         
         # storing the JSON response 
         # from url in data
-        data_json = json.loads(response.read())
+        data_json = json.loads(response.text)
         
         # print the json response
         return data_json['ranking']

@@ -1511,6 +1511,8 @@ class Racer():
         self.sendMQTT({"option": "c", "step": 1001, "time": 0 ,"lap": 1, "user": self.username.get()})
         lap = 1
         countdowntxt = ""
+        #test message
+        
 
     def newRace(self):
         self.countdown = self.countdown - 1
@@ -1846,7 +1848,7 @@ class Racer():
         guildhall_laps = StringVar(self.root)
         guildhall_laps.set("1 lap")
 
-        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.9.12""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
+        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.9.30""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
         self.t_1.place(x=0, y=10)
         self.t_2 = tk.Label(self.root, text="""Choose map to race""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_2.place(x=0, y=40)
@@ -2494,6 +2496,8 @@ class Message():
 
         self.move = True
 
+        self.timer = 0
+
         self.root = Tk()
         self.root.call('wm', 'attributes', '.', '-topmost', '1')
 
@@ -2502,6 +2506,7 @@ class Message():
         self.color_normal_fg= "black"
         self.color_normal_bg= "#666666"
 
+        self.timerStr = StringVar(self.root)
         self.fg = StringVar(self.root)
         self.bg = StringVar(self.root)
         self.fg.set(self.color_normal_fg)
@@ -2524,9 +2529,10 @@ class Message():
                                 bg='#666666')
         self.outer_drifting_box = self.canvas.create_rectangle(1,1,499,219, outline="white", width="1")
 
-        self.time = tk.Label(self.root, textvariable=self.localcountdown, justify = tk.CENTER, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console",20))
+        self.time = tk.Label(self.root, textvariable=self.localcountdown, justify = tk.CENTER, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console",17))
+
         #self.time.place(x=0, y=0)
-        self.btn = tk.Button(self.root, text="Ok", padx= 20,font=("Lucida Console", 10),command=lambda:self.hide())
+        self.btn = tk.Button(self.root, textvariable=self.timerStr , padx= 20,font=("Lucida Console", 10),command=lambda:self.hide())
         self.time.pack(expand=True, padx=2)
         
 
@@ -2537,6 +2543,7 @@ class Message():
         self.toggleTrans()
         self.hide()
         self.setOnTopfullscreen()
+        self.tictac()
         #self.checkCountdowntxt()  y
 
     def toggleTrans(self):
@@ -2557,6 +2564,7 @@ class Message():
         self.root.withdraw()
     
     def show(self):
+        self.timer = 8
         self.root.update()
         self.root.deiconify()
 
@@ -2565,6 +2573,14 @@ class Message():
         self.show()
         self.root.lift()
         #self.root.after(5000, self.hide)
+
+    def tictac(self):
+        self.timer = max(0, self.timer - 1)
+        self.timerStr.set("Ok (" + str(self.timer) + ")")
+        if (self.timer == 0):
+            self.hide()
+
+        self.root.after(1000, self.tictac)
 
 if __name__ == '__main__':
  
@@ -2594,6 +2610,21 @@ if __name__ == '__main__':
         racer = Racer()
         countdownWidget = Countdown()
         message = Message()
+        
+        #check for updates
+        try:
+            headers = {
+                'Origin': 'null',
+                'Referer': 'null'
+            }
+            response = requests.get('https://www.beetlerank.com/api/info', headers)
+        
+            #"Welcome:\nNew event MMO B&T will start\non October 5th\nvisit beetlerank.com\nfor more details"
+            message.write(response.text)
+
+        except:
+            self.map_ranking_var.set("")
+
     
     """
     def toggleAll():

@@ -2620,7 +2620,8 @@ if __name__ == '__main__':
             response = requests.get('https://www.beetlerank.com/api/info', headers)
         
             #"Welcome:\nNew event MMO B&T will start\non October 5th\nvisit beetlerank.com\nfor more details"
-            message.write(response.text)
+            if len(response.text):
+                message.write(response.text)
 
         except:
             self.map_ranking_var.set("")

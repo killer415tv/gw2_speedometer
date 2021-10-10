@@ -80,7 +80,7 @@ ghost_start = 't'
 recalculate_ghost = 'y'
 
 #show timer
-hud_timer = 1 # 1 = on , 0 = off
+hud_speed = 1 # 1 = on , 0 = off
 
 #show log distance in metres
 hud_distance = 0 # 1 = on , 0 = off
@@ -212,7 +212,7 @@ class Configuration():
         global magic_angle
         global hud_acceleration
         global hud_gauge
-        global hud_timer
+        global hud_speed
         global hud_distance
         global enable_ghost_keys
         global ghost_start
@@ -243,7 +243,7 @@ class Configuration():
         cfg.set("general", "magic_angle", magic_angle)
         cfg.set("general", "hud_acceleration", hud_acceleration)
         cfg.set("general", "hud_gauge", hud_gauge)
-        cfg.set("general", "hud_timer", hud_timer)
+        cfg.set("general", "hud_speed", hud_speed)
         cfg.set("general", "hud_distance", hud_distance)
         cfg.set("general", "enable_ghost_keys", enable_ghost_keys)
         cfg.set("general", "ghost_start", ghost_start)
@@ -274,7 +274,7 @@ class Configuration():
         global magic_angle
         global hud_acceleration
         global hud_gauge
-        global hud_timer
+        global hud_speed
         global hud_distance
         global enable_ghost_keys
         global ghost_start
@@ -317,8 +317,8 @@ class Configuration():
                 hud_acceleration = int(cfg.get("general", "hud_acceleration"))
             if (cfg.has_option("general", "hud_gauge")):
                 hud_gauge = int(cfg.get("general", "hud_gauge"))
-            if (cfg.has_option("general", "hud_timer")):
-                hud_timer = int(cfg.get("general", "hud_timer"))
+            if (cfg.has_option("general", "hud_speed")):
+                hud_speed = int(cfg.get("general", "hud_speed"))
             if (cfg.has_option("general", "hud_distance")):
                 hud_distance = int(cfg.get("general", "hud_distance"))
             if (cfg.has_option("general", "enable_ghost_keys")):
@@ -561,9 +561,9 @@ class Meter():
             self.accelnum = tk.Label(self.root, textvariable = self.accelvar, fg = "white", bg="#666666", font=("Digital-7 Mono", 8, "bold")).place(x = 230, y = 57)
 
         
-
-        if hud_gauge:
+        if hud_speed:
             self.numero = tk.Label(self.root, textvariable = self.var100, fg = "white", bg="#666666", font=("Digital-7 Mono", 50)).place(relx = 1, x = -412, y = 73, anchor = 'ne')
+        if hud_gauge:
             self.canvas.create_arc(2*10, 2*15, 2*winw-10, 2*winw-10, extent=108, start=36,style='arc', outline="#666666", width="35", tags="arc")
             self.canvas.create_arc(2*10, 2*15, 2*winw-10, 2*winw-10, extent=108, start=36,style='arc', outline="white", width="16", tags="arcbg")
             self.canvas.create_arc(2*10, 2*15, 2*winw-10, 2*winw-10, extent=108, start=36,style='arc', outline="#666666", width="14", tags="arcbg")
@@ -588,11 +588,12 @@ class Meter():
             self.meter = self.canvas.create_line(winw, winw, 20, winw,fill='white',width=4)
             self.angle = 0.2
             self.updateMeterLine(self.angle, self.meter)   
+        if hud_speed or hud_gauge:
             self.var.trace_add('write', self.updateMeter)  # if this line raises an error, change it to the old way of adding a trace: self.var.trace('w', self.updateMeter)
 
 
 
-        #if hud_timer:
+        #if hud_speed:
         self.vartime = tk.StringVar(self.root, "")
         self.timenum_label = tk.Label(self.root, textvariable = self.vartime, fg = "#eee", bg="#666666", font=("Digital-7 Mono", 20)).place(x = 144, y = 145)
         self.distance = tk.StringVar(self.root, "")
@@ -963,8 +964,8 @@ class Meter():
                                 #print("----------------------------------")
                                 newline = self.step1_txt.get() + "\n"
                                 self.step1_txt.set(str(lap) + "/"+ str(total_laps) + " TF " + datefinish)
-                                if hud_timer:
-                                    self.vartime.set(datefinish)
+                                
+                                self.vartime.set(datefinish)
                                 
 
                                 if log:
@@ -1336,8 +1337,8 @@ class Meter():
 
                 if filename != "" and round((velocity*100/10000)*99/72) < 150:
                     #print([filename,str(_pos[0]),str(_pos[1]),str(_pos[2]),str(velocity), str(_time - total_timer)])
-                    if hud_timer:
-                        self.vartime.set(datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(_time - total_timer), "%M:%S:%f")[:-3])
+                    
+                    self.vartime.set(datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(_time - total_timer), "%M:%S:%f")[:-3])
                     if hud_distance:
                         self.distance.set(str(round(total_distance)) + "m.")
                     if log and velocity > 0:
@@ -1384,7 +1385,9 @@ class Meter():
 class Racer():
 
     def setOnTopfullscreen(self):
-        self.root.attributes('-topmost', 1)
+        global game_focus
+        if game_focus == 1:
+            self.root.attributes('-topmost', 1)
         self.root.after(5000, self.setOnTopfullscreen)
 
     def on_message(self, client, userdata, message):
@@ -1848,7 +1851,7 @@ class Racer():
         guildhall_laps = StringVar(self.root)
         guildhall_laps.set("1 lap")
 
-        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.9.30""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
+        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.10.10""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
         self.t_1.place(x=0, y=10)
         self.t_2 = tk.Label(self.root, text="""Choose map to race""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_2.place(x=0, y=40)
@@ -1883,7 +1886,7 @@ class Racer():
 
         global audio
         global hud_gauge
-        global hud_timer
+        global hud_speed
         global hud_distance
         global hud_acceleration
         global hud_angles
@@ -1960,7 +1963,7 @@ class Racer():
         #OPTION 1 
         self.conf_2_0 = IntVar(self.root, hud_gauge)
 
-        self.conf_2_1 = tk.Label(self.root, text="""Show speed""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
+        self.conf_2_1 = tk.Label(self.root, text="""Show gauge""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.conf_2_1.place(x=314, y=44 + 1 * 20)
 
         self.conf_2_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
@@ -1971,15 +1974,15 @@ class Racer():
         
         
         #OPTION 1 
-        self.conf_3_0 = IntVar(self.root, hud_timer)
+        self.conf_3_0 = IntVar(self.root, hud_speed)
 
-        self.conf_3_1 = tk.Label(self.root, text="""Show timer""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
+        self.conf_3_1 = tk.Label(self.root, text="""Show speed""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.conf_3_1.place(x=314, y=44 + 2 * 20)
 
         self.conf_3_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
             text = "",
             variable=self.conf_3_0,
-            borderwidth=0, command=lambda:conf_toggle("hud_timer"))
+            borderwidth=0, command=lambda:conf_toggle("hud_speed"))
         self.conf_3_2.place(x=310, y=44 + 2 * 20)
         
         

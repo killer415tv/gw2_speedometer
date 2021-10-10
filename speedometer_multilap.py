@@ -633,7 +633,8 @@ class Meter():
         maxi = 100
         pos = (self.var.get() - mini) / (maxi - mini)
         self.angle = pos * 0.6 + 0.2
-        self.updateMeterLine(self.angle, self.meter)
+        if hud_gauge:
+            self.updateMeterLine(self.angle, self.meter)
 
     def updateMeterMaxSpeed(self, name1, name2, op):
         """Convert variable to angle on trace"""

@@ -628,6 +628,7 @@ class Meter():
         self.canvas.coords(line, winw, winw, x, y)
 
     def updateMeter(self, name1, name2, op):
+        global hud_gauge
         """Convert variable to angle on trace"""
         mini = 0
         maxi = 100

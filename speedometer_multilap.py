@@ -29,6 +29,7 @@ import paho.mqtt.client as mqtt #import the client1
 import time
 
 import threading
+from threading import Thread
 import queue
 
 import requests
@@ -152,6 +153,7 @@ next_step = 0
 map_angle = 0
 
 checkpoints_list = []
+
 
 #Force sound at start
 if audio:
@@ -441,7 +443,34 @@ class MumbleLink:
         ctype_instance = ctypes.cast(ctypes.pointer(cstring), ctypes.POINTER(ctype)).contents
         return ctype_instance
 
+class ThreadWithReturnValue(Thread):
+    def __init__(self, group=None, target=None, name=None, args=(), kwargs=None, *, daemon=None):
+        Thread.__init__(self, group, target, name, args, kwargs, daemon=daemon)
+
+        self._return = None
+
+    def run(self):
+        if self._target is not None:
+            self._return = self._target(*self._args, **self._kwargs)
+
+    def join(self):
+        Thread.join(self)
+        return self._return
+
+
 class Meter():
+    
+    def uploadLog(self,guildhall,old_filename,ml):
+        headers = {
+            'Origin': 'null',
+            'Referer': 'null'
+        }
+        response = requests.post('https://www.beetlerank.com/upload-log',data={'user': json.loads(ml.data.identity)["name"], 'guildhall': guildhall}, files={'file': open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\logs\\" + old_filename,'rb')}, headers=headers)
+        print("Log uploaded to web")
+        print(response.text)
+        return response.text
+        
+        
 
     def setOnTopfullscreen(self):
         self.root.attributes('-topmost', 1)
@@ -767,6 +796,7 @@ class Meter():
                 self.steps_txt.set("")
                 self.step1_txt.set("")
                 self.vartime.set("")
+                tmhud.write("")
                 self.distance.set("")
                 lap = 1
 
@@ -828,6 +858,7 @@ class Meter():
                     self.steps_txt.set("")
                     self.step1_txt.set("")
                     self.vartime.set("")
+                    tmhud.write("")
                     self.distance.set("")
                     lap = 1
             
@@ -871,6 +902,7 @@ class Meter():
                             self.steps_txt.set(guildhall_name.get() )
                             self.step1_txt.set(str(lap) + "/"+ str(total_laps) + " T0" + " " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(0), "%M:%S:%f")[:-3])
                             self.vartime.set("")
+                            tmhud.write("")
                             self.distance.set("")
                             total_distance = 0
                             total_timer = _time
@@ -935,15 +967,12 @@ class Meter():
 
                             if upload.get() == 1:
                                 if log:
-                                    headers = {
-                                        'Origin': 'null',
-                                        'Referer': 'null'
-                                    }
-                                    response = requests.post('https://www.beetlerank.com/upload-log',data={'user': json.loads(ml.data.identity)["name"], 'guildhall': guildhall_name.get()}, files={'file': open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\logs\\" + old_filename,'rb')}, headers=headers)
-                                    print("Log uploaded to web")
-                                    print(response.text)
-                                    if response.text and int(total_laps) == 1:
-                                        message.write(response.text)
+                                    twrv = ThreadWithReturnValue(target=self.uploadLog, args=(guildhall_name.get(),old_filename, ml,))
+                                    twrv.start()
+                                    if int(total_laps) == 1:
+                                        message.write(twrv.join())
+                                    
+                                    
                                     racer.saveGuildhall(guildhall_name.get())
 
                             if int(lap) == int(total_laps):
@@ -968,6 +997,7 @@ class Meter():
                                 self.step1_txt.set(str(lap) + "/"+ str(total_laps) + " TF " + datefinish)
                                 
                                 self.vartime.set(datefinish)
+                                tmhud.write(datefinish)
                                 
 
                                 if log:
@@ -1341,6 +1371,7 @@ class Meter():
                     #print([filename,str(_pos[0]),str(_pos[1]),str(_pos[2]),str(velocity), str(_time - total_timer)])
                     
                     self.vartime.set(datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(_time - total_timer), "%M:%S:%f")[:-3])
+                    tmhud.write(datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(_time - total_timer), "%M:%S:%f")[:-3])
                     if hud_distance:
                         self.distance.set(str(round(total_distance)) + "m.")
                     if log and velocity > 0:
@@ -1598,6 +1629,7 @@ class Racer():
         meter.steps_txt.set("")
         meter.step1_txt.set("")
         meter.vartime.set("")
+        tmhud.write("")
         meter.distance.set("")
 
         lap = 1
@@ -1853,7 +1885,7 @@ class Racer():
         guildhall_laps = StringVar(self.root)
         guildhall_laps.set("1 lap")
 
-        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.10.10""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
+        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.10.15""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
         self.t_1.place(x=0, y=10)
         self.t_2 = tk.Label(self.root, text="""Choose map to race""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_2.place(x=0, y=40)
@@ -2587,6 +2619,94 @@ class Message():
 
         self.root.after(1000, self.tictac)
 
+class TrackManiaHud():
+
+    def setOnTopfullscreen(self):
+        self.root.attributes('-topmost', 1)
+        self.root.after(500, self.setOnTopfullscreen)
+
+    def __init__(self):
+        
+        global countdowntxt
+        global velocity
+        global total_timer
+        global lap_timer
+
+        self.move = True
+
+        self.timer = 0
+
+        self.root = Tk()
+        self.root.call('wm', 'attributes', '.', '-topmost', '1')
+
+        self.color_trans_fg= "white"
+        self.color_trans_bg= "#666666"
+        self.color_normal_fg= "black"
+        self.color_normal_bg= "#666666"
+
+        self.timerStr = StringVar(self.root)
+        self.fg = StringVar(self.root)
+        self.bg = StringVar(self.root)
+        self.fg.set(self.color_normal_fg)
+        self.bg.set(self.color_normal_bg)
+
+        windowWidth = root.winfo_screenwidth()
+        windowHeight = root.winfo_screenheight()
+        positionRight = 0
+        positionDown = 0
+        self.root.title("Trackmanía hud")
+        self.root.geometry("{}x{}+{}+{}".format(windowWidth, windowHeight, positionRight, positionDown)) #Whatever size
+
+        self.root.wm_attributes("-transparentcolor", "#666666")
+        self.root.configure(bg='#666666')
+        
+        self.localcountdown = tk.StringVar(self.root,"")
+
+        self.time = tk.Label(self.root, textvariable=self.localcountdown, justify = tk.CENTER, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Digital-7 Mono",40))
+
+        self.time.place(x=windowWidth/2-127, y=windowHeight-180)
+        #self.time.pack(expand=True, padx=2)
+
+        self.toggleTrans()
+        self.hide()
+        self.setOnTopfullscreen()
+        self.tictac()
+        #self.checkCountdowntxt()  y
+
+    def toggleTrans(self):
+        if (self.move):
+            self.root.overrideredirect(1)
+            self.time.configure(fg=self.color_trans_fg); self.time.configure(bg=self.color_trans_bg)
+            self.root.configure(bg=self.color_trans_bg)
+        else:
+            self.root.overrideredirect(0)
+            self.time.configure(fg=self.color_trans_fg); self.time.configure(bg=self.color_trans_bg)
+            self.root.configure(bg=self.color_normal_bg)
+            
+        self.move = not self.move
+
+    def hide(self):
+        self.root.withdraw()
+    
+    def show(self):
+        self.timer = 8
+        self.root.update()
+        self.root.deiconify()
+
+    def write(self,msg):
+        return 
+        self.localcountdown.set(msg)
+        self.show()
+        self.root.lift()
+        #self.root.after(5000, self.hide)
+
+    def tictac(self):
+        #self.timer = max(0, self.timer - 1)
+        #self.timerStr.set("Ok (" + str(self.timer) + ")")
+
+        self.root.after(1000, self.tictac)
+
+
 if __name__ == '__main__':
  
     root = tk.Tk()
@@ -2610,6 +2730,9 @@ if __name__ == '__main__':
     #Whatever buttons, etc 
 
     meter = Meter()
+
+    tmhud = TrackManiaHud()
+    tmhud.write("")
 
     if show_checkpoints_window:
         racer = Racer()

@@ -1,4 +1,4 @@
-# RACE ASSISTANT v1.9.30
+# RACE ASSISTANT v1.10.15
 
 ![LOGO](https://user-images.githubusercontent.com/44058571/116699002-597dcc00-a9c5-11eb-8c08-e11e52794992.jpg)
 
@@ -31,7 +31,6 @@ http://www.beetlerank.com/
  - RACE Hillclimb
  - RACE Donwhill
  - RACE Full Mountain Run
- - EQE
  - SoTD
  - HUR
  - OLLO Drift Heaven
@@ -79,6 +78,7 @@ http://www.beetlerank.com/
  
 ## EVENTS
  - Dragon Bash
+ - Mad Kings Raceway
  
 ## Griffon maps
  - FLY-1 Verdant Brink Hunt

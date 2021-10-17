@@ -15,13 +15,13 @@ import pynput.mouse._win32
 from pynput.keyboard import Key, Controller
 from pynput import keyboard
 import csv
-import sys, os
+import sys
+from pathlib import Path
 import numpy as np
 from playsound import playsound
 from datetime import date
 import json
 import pandas as pd
-import glob
 
 import random
 
@@ -157,7 +157,7 @@ checkpoints_list = []
 
 #Force sound at start
 if audio:
-    playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "dong.wav", block=False)
+    playsound(Path(sys.argv[0]).parent / "dong.wav", block=False)
 
 #-----------------------------
 #  END CONFIGURATION VARIABLES
@@ -167,7 +167,7 @@ from ctypes import windll, byref, create_unicode_buffer, create_string_buffer
 FR_PRIVATE  = 0x10
 FR_NOT_ENUM = 0x20
 
-def loadfont(fontpath, private=True, enumerable=False):
+def loadfont(fontpath: str, private=True, enumerable=False):
     '''
     Makes fonts located in file `fontpath` available to the font system.
 
@@ -195,7 +195,7 @@ def loadfont(fontpath, private=True, enumerable=False):
     numFontsAdded = AddFontResourceEx(byref(pathbuf), flags, 0)
     return bool(numFontsAdded)
 
-loadfont(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "font.ttf")
+loadfont(str(Path(sys.argv[0]).parent / "font.ttf"))
 
 class Configuration():
     def __init__(self, master=None, **kw):
@@ -465,7 +465,10 @@ class Meter():
             'Origin': 'null',
             'Referer': 'null'
         }
-        response = requests.post('https://www.beetlerank.com/upload-log',data={'user': json.loads(ml.data.identity)["name"], 'guildhall': guildhall}, files={'file': open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\logs\\" + old_filename,'rb')}, headers=headers)
+        response = requests.post('https://www.beetlerank.com/upload-log',
+                                 data={'user': json.loads(ml.data.identity)["name"], 'guildhall': guildhall},
+                                 files={'file': open(Path(sys.argv[0]).parent / "logs" / old_filename, 'rb')},
+                                 headers=headers)
         print("Log uploaded to web")
         print(response.text)
         return response.text
@@ -882,7 +885,7 @@ class Meter():
                     if stepName == "start":
                         next_step = 1
                         if audio:
-                            playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "dong.wav", block=False)
+                            playsound(Path(sys.argv[0]).parent / "dong.wav", block=False)
                         if enable_livesplit_hotkey == 1:
                             keyboard_.press(live_start)
                             keyboard_.release(live_start)
@@ -910,9 +913,9 @@ class Meter():
                             #esta línea es la clave
 
                             #paso 1 - comprobar que existe la carpeta /logs
-                            if os.path.isdir(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\logs") == False:
-                                os.mkdir(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\logs")
-                            
+                            if not (Path(sys.argv[0]).parent / "logs").exists():
+                                (Path(sys.argv[0]).parent / "logs").mkdir()
+
 
 
                             filename = guildhall_name.get() + "_log_" + str(_time) + ".csv"
@@ -920,7 +923,7 @@ class Meter():
                                 #print("----------------------------------")
                                 #print("NEW LOG FILE - " + filename)
                                 #print("----------------------------------")
-                                writer = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\logs\\" + filename,'a',newline='', encoding='utf-8')
+                                writer = open(Path(sys.argv[0]).parent / "logs" / filename, 'a', newline='', encoding='utf-8')
                                 writer.seek(0,2)
                                 writer.writelines( (',').join(["X","Y","Z","SPEED","ANGLE_CAM", "ANGLE_BEETLE","TIME", "ACCELERATION", "MAP_ANGLE"]))
                             if show_checkpoints_window and racer.session_id.get() != "":
@@ -940,7 +943,7 @@ class Meter():
                                 #print("----------------------------------")
                                 #print("NEW LOG FILE - " + filename)
                                 #print("----------------------------------")
-                                writer = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\logs\\" + filename,'a',newline='', encoding='utf-8')
+                                writer = open(Path(sys.argv[0]).parent / "logs" / filename, 'a', newline='', encoding='utf-8')
                                 writer.seek(0,2)
                                 writer.writelines( (',').join(["X","Y","Z","SPEED","ANGLE_CAM", "ANGLE_BEETLE","TIME", "ACCELERATION", "MAP_ANGLE"]))
                             if show_checkpoints_window and racer.session_id.get() != "":
@@ -958,7 +961,7 @@ class Meter():
 
                         if filename != "":
                             if audio:
-                                playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "dong.wav", block=False)
+                                playsound(Path(sys.argv[0]).parent / "dong.wav", block=False)
 
                             #upload log to 
 
@@ -978,7 +981,7 @@ class Meter():
                             if int(lap) == int(total_laps):
                                 
                                 last_filename_df = pd.DataFrame()
-                                file_df = pd.read_csv(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\logs\\" + old_filename)
+                                file_df = pd.read_csv(Path(sys.argv[0]).parent / "logs" / old_filename)
                                 last_filename_df = last_filename_df.append(file_df)
 
                                 current_time = last_filename_df.values[-1][6]                                
@@ -1004,7 +1007,7 @@ class Meter():
                                     #store in file the record time of full track , today date and player name
                                     now = datetime.datetime.now()
                                     today_date = now.strftime("%d/%m/%Y %H:%M:%S")
-                                    writer = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + guildhall_name.get() + "_records.csv",'a',newline='', encoding='utf-8')
+                                    writer = open(Path(sys.argv[0]).parent / guildhall_name.get() / "_records.csv", 'a', newline='', encoding='utf-8')
                                     writer.seek(0,2)
                                     writer.writelines("\r")
                                     writer.writelines( (',').join([datefinish, today_date, json.loads(ml.data.identity)["name"]]))
@@ -1033,14 +1036,14 @@ class Meter():
 
                             """ 
                             #stores in counterDone.txt number of total laps done
-                            file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "counterDone.txt")
+                            file = open(Path(sys.argv[0]).parent / "counterDone.txt")
                             global numero_contador
                             line = file.read()
                             if line == '':
                                 line = "1"
                             numero_contador = int(line.strip()) + 1
                             file.close()
-                            file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "counterDone.txt", "w")
+                            file = open(Path(sys.argv[0]).parent / "counterDone.txt", "w")
                             file.write(str(numero_contador))
                             file.close()
                             """
@@ -1070,7 +1073,7 @@ class Meter():
                             newline = " "
                         self.step1_txt.set(str(lap) + "/"+ str(total_laps) + " T" + str(step) + " " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime_lap), "%M:%S:%f")[:-3])
                         if audio:
-                            playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "dong.wav", block=False)
+                            playsound(Path(sys.argv[0]).parent / "dong.wav", block=False)
                         if show_checkpoints_window and racer.session_id.get() != "":
                             #mqtt se manda el tiempo como inicio
                             racer.sendMQTT({"option": "c", "step": step, "lap": lap, "time": steptime, "user": racer.username.get()})
@@ -1095,7 +1098,7 @@ class Meter():
         """
         def best_log(time, old_filename):
             current_track = guildhall_name.get()
-            with open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\logs\\" + "best_logs.txt",
+            with open(Path(sys.argv[0]).parent / "logs" / "best_logs.txt",
                       'a+',
                       newline='',
                       encoding='utf-8') as b_l:
@@ -1375,7 +1378,7 @@ class Meter():
                     if hud_distance:
                         self.distance.set(str(round(total_distance)) + "m.")
                     if log and velocity > 0:
-                        writer = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\logs\\" + filename,'a',newline='', encoding='utf-8')
+                        writer = open(Path(sys.argv[0]).parent / "logs" / filename, 'a', newline='', encoding='utf-8')
                         writer.seek(0,2)
                         writer.writelines("\r")
                         writer.writelines( (',').join([roundstr(_3Dpos[0]),roundstr(_3Dpos[1]),roundstr(_3Dpos[2]),str(round((velocity*100/10000)*99/72)),roundstr(angle_between_res1),roundstr(angle_between_res2), str(_time - lap_timer), roundstr(acceleration),roundstr(map_angle)]))
@@ -1478,7 +1481,7 @@ class Racer():
             self.thread_queue.put(received.get('message'))
             countdowntxt = received.get('message')
             if audio:
-                playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "ding.wav", block=False)
+                playsound(Path(sys.argv[0]).parent / "ding.wav", block=False)
             self.timestamps = []
 
             # limpiar ranking de partida
@@ -1488,7 +1491,7 @@ class Racer():
             self.thread_queue.put("3...")
             countdowntxt = "3"
             if audio:
-                playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "ding.wav", block=False)
+                playsound(Path(sys.argv[0]).parent / "ding.wav", block=False)
             self.timestamps = []
 
             # limpiar ranking de partida
@@ -1498,7 +1501,7 @@ class Racer():
             self.thread_queue.put("2...")
             countdowntxt = "2!"
             if audio:
-                playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "ding.wav", block=False)
+                playsound(Path(sys.argv[0]).parent / "ding.wav", block=False)
 
             # limpiar ranking de partida
             # falta mostrar por pantalla el 3 2 1
@@ -1507,7 +1510,7 @@ class Racer():
             self.thread_queue.put("1...")
             countdowntxt = "1!!"
             if audio:
-                playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "ding.wav", block=False)
+                playsound(Path(sys.argv[0]).parent / "ding.wav", block=False)
 
             # limpiar ranking de partida
             # falta mostrar por pantalla el 3 2 1
@@ -1516,7 +1519,7 @@ class Racer():
             self.thread_queue.put("GOGOGOGO")
             countdowntxt = "Brr!"
             if audio:
-                playsound(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "dong.wav", block=False)
+                playsound(Path(sys.argv[0]).parent / "dong.wav", block=False)
             # limpiar ranking de partida
             # falta mostrar por pantalla el 3 2 1
 
@@ -1565,7 +1568,7 @@ class Racer():
     def open_multiplayer_map(self):
         if not self.mapOpen:
             self.session_id.get()
-            subprocess.Popen(["python", os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "map_realtime_multiplayer.py", self.session_id.get()])
+            subprocess.Popen(["python", Path(sys.argv[0]).parent / "map_realtime_multiplayer.py", self.session_id.get()])
             self.mapOpen = True
 
     def joinRace(self):
@@ -1755,7 +1758,7 @@ class Racer():
         self.move = not self.move
 
     def saveCheckpoint(self,value):
-        file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "checkpoint.txt", "w")
+        file = open(Path(sys.argv[0]).parent / "checkpoint.txt", "w")
         file.write(str(value))
         file.close()
 
@@ -1765,7 +1768,7 @@ class Racer():
 
         cup_name.set(value)
 
-        file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "cup.txt", "w")
+        file = open(Path(sys.argv[0]).parent / "cup.txt", "w")
         file.write(str(cup_name.get()))
         file.close()
 
@@ -1773,8 +1776,8 @@ class Racer():
         self.t_3_2['menu'].delete(0, 'end')
 
         # Insert list of new options (tk._setit hooks them up to var)
-        path = os.path.dirname(os.path.abspath(sys.argv[0])) + "\\maps\\" + value   
-        new_choices = [file.rsplit(os.path.sep, 1)[1][:-4] for file in glob.glob(os.path.join(path, "*.csv"))]   
+        path = Path(sys.argv[0]).parent / "maps" / value
+        new_choices = [file.stem for file in path.glob('*.csv')]
         for choice in new_choices:
             self.t_3_2['menu'].add_command(label=choice, command=tk._setit(guildhall_name, choice, self.saveGuildhall))
         
@@ -1797,7 +1800,7 @@ class Racer():
 
         #load checkpoints from file and save to variable
 
-        self.checkpoints_file = os.path.dirname(os.path.abspath(sys.argv[0])) + "\\maps\\" + cup_name.get()  + "\\" + guildhall_name.get() + ".csv"
+        self.checkpoints_file = Path(sys.argv[0]).parent / "maps" / cup_name.get() / (guildhall_name.get() + ".csv")
 
         print("-----------------------------------------------")
         print("- THE SELECTED MAP IS" , guildhall_name.get() )
@@ -1811,7 +1814,7 @@ class Racer():
 
         print("-----------------------------------------------")
 
-        file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "guildhall.txt", "w")
+        file = open(Path(sys.argv[0]).parent / "guildhall.txt", "w")
         file.write(str(guildhall_name.get()))
         file.close()
         if enable_ghost_keys:
@@ -1891,9 +1894,9 @@ class Racer():
         self.t_2.place(x=0, y=40)
         
         #get all list of maps from the maps folder
-        path = os.path.dirname(os.path.abspath(sys.argv[0])) + "\\maps"    
-        self.cups = [file.rsplit(os.path.sep, 2)[1] for file in glob.glob(os.path.join(path, "*/"))]
-        self.maps = [file.rsplit(os.path.sep, 1)[1][:-4] for file in glob.glob(os.path.join(path, "*.csv"))]
+        path = Path(sys.argv[0]).parent / "maps"
+        self.cups = [directory.stem for directory in path.iterdir() if directory.is_dir()]
+        self.maps = [file.stem for file in path.glob('*.csv')]
         if len(self.maps) == 0:
             self.maps = ['-']    
         

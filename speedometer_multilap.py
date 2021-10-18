@@ -253,7 +253,11 @@ class Configuration():
         cfg.set("general", "show_checkpoints_window", show_checkpoints_window)
         cfg.set("general", "hud_drift_hold", hud_drift_hold)
         cfg.set("general", "drift_key", drift_key)
+        if player_color == None:
+            player_color = '#333333'
         cfg.set("general", "player_color", player_color)
+
+
         if 'racer' in globals():
             cfg.set("general", "geometry_speedometer", meter.root.geometry())
         if 'meter' in globals():

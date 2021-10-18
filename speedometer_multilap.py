@@ -1011,7 +1011,8 @@ class Meter():
                                     #store in file the record time of full track , today date and player name
                                     now = datetime.datetime.now()
                                     today_date = now.strftime("%d/%m/%Y %H:%M:%S")
-                                    writer = open(Path(sys.argv[0]).parent / guildhall_name.get() / "_records.csv", 'a', newline='', encoding='utf-8')
+                                    folder = str(Path(sys.argv[0]).parent / guildhall_name.get())
+                                    writer = open(folder + "_records.csv", 'a', newline='', encoding='utf-8')
                                     writer.seek(0,2)
                                     writer.writelines("\r")
                                     writer.writelines( (',').join([datefinish, today_date, json.loads(ml.data.identity)["name"]]))

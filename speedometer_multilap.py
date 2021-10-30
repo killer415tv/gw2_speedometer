@@ -18,7 +18,6 @@ import csv
 import sys
 from pathlib import Path
 import numpy as np
-from playsound import playsound
 from datetime import date
 import json
 import pandas as pd
@@ -73,8 +72,6 @@ live_start='l' #key binded for start/split
 live_reset='k' #key binded for reset
 #Log all the timed splits to file CSV , needed for upload to ranking
 log = 1  # 1 = on , 0 = off 
-#Play dong.wav file when you open the program and when you go through a checkpoint
-audio = 0  # 1 = on , 0 = off
 #ghost_mode
 enable_ghost_keys = 1
 ghost_start = 't'
@@ -154,11 +151,6 @@ map_angle = 0
 
 checkpoints_list = []
 
-
-#Force sound at start
-if audio:
-    playsound(Path(sys.argv[0]).parent / "dong.wav", block=False)
-
 #-----------------------------
 #  END CONFIGURATION VARIABLES
 #-----------------------------
@@ -208,7 +200,6 @@ class Configuration():
         global live_start
         global live_reset
         global log
-        global audio
         global hud_angles
         global hud_angles_bubbles
         global magic_angle
@@ -237,7 +228,6 @@ class Configuration():
         cfg.set("general", "live_start", live_start)
         cfg.set("general", "live_reset", live_reset)
         cfg.set("general", "log", log)
-        cfg.set("general", "audio", audio)
         cfg.set("general", "hud_angles", hud_angles)
         cfg.set("general", "hud_angles_bubbles", hud_angles_bubbles)
         cfg.set("general", "hud_angles_airboost", hud_angles_airboost)
@@ -274,7 +264,6 @@ class Configuration():
         global live_start
         global live_reset
         global log
-        global audio
         global hud_angles
         global hud_angles_bubbles
         global magic_angle
@@ -307,8 +296,6 @@ class Configuration():
                 live_reset = cfg.get("general", "live_reset")
             if (cfg.has_option("general", "log")):
                 log = int(cfg.get("general", "log"))
-            if (cfg.has_option("general", "audio")):
-                audio = int(cfg.get("general", "audio"))
             if (cfg.has_option("general", "hud_angles")):
                 hud_angles = int(cfg.get("general", "hud_angles"))
             if (cfg.has_option("general", "hud_angles_bubbles")):
@@ -695,7 +682,6 @@ class Meter():
         global color
         global speed_in_3D
 
-        global audio
 
         global keyboard_
         global pressedQ
@@ -888,8 +874,7 @@ class Meter():
                     last_checkpoint_position = arraystep0
                     if stepName == "start":
                         next_step = 1
-                        if audio:
-                            playsound(Path(sys.argv[0]).parent / "dong.wav", block=False)
+                        
                         if enable_livesplit_hotkey == 1:
                             keyboard_.press(live_start)
                             keyboard_.release(live_start)
@@ -964,8 +949,7 @@ class Meter():
                         
 
                         if filename != "":
-                            if audio:
-                                playsound(Path(sys.argv[0]).parent / "dong.wav", block=False)
+                            
 
                             #upload log to 
 
@@ -1077,8 +1061,7 @@ class Meter():
                         if step == 1 and lap == 1:
                             newline = " "
                         self.step1_txt.set(str(lap) + "/"+ str(total_laps) + " T" + str(step) + " " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime_lap), "%M:%S:%f")[:-3])
-                        if audio:
-                            playsound(Path(sys.argv[0]).parent / "dong.wav", block=False)
+                        
                         if show_checkpoints_window and racer.session_id.get() != "":
                             #mqtt se manda el tiempo como inicio
                             racer.sendMQTT({"option": "c", "step": step, "lap": lap, "time": steptime, "user": racer.username.get()})
@@ -1434,7 +1417,6 @@ class Racer():
     def on_message(self, client, userdata, message):
 
         global countdowntxt
-        global audio
 
         #print("message received " ,json.loads(str(message.payload.decode("utf-8"))))
         received = json.loads(str(message.payload.decode("utf-8")))
@@ -1485,8 +1467,7 @@ class Racer():
             #print("3!!")
             self.thread_queue.put(received.get('message'))
             countdowntxt = received.get('message')
-            if audio:
-                playsound(Path(sys.argv[0]).parent / "ding.wav", block=False)
+            
             self.timestamps = []
 
             # limpiar ranking de partida
@@ -1495,8 +1476,7 @@ class Racer():
             #print("3!!")
             self.thread_queue.put("3...")
             countdowntxt = "3"
-            if audio:
-                playsound(Path(sys.argv[0]).parent / "ding.wav", block=False)
+            
             self.timestamps = []
 
             # limpiar ranking de partida
@@ -1505,8 +1485,7 @@ class Racer():
             #print("2!!")
             self.thread_queue.put("2...")
             countdowntxt = "2!"
-            if audio:
-                playsound(Path(sys.argv[0]).parent / "ding.wav", block=False)
+            
 
             # limpiar ranking de partida
             # falta mostrar por pantalla el 3 2 1
@@ -1514,8 +1493,7 @@ class Racer():
             #print("1!!")
             self.thread_queue.put("1...")
             countdowntxt = "1!!"
-            if audio:
-                playsound(Path(sys.argv[0]).parent / "ding.wav", block=False)
+            
 
             # limpiar ranking de partida
             # falta mostrar por pantalla el 3 2 1
@@ -1523,8 +1501,7 @@ class Racer():
             #print("GO GO GO!!")
             self.thread_queue.put("GOGOGOGO")
             countdowntxt = "Brr!"
-            if audio:
-                playsound(Path(sys.argv[0]).parent / "dong.wav", block=False)
+            
             # limpiar ranking de partida
             # falta mostrar por pantalla el 3 2 1
 
@@ -1667,8 +1644,6 @@ class Racer():
             self.t_9.configure(fg=self.color_trans_fg); self.t_9.configure(bg=self.color_trans_bg)
             self.t_10.configure(fg=self.color_trans_fg); self.t_10.configure(bg=self.color_trans_bg)
             self.conf_move.configure(fg=self.color_trans_fg); self.conf_move.configure(bg="#222222")
-            self.conf_1_1.configure(fg=self.color_trans_fg); self.conf_1_1.configure(bg=self.color_trans_bg)
-            self.conf_1_2.configure(fg="black"); self.conf_1_2.configure(bg=self.color_trans_bg)
             self.conf_2_1.configure(fg=self.color_trans_fg); self.conf_2_1.configure(bg=self.color_trans_bg)
             self.conf_2_2.configure(fg="black"); self.conf_2_2.configure(bg=self.color_trans_bg)
             self.conf_3_1.configure(fg=self.color_trans_fg); self.conf_3_1.configure(bg=self.color_trans_bg)
@@ -1725,8 +1700,6 @@ class Racer():
             self.t_9.configure(fg=self.color_normal_fg); self.t_9.configure(bg=self.color_normal_bg)
             self.t_10.configure(fg=self.color_normal_fg); self.t_10.configure(bg=self.color_normal_bg)
             self.conf_move.configure(fg=self.color_normal_fg); self.conf_move.configure(bg=self.color_normal_bg)
-            self.conf_1_1.configure(fg=self.color_normal_fg); self.conf_1_1.configure(bg=self.color_normal_bg)
-            self.conf_1_2.configure(fg=self.color_normal_fg); self.conf_1_2.configure(bg=self.color_normal_bg)
             self.conf_2_1.configure(fg=self.color_normal_fg); self.conf_2_1.configure(bg=self.color_normal_bg)
             self.conf_2_2.configure(fg=self.color_normal_fg); self.conf_2_2.configure(bg=self.color_normal_bg)
             self.conf_3_1.configure(fg=self.color_normal_fg); self.conf_3_1.configure(bg=self.color_normal_bg)
@@ -1893,7 +1866,7 @@ class Racer():
         guildhall_laps = StringVar(self.root)
         guildhall_laps.set("1 lap")
 
-        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.10.26""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
+        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.10.30""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
         self.t_1.place(x=0, y=10)
         self.t_2 = tk.Label(self.root, text="""Choose map to race""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_2.place(x=0, y=40)
@@ -1926,7 +1899,6 @@ class Racer():
         self.t_3_5["activeforeground"] = "white"
         self.t_3_5.place(x=199, y=60, width=60, height=36)
 
-        global audio
         global hud_gauge
         global hud_speed
         global hud_distance
@@ -1987,21 +1959,8 @@ class Racer():
 
 
         self.conf_move = tk.Button(self.root, text='MOVE SPEEDOMETER', command=lambda:toggleAll(),font=("Lucida Console", 10))
-        self.conf_move.place(x=310, y=23, width=160, height=20)
-        
-        #OPTION 1 
-        self.conf_1_0 = IntVar(self.root, audio)
-
-        self.conf_1_1 = tk.Label(self.root, text="""Audio on checkpoints""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.conf_1_1.place(x=314, y=44)
-
-        self.conf_1_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
-            text = "",
-            variable=self.conf_1_0,
-            borderwidth=0, command=lambda:conf_toggle("audio"))
-        self.conf_1_2.place(x=310, y=44)
-        
-        
+        self.conf_move.place(x=310, y=28, width=160, height=25)
+         
         #OPTION 1 
         self.conf_2_0 = IntVar(self.root, hud_gauge)
 
@@ -2187,9 +2146,7 @@ class Racer():
 
             if show_config == 1:
                 #mostrarlo
-                self.conf_move.place(x=310, y=23, width=160, height=20)
-                self.conf_1_1.place(x=314, y=44)
-                self.conf_1_2.place(x=310, y=44)
+                self.conf_move.place(x=310, y=28, width=160, height=25)
                 self.conf_2_1.place(x=314, y=44 + 1 * 20)
                 self.conf_2_2.place(x=310, y=44 + 1 * 20 )
                 self.conf_3_1.place(x=314, y=44 + 2 * 20)
@@ -2226,8 +2183,6 @@ class Racer():
 
             else:
                 #ocultarlo
-                self.conf_1_1.place_forget()
-                self.conf_1_2.place_forget()
                 self.conf_2_1.place_forget()
                 self.conf_2_2.place_forget()
                 self.conf_3_1.place_forget()

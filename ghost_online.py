@@ -261,10 +261,10 @@ class Ghost3d():
         #if game_focus == '0':
         #    return
         try:
-            if key.char == "t":
+            if str(key) == "'t'" or str(key) == "'T'" or str(key) == "'\\x14'":
                 print('START GHOST')
                 filename_timer = time.perf_counter()
-            if key.char == "y":
+            if str(key) == "'y'" or str(key) == "'Y'" or str(key) == "'\\x19'":
                 map_change = self.read_guildhall()
                 stop = True
                 map_angle = 0
@@ -286,7 +286,7 @@ class Ghost3d():
 
                 filename_timer = 99999
                 stop = False
-            if key.char == "u":
+            if str(key) == "'u'" or str(key) == "'U'" or str(key) == "'\\x15'":
                 stop = True
                 map_angle = 0
                 self.last_map_angle = 0

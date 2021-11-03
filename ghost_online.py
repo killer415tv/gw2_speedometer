@@ -29,7 +29,8 @@ import PySide2
 from pyqtgraph.Qt import QtCore, QtGui
 import pyqtgraph.opengl as gl
 
-from PySide2.QtWidgets import QApplication, QDialog, QLineEdit, QPushButton, QWidget, QVBoxLayout, QLabel, QFileDialog
+from PySide2.QtWidgets import QApplication, QDialog, QLineEdit, QPushButton, QWidget, QVBoxLayout, QLabel, QFileDialog, QCheckBox
+from PySide2.QtCore import Qt
 
 import sys
 from opensimplex import OpenSimplex
@@ -91,6 +92,8 @@ splitTime = 1  #check time diff each 1 secs
 from ctypes import windll, byref, create_unicode_buffer, create_string_buffer
 FR_PRIVATE  = 0x10
 FR_NOT_ENUM = 0x20
+
+show3D = True
 
 def loadfont(fontpath, private=True, enumerable=False):
     '''
@@ -257,14 +260,15 @@ class Ghost3d():
         global firstTime
         global stop
         global map_angle
+        global show3D
         
         #if game_focus == '0':
         #    return
         try:
-            if str(key) == "'t'" or str(key) == "'T'" or str(key) == "'\\x14'":
+            if key.char == "t":
                 print('START GHOST')
                 filename_timer = time.perf_counter()
-            if str(key) == "'y'" or str(key) == "'Y'" or str(key) == "'\\x19'":
+            if key.char == "y":
                 map_change = self.read_guildhall()
                 stop = True
                 map_angle = 0
@@ -275,8 +279,8 @@ class Ghost3d():
                     balls = self.balls.values()
                     value_iterator = iter(balls)
                     first_value = next(value_iterator)
-                    
-                    self.w.removeItem(first_value)
+                    if show3D:
+                        self.w.removeItem(first_value)
                 #only force search again if change map
                 if not forceFile:
                     if map_change:
@@ -286,13 +290,16 @@ class Ghost3d():
 
                 filename_timer = 99999
                 stop = False
-            if str(key) == "'u'" or str(key) == "'U'" or str(key) == "'\\x15'":
+            if key.char == "u":
                 stop = True
                 map_angle = 0
                 self.last_map_angle = 0
                 firstTime = True
                 self.read_guildhall()
+                
                 if forceFile:
+                    filename_timer = 99999
+                    stop = False
                     return 
                 print('SEARCH BETTER LOG')
                 self.file_ready = False
@@ -301,8 +308,8 @@ class Ghost3d():
                     balls = self.balls.values()
                     value_iterator = iter(balls)
                     first_value = next(value_iterator)
-                    
-                    self.w.removeItem(first_value)
+                    if show3D:
+                        self.w.removeItem(first_value)
                     firstTime = True
 
                 self.searchGhost(False)
@@ -677,6 +684,7 @@ class Ghost3d():
 
         global firstTime
         global firstLoad
+        global show3D
 
         global stop
         
@@ -747,65 +755,66 @@ class Ghost3d():
                     else:
                         self.labelspeed.setText('<font color=\"white\">Speed : ' + str(strvel) +'</font>')
 
-                #self.createMarker(posx+900,posy+500,posz,vel,30,datetime.fromtimestamp(int(file.split("\\")[4][:-4].split("_")[2].split(".")[0])))
 
-                #dibujamos un marcador por lectura , hay que cambiar para no crear muchos
-                speedcolor = [120, 152, 255]
+                if show3D:
+                    #self.createMarker(posx+900,posy+500,posz,vel,30,datetime.fromtimestamp(int(file.split("\\")[4][:-4].split("_")[2].split(".")[0])))
 
-                if vel > 65 :
-                    speedcolor = [201, 112, 204]
-                if vel > 80 :
-                    speedcolor = [255, 138, 54]
-                if vel > 99 :
-                    speedcolor = [235, 55, 52]
+                    #dibujamos un marcador por lectura , hay que cambiar para no crear muchos
+                    speedcolor = [120, 152, 255]
 
-                #print(vel, speedcolor)
+                    if vel > 65 :
+                        speedcolor = [201, 112, 204]
+                    if vel > 80 :
+                        speedcolor = [255, 138, 54]
+                    if vel > 99 :
+                        speedcolor = [235, 55, 52]
+
+                    #print(vel, speedcolor)
                 
-                # self.md = gl.MeshData.sphere(rows=2, cols=4, radius=1.0)
-                self.md = gl.MeshData.cylinder(rows=2, cols=20, radius=[1.5, 1.5], length=1)
+                    # self.md = gl.MeshData.sphere(rows=2, cols=4, radius=1.0)
+                    self.md = gl.MeshData.cylinder(rows=2, cols=20, radius=[1.5, 1.5], length=1)
 
-                colors = np.ones((self.md.faceCount(), 4), dtype=float)
-                colors[::1,0] = 1
-                colors[::1,1] = 0
-                colors[::1,2] = 0
-                colors[:,1] = np.linspace(0, 1, colors.shape[0])
-                #self.md.setFaceColors(colors)
+                    colors = np.ones((self.md.faceCount(), 4), dtype=float)
+                    colors[::1,0] = 1
+                    colors[::1,1] = 0
+                    colors[::1,2] = 0
+                    colors[:,1] = np.linspace(0, 1, colors.shape[0])
+                    #self.md.setFaceColors(colors)
+                    if not file in self.balls:
+                        self.balls[file] = gl.GLMeshItem(meshdata=self.md, smooth=True, drawFaces=True, glOptions='additive', shader='shaded', color=(QtGui.QColor(speedcolor[0], speedcolor[1], speedcolor[2])))
+                        self.balls[file].scale(1.5, 1.5, 1.5)
+                        self.w.addItem(self.balls[file])
 
-                if not file in self.balls:
-                    self.balls[file] = gl.GLMeshItem(meshdata=self.md, smooth=True, drawFaces=True, glOptions='additive', shader='shaded', color=(QtGui.QColor(speedcolor[0], speedcolor[1], speedcolor[2])))
-                    self.balls[file].scale(1.5, 1.5, 1.5)
-                    self.w.addItem(self.balls[file])
+                    if self.last_balls_positions.get(file):
+                        last_pos = self.last_balls_positions.get(file)
+                    else: 
+                        last_pos = [0,0,0]
 
-                if self.last_balls_positions.get(file):
-                    last_pos = self.last_balls_positions.get(file)
-                else: 
-                    last_pos = [0,0,0]
+                    if firstTime:
+                        map_angle = 0
 
-                if firstTime:
-                    map_angle = 0
+                    transx = float(posx) - float(last_pos[0])
+                    transy = float(posz) - float(last_pos[1])
+                    transz = float(posy) - float(last_pos[2])
+                    rotate = float(map_angle) - float(self.last_map_angle)
+                    
+                    # rotation = float()
+                    if firstTime:
+                        self.balls[file].resetTransform()
+                        self.balls[file].rotate(90,0,1,0,True)
+                        self.balls[file].rotate(map_angle,1,0,0,True)
+                        #self.balls[file].rotate(-53,1,0,0,True)
+                        firstTime = False
 
-                transx = float(posx) - float(last_pos[0])
-                transy = float(posz) - float(last_pos[1])
-                transz = float(posy) - float(last_pos[2])
-                rotate = float(map_angle) - float(self.last_map_angle)
-                
-                # rotation = float()
-                if firstTime:
-                    self.balls[file].resetTransform()
-                    self.balls[file].rotate(90,0,1,0,True)
-                    self.balls[file].rotate(map_angle,1,0,0,True)
-                    #self.balls[file].rotate(-53,1,0,0,True)
-                    firstTime = False
+                    #self.balls[file].resetTransform()
+                    self.balls[file].rotate(-float(rotate),1,0,0,True)
 
-                #self.balls[file].resetTransform()
-                self.balls[file].rotate(-float(rotate),1,0,0,True)
+                    self.balls[file].translate(transx,transy,transz)
 
-                self.balls[file].translate(transx,transy,transz)
+                    self.balls[file].setColor(QtGui.QColor(speedcolor[0], speedcolor[1], speedcolor[2]))
 
-                self.balls[file].setColor(QtGui.QColor(speedcolor[0], speedcolor[1], speedcolor[2]))
-
-                self.last_balls_positions[file] = [posx,posz,posy]
-                self.last_map_angle = map_angle
+                    self.last_balls_positions[file] = [posx,posz,posy]
+                    self.last_map_angle = map_angle
 
         #self.loop = self.root.after(1, self.update)
 
@@ -820,9 +829,12 @@ class Ghost3d():
         """
         calls the update method to run in a loop
         """
-        self.timer = QtCore.QTimer()
-        self.timer.timeout.connect(self.updateCam)
-        self.timer.start(0.5)
+        global show3D
+
+        if show3D:
+            self.timer = QtCore.QTimer()
+            self.timer.timeout.connect(self.updateCam)
+            self.timer.start(0.5)
 
         self.timer2 = QtCore.QTimer()
         self.timer2.timeout.connect(self.update)
@@ -861,6 +873,7 @@ class Ghost3d():
         global guildhall_name
         global timer
         global min_time
+        global show3D
 
         self.file_ready = False
 
@@ -876,7 +889,8 @@ class Ghost3d():
         self.create_top_section()
         
         #3d viewer
-        self.create_3d_viewer()
+        if show3D:
+            self.create_3d_viewer()
 
         #launch the ghost system
         self.launchGhost(option)
@@ -948,6 +962,14 @@ class Menu():
         
         # print the json response
         return data_json['ranking']
+
+    def checkBoxChange(self, state):
+        global show3D
+
+        if state == Qt.Checked:
+            show3D = True
+        else:
+            show3D = False
 
     def __init__(self):
         
@@ -1033,6 +1055,15 @@ class Menu():
         
         layout.addWidget(rank4)
         layout.addWidget(rank5)
+
+        check = QCheckBox("Show 3D ghost")
+        check.stateChanged.connect(self.checkBoxChange)
+        check.toggle()
+ 
+        layout.addWidget(check)
+
+
+
         
         self.window.setLayout(layout)
         self.window.show()

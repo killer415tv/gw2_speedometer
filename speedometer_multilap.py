@@ -78,6 +78,9 @@ ghost_start = 't'
 recalculate_ghost = 'y'
 
 #show timer
+hud_slope = 1 # 1 = on , 0 = off
+
+#show timer
 hud_speed = 1 # 1 = on , 0 = off
 
 #show log distance in metres
@@ -113,6 +116,8 @@ lastMapId = 0
 winh = 110
 winw = 200
 
+_3Dpos = [0,0,0]
+_last3Dpos = [0,0,0]
 if speed_in_3D == 1:
     _pos = [0,0,0]
     _lastPos = [0,0,0]
@@ -124,6 +129,7 @@ _lastVel = 0
 _lastTick = 0
 _lastTime = 0
 velocity = 0
+slope = 0
 _time = 0
 _tick = 0
 timer = 0.01
@@ -220,10 +226,12 @@ class Configuration():
         global racer
         global meter
         global player_color
+        global hud_slope
 
         cfg.add_section("general")
 
         cfg.set("general", "speed_in_3D", speed_in_3D)
+        cfg.set("general", "hud_slope", hud_slope)
         cfg.set("general", "enable_livesplit_hotkey", enable_livesplit_hotkey)
         cfg.set("general", "live_start", live_start)
         cfg.set("general", "live_reset", live_reset)
@@ -260,6 +268,7 @@ class Configuration():
     def loadConf(self):
         cfg = RawConfigParser()
         global speed_in_3D
+        global hud_slope
         global enable_livesplit_hotkey
         global live_start
         global live_reset
@@ -288,6 +297,8 @@ class Configuration():
 
             if (cfg.has_option("general", "speed_in_3D")):
                 speed_in_3D = int(cfg.get("general", "speed_in_3D"))
+            if (cfg.has_option("general", "hud_slope")):
+                hud_slope = int(cfg.get("general", "hud_slope"))
             if (cfg.has_option("general", "enable_livesplit_hotkey")):
                 enable_livesplit_hotkey = int(cfg.get("general", "enable_livesplit_hotkey"))
             if (cfg.has_option("general", "live_start")):
@@ -448,7 +459,6 @@ class ThreadWithReturnValue(Thread):
         Thread.join(self)
         return self._return
 
-
 class Meter():
     
     def uploadLog(self,guildhall,old_filename,ml):
@@ -464,8 +474,6 @@ class Meter():
         print(response.text)
         return response.text
         
-        
-
     def setOnTopfullscreen(self):
         self.root.attributes('-topmost', 1)
         self.root.after(500, self.setOnTopfullscreen)
@@ -502,6 +510,8 @@ class Meter():
         global geometry_speedometer
         
         self.lastNonZero = 0
+        self.lastNonZero_slope = 0
+        self.lastNonZero_accel = 0
 
         self.root = Tk()
         self.root.config(cursor="none")
@@ -542,6 +552,8 @@ class Meter():
 
         if hud_acceleration:
             self.accelvar = tk.StringVar(self.root,0)
+        if hud_slope:
+            self.slopevar = tk.StringVar(self.root,0)
         if hud_drift_hold:
             self.drifting = False
             self.drift_time = 0.0
@@ -582,6 +594,10 @@ class Meter():
         if hud_acceleration:
             self.acceltext = tk.Label(self.root, text="Accel.", fg = "white", bg="#666666", font=("Lucida Console", 7)).place(x = 231, y = 46)
             self.accelnum = tk.Label(self.root, textvariable = self.accelvar, fg = "white", bg="#666666", font=("Digital-7 Mono", 8, "bold")).place(x = 230, y = 57)
+
+        if hud_slope:
+            self.acceltext = tk.Label(self.root, text="Slope", fg = "white", bg="#666666", font=("Lucida Console", 7)).place(x = 251, y = 82)
+            self.accelnum = tk.Label(self.root, textvariable = self.slopevar, fg = "white", bg="#666666", font=("Digital-7 Mono", 8, "bold")).place(x = 250, y = 93)
 
         
         if hud_speed:
@@ -667,6 +683,51 @@ class Meter():
         pos = (self.max_speed.get() - mini) / (maxi - mini)
         self.updateMeterLine(pos * 0.6 + 0.2, self.max_meter_meter)
 
+    def calculateAcceleration(self):
+        global velocity
+        global _lastVel
+
+        global _time
+        global _lastTime
+
+        if (velocity and _lastVel):
+            self.lastNonZero_accel = time.time()
+            acceleration = round(((velocity - _lastVel) / (_time - _lastTime))/100)
+            self.accelvar.set(acceleration);
+            return acceleration
+        else:
+            if time.time() > self.lastNonZero_accel + 0.05:
+                self.accelvar.set(0);
+                return 0
+    
+    def calculateSlope(self, pos1, pos2):
+        global _3Dpos
+        global _last3Dpos
+        global slope
+
+        a = _3Dpos[1] - _last3Dpos[1]
+        b = distance.euclidean([_3Dpos[0],_3Dpos[2]], [_last3Dpos[0],_last3Dpos[2]])
+
+        if (b):
+            slope = round(np.rad2deg(np.arctan(a/b)))
+        else:
+            slope = 0
+
+        if slope:
+            self.lastNonZero_slope = time.time()
+            self.slopevar.set(slope);
+        else:
+            if time.time() > self.lastNonZero_slope + 0.05:
+                None
+                self.slopevar.set(slope);
+            
+            
+
+        slope2 = round((_3Dpos[1] -_last3Dpos[1])*10000 )/100
+        
+
+
+
     def updateMeterTimer(self):
 
         global _lastPos
@@ -677,6 +738,7 @@ class Meter():
         global _time
         global _pos
         global _3Dpos
+        global _last3Dpos
         global _tick
         global timer
         global color
@@ -713,7 +775,7 @@ class Meter():
         global lastMapId
 
         global game_focus
-        
+        global hud_slope
 
 
         if hud_drift_hold:
@@ -750,55 +812,13 @@ class Meter():
             else:
                 return True
 
-        def checkTP(coords):
-            global last_checkpoint_position
-
-            global _3Dpos
-            global _time
-
-            global pressedQ
-            global keyboard_
-            global delaytimer
-            global filename
-            global total_timer
-            global lap_timer
-            global total_distance
-
-            global lap
-            global racer
-
-            # reset , tp position
-            arraystep = (ctypes.c_float * len(coords))(*coords)
-            #la distancia de 5 es como si fuera una esfera de tamaño similar a una esfera de carreras de tiria
-            if distance.euclidean(_3Dpos, arraystep) < 5 and (pressedQ == 0 or different(last_checkpoint_position, arraystep)):
-                if 'racer' in globals():
-                    racer.saveCheckpoint(0)
-                    
-                last_checkpoint_position = arraystep
-                if enable_livesplit_hotkey == 1:
-                    keyboard_.press(live_reset)
-                    keyboard_.release(live_reset)
-                pressedQ = 0.5
-                #cerrar fichero si hubiera una sesión anterior
-                filename = ""
-                total_timer = _time
-                lap_timer = _time
-                #print("----------------------------------")
-                #print("GOING TO MAP TP = RESET RUN ")
-                #print("----------------------------------")
-                self.steps_txt.set("")
-                self.step1_txt.set("")
-                self.vartime.set("")
-                tmhud.write("")
-                self.distance.set("")
-                lap = 1
-
         def checkpoint(step, stepName, coords, radius):
 
             global checkpoints_list
 
             global last_checkpoint_position
             global _3Dpos
+            global _last3Dpos
             global _time
             global guildhall_name
             global guildhall_laps
@@ -974,7 +994,6 @@ class Meter():
 
                                 current_time = last_filename_df.values[-1][6]                                
                                 datefinish = datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(current_time), "%M:%S:%f")[:-3]
-                                best_log(current_time, old_filename)
                                 
                                 if enable_livesplit_hotkey == 1:
                                     keyboard_.press(live_start)
@@ -1066,48 +1085,7 @@ class Meter():
                             #mqtt se manda el tiempo como inicio
                             racer.sendMQTT({"option": "c", "step": step, "lap": lap, "time": steptime, "user": racer.username.get()})
 
-        """
-        function that updates the best time of the track in the file best_log.
-        The file is used by the Ghost to iterate less and find the best run's file name quickly
         
-        Parameters:
-            - time: time of the run
-            - old_filename: name of the file of the run
-        What the function does :
-            opens best_log.txt
-            read the lines in it
-            empty the file
-            check in the lines if the current track is found
-            if yes checks if the new time is better than the one in the file
-            if yes replaces it
-            writes the lines back in the file
-            
-            if the track has never been run before it writes the new record
-        """
-        def best_log(time, old_filename):
-            current_track = guildhall_name.get()
-            with open(Path(sys.argv[0]).parent / "logs" / "best_logs.txt",
-                      'a+',
-                      newline='',
-                      encoding='utf-8') as b_l:
-                b_l.seek(0)
-                tracks = b_l.readlines()
-                b_l.seek(0)
-                b_l.truncate()
-                new_track = True
-                for track in tracks:
-                    if current_track in track:
-                        new_track = False
-                        phrase = track.split(",")
-                        if float(phrase[1]) > time:
-                            track = phrase[0] + "," + str(time) + "," + old_filename + "\r\n"
-                    b_l.write(track)
-                if new_track:
-                    b_l.write(current_track + "," + str(time) + "," + old_filename + "\r\n")
-
-
-
-
         """Fade over time"""
         #print("actualiza", flush=True)
         #toma de datos nueva
@@ -1139,11 +1117,13 @@ class Meter():
                 elif (ml.context.mapId == 1330):
                     racer.changeCup("TYRIACUP")
                     racer.saveGuildhall("TYRIA GROTHMAR VALLEY")
-            
-                
+        
+        if hud_slope:    
+            self.calculateSlope(_3Dpos,_last3Dpos)
+
         _tick = ml.data.uiTick
         _time = time.time()
-        
+        _last3Dpos = _3Dpos
         _3Dpos = ml.data.fAvatarPosition
 
         if speed_in_3D:
@@ -1340,18 +1320,8 @@ class Meter():
                             self.canvas.coords(avatar_circle, 200 + 190 * float(uaf[0])-11,  195 + 190 * float(uaf[1])-11 , 200 + 190 * float(uaf[0])+11 ,  195 + 190 * float(uaf[1])+11 )
 
                 #calculamos la aceleración
-                acceleration = 0
                 if hud_acceleration:
-                    acceleration = round(((velocity - _lastVel) / (_time - _lastTime)))*100/1000 
-
-                    if acceleration > 900:
-                        acceleration = 900
-                    
-                    if acceleration < -900:
-                        acceleration = -900
-
-                    if acceleration < 900 and acceleration > -900:
-                            self.accelvar.set(acceleration);
+                    acceleration = self.calculateAcceleration()
                     
                 #escribir velocidad,tiempo,x,y,z en fichero, solo si está abierto el fichero y si está habilitado el log
                 
@@ -1390,6 +1360,7 @@ class Meter():
                         self.var100.set(round((velocity*100/10000)*99/72))
                         i = self.canvas.find_withtag("arc")
                         self.canvas.itemconfig(i, outline=color)
+                        _lastVel = velocity
                 else:
                     if time.time() > self.lastNonZero + 0.05:
                         if round(velocity*100/10000) < 140:
@@ -1397,11 +1368,12 @@ class Meter():
                             self.var100.set(round((velocity*100/10000)*99/72))
                             i = self.canvas.find_withtag("arc")
                             self.canvas.itemconfig(i, outline=color)
+                            _lastVel = velocity
                         
                                     
             _lastTime = _time
             _lastPos = _pos
-            _lastVel = velocity
+            #_lastVel = velocity
             _lastTick = _tick
 
         self.root.after(10, self.updateMeterTimer)
@@ -1585,6 +1557,7 @@ class Racer():
         self.saveCheckpoint(0)
 
         global _3Dpos
+        global _last3Dpos
         global _time
 
         global keyboard_
@@ -1644,6 +1617,8 @@ class Racer():
             self.t_9.configure(fg=self.color_trans_fg); self.t_9.configure(bg=self.color_trans_bg)
             self.t_10.configure(fg=self.color_trans_fg); self.t_10.configure(bg=self.color_trans_bg)
             self.conf_move.configure(fg=self.color_trans_fg); self.conf_move.configure(bg="#222222")
+            self.conf_1_1.configure(fg=self.color_trans_fg); self.conf_1_1.configure(bg=self.color_trans_bg)
+            self.conf_1_2.configure(fg="black"); self.conf_1_2.configure(bg=self.color_trans_bg)
             self.conf_2_1.configure(fg=self.color_trans_fg); self.conf_2_1.configure(bg=self.color_trans_bg)
             self.conf_2_2.configure(fg="black"); self.conf_2_2.configure(bg=self.color_trans_bg)
             self.conf_3_1.configure(fg=self.color_trans_fg); self.conf_3_1.configure(bg=self.color_trans_bg)
@@ -1700,6 +1675,8 @@ class Racer():
             self.t_9.configure(fg=self.color_normal_fg); self.t_9.configure(bg=self.color_normal_bg)
             self.t_10.configure(fg=self.color_normal_fg); self.t_10.configure(bg=self.color_normal_bg)
             self.conf_move.configure(fg=self.color_normal_fg); self.conf_move.configure(bg=self.color_normal_bg)
+            self.conf_1_1.configure(fg=self.color_normal_fg); self.conf_1_1.configure(bg=self.color_normal_bg)
+            self.conf_1_2.configure(fg=self.color_normal_fg); self.conf_1_2.configure(bg=self.color_normal_bg)
             self.conf_2_1.configure(fg=self.color_normal_fg); self.conf_2_1.configure(bg=self.color_normal_bg)
             self.conf_2_2.configure(fg=self.color_normal_fg); self.conf_2_2.configure(bg=self.color_normal_bg)
             self.conf_3_1.configure(fg=self.color_normal_fg); self.conf_3_1.configure(bg=self.color_normal_bg)
@@ -1866,7 +1843,7 @@ class Racer():
         guildhall_laps = StringVar(self.root)
         guildhall_laps.set("1 lap")
 
-        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.10.30""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
+        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.11.3""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
         self.t_1.place(x=0, y=10)
         self.t_2 = tk.Label(self.root, text="""Choose map to race""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_2.place(x=0, y=40)
@@ -1959,8 +1936,20 @@ class Racer():
 
 
         self.conf_move = tk.Button(self.root, text='MOVE SPEEDOMETER', command=lambda:toggleAll(),font=("Lucida Console", 10))
-        self.conf_move.place(x=310, y=28, width=160, height=25)
+        self.conf_move.place(x=310, y=18, width=160, height=25)
          
+        #OPTION 1 
+        self.conf_1_0 = IntVar(self.root, hud_slope)
+
+        self.conf_1_1 = tk.Label(self.root, text="""Show slope""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
+        self.conf_1_1.place(x=314, y=44 )
+
+        self.conf_1_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
+            text = "",
+            variable=self.conf_1_0,
+            borderwidth=0, command=lambda:conf_toggle("hud_slope"))
+        self.conf_1_2.place(x=310, y=44 )
+
         #OPTION 1 
         self.conf_2_0 = IntVar(self.root, hud_gauge)
 
@@ -2146,9 +2135,11 @@ class Racer():
 
             if show_config == 1:
                 #mostrarlo
-                self.conf_move.place(x=310, y=28, width=160, height=25)
+                self.conf_move.place(x=310, y=18, width=160, height=25)
+                self.conf_1_1.place(x=314, y=44 + 0 * 20)
+                self.conf_1_2.place(x=310, y=44 + 0 * 20)
                 self.conf_2_1.place(x=314, y=44 + 1 * 20)
-                self.conf_2_2.place(x=310, y=44 + 1 * 20 )
+                self.conf_2_2.place(x=310, y=44 + 1 * 20)
                 self.conf_3_1.place(x=314, y=44 + 2 * 20)
                 self.conf_3_2.place(x=310, y=44 + 2 * 20)
                 self.conf_4_1.place(x=314, y=44 + 3 * 20)
@@ -2183,6 +2174,8 @@ class Racer():
 
             else:
                 #ocultarlo
+                self.conf_1_1.place_forget()
+                self.conf_1_2.place_forget()
                 self.conf_2_1.place_forget()
                 self.conf_2_2.place_forget()
                 self.conf_3_1.place_forget()

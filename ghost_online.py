@@ -685,11 +685,22 @@ class Ghost3d():
         global firstTime
         global firstLoad
         global show3D
+        global game_focus
 
         global stop
         
         if stop:
             return
+
+        if show3D == False:
+            ml.read()
+
+            if ml.data.uiVersion == 0:
+                return
+            game_status = '{0:08b}'.format(ml.context.uiState)
+            game_focus = game_status[4]
+
+            fAvatarPosition = [ml.data.fAvatarPosition[0],ml.data.fAvatarPosition[1],ml.data.fAvatarPosition[2]]
 
 
         timer = time.perf_counter() - filename_timer

@@ -3,6 +3,7 @@ from tkinter import simpledialog
 from tkinter import *
 from tkinter import colorchooser
 from math import pi, cos, sin
+from enum import Enum
 import ctypes
 import mmap
 import time
@@ -108,6 +109,7 @@ show_checkpoints_window = 1
 player_color = "#333333"
 
 game_focus = 0
+mount_index = -1
 
 client = ""
 mapId = 0
@@ -194,6 +196,18 @@ def loadfont(fontpath: str, private=True, enumerable=False):
     return bool(numFontsAdded)
 
 loadfont(str(Path(sys.argv[0]).parent / "font.ttf"))
+
+#https://wiki.guildwars2.com/wiki/API:MumbleLink#context
+class Mounts(Enum):
+    Unmounted = 0
+    Jackal = 1
+    Griffon = 2
+    Springer = 3
+    Skimmer = 4
+    Raptor = 5
+    RollerBeetle = 6
+    Warclaw = 7
+    Skyscale = 8
 
 class Configuration():
     def __init__(self, master=None, **kw):
@@ -396,7 +410,9 @@ class Context(ctypes.Structure):
         + " \n playerY:" + str(self.playerY) \
         + " \n mapCenterX:" + str(self.mapCenterX) \
         + " \n mapCenterY:" + str(self.mapCenterY) \
-        + " \n mapScale:" + str(self.mapScale) 
+        + " \n mapScale:" + str(self.mapScale) \
+        + " \n processId:" + str(self.processId) \
+        + " \n mountIndex:" + str(self.mountIndex)
         
     _fields_ = [
         ("serverAddress", ctypes.c_byte * 28),    # 28 bytes
@@ -414,6 +430,8 @@ class Context(ctypes.Structure):
         ("mapCenterX", ctypes.c_float),           # 4 bytes
         ("mapCenterY", ctypes.c_float),           # 4 bytes
         ("mapScale", ctypes.c_float),             # 4 bytes
+        ("processId", ctypes.c_uint32),           # 4 bytes
+        ("mountIndex", ctypes.c_byte)             # 1 bytes
     ]
 
 class MumbleLink:
@@ -775,6 +793,7 @@ class Meter():
         global lastMapId
 
         global game_focus
+        global mount_index
         global hud_slope
 
 
@@ -1094,7 +1113,17 @@ class Meter():
         ml.read()
 
         game_status = '{0:08b}'.format(ml.context.uiState)
-        game_focus = game_status[4]
+        if self.move:
+            meter.root.deiconify()
+        elif game_focus != game_status[4] or mount_index != ml.context.mountIndex:
+            game_focus = game_status[4]
+            mount_index = ml.context.mountIndex
+            if game_focus == '1':
+                self.root.attributes('-topmost', 1)
+            if ml.context.mountIndex == Mounts.RollerBeetle.value and game_focus == '1':
+                meter.root.deiconify()
+            else:
+                meter.root.withdraw()
 
         mapId = ml.context.mapId
         if (mapId != lastMapId):

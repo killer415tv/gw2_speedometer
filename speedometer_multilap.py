@@ -3,7 +3,7 @@ from tkinter import simpledialog
 from tkinter import *
 from tkinter import colorchooser
 from math import pi, cos, sin
-from enum import Enum
+from enum import IntEnum, unique
 import ctypes
 import mmap
 import time
@@ -198,7 +198,8 @@ def loadfont(fontpath: str, private=True, enumerable=False):
 loadfont(str(Path(sys.argv[0]).parent / "font.ttf"))
 
 #https://wiki.guildwars2.com/wiki/API:MumbleLink#context
-class Mounts(Enum):
+@unique
+class Mounts(IntEnum):
     Unmounted = 0
     Jackal = 1
     Griffon = 2
@@ -1120,7 +1121,7 @@ class Meter():
             mount_index = ml.context.mountIndex
             if game_focus == '1':
                 self.root.attributes('-topmost', 1)
-            if ml.context.mountIndex == Mounts.RollerBeetle.value and game_focus == '1':
+            if ml.context.mountIndex == Mounts.RollerBeetle and game_focus == '1':
                 meter.root.deiconify()
             else:
                 meter.root.withdraw()

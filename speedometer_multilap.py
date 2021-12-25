@@ -104,7 +104,11 @@ magic_angle = 58 # angle for hud_angles_bubbles, to show a visual guide of the m
 hud_drift_hold = 0
 drift_key = 'c' # for special keys like ALT use 'Key.alt_l' more info https://pynput.readthedocs.io/en/latest/_modules/pynput/keyboard/_base.html#Key
 #show race assistant window, map selection and multiplayer
-show_checkpoints_window = 1 
+show_checkpoints_window = 1
+
+#hide speedometer options
+hud_hide_no_focus = 0
+hud_hide_no_beetle = 0
 
 player_color = "#333333"
 
@@ -1121,10 +1125,10 @@ class Meter():
             mount_index = ml.context.mountIndex
             if game_focus == '1':
                 self.root.attributes('-topmost', 1)
-            if ml.context.mountIndex == Mounts.RollerBeetle and game_focus == '1':
-                meter.root.deiconify()
-            else:
+            if (mount_index != Mounts.RollerBeetle and hud_hide_no_beetle) or (game_focus != '1' and hud_hide_no_focus):
                 meter.root.withdraw()
+            else:
+                meter.root.deiconify()
 
         mapId = ml.context.mapId
         if (mapId != lastMapId):
@@ -1652,34 +1656,13 @@ class Racer():
             self.t_9.configure(fg=self.color_trans_fg); self.t_9.configure(bg=self.color_trans_bg)
             self.t_10.configure(fg=self.color_trans_fg); self.t_10.configure(bg=self.color_trans_bg)
             self.conf_move.configure(fg=self.color_trans_fg); self.conf_move.configure(bg="#222222")
-            self.conf_1_1.configure(fg=self.color_trans_fg); self.conf_1_1.configure(bg=self.color_trans_bg)
-            self.conf_1_2.configure(fg="black"); self.conf_1_2.configure(bg=self.color_trans_bg)
-            self.conf_2_1.configure(fg=self.color_trans_fg); self.conf_2_1.configure(bg=self.color_trans_bg)
-            self.conf_2_2.configure(fg="black"); self.conf_2_2.configure(bg=self.color_trans_bg)
-            self.conf_3_1.configure(fg=self.color_trans_fg); self.conf_3_1.configure(bg=self.color_trans_bg)
-            self.conf_3_2.configure(fg="black"); self.conf_3_2.configure(bg=self.color_trans_bg)
-            self.conf_4_1.configure(fg=self.color_trans_fg); self.conf_4_1.configure(bg=self.color_trans_bg)
-            self.conf_4_2.configure(fg="black"); self.conf_4_2.configure(bg=self.color_trans_bg)
-            self.conf_5_1.configure(fg=self.color_trans_fg); self.conf_5_1.configure(bg=self.color_trans_bg)
-            self.conf_5_2.configure(fg="black"); self.conf_5_2.configure(bg=self.color_trans_bg)
-            self.conf_6_1.configure(fg=self.color_trans_fg); self.conf_6_1.configure(bg=self.color_trans_bg)
-            self.conf_6_2.configure(fg="black"); self.conf_6_2.configure(bg=self.color_trans_bg)
-            self.conf_7_1.configure(fg=self.color_trans_fg); self.conf_7_1.configure(bg=self.color_trans_bg)
-            self.conf_7_2.configure(fg="black"); self.conf_7_2.configure(bg=self.color_trans_bg)
-            self.conf_8_1.configure(fg=self.color_trans_fg); self.conf_8_1.configure(bg=self.color_trans_bg)
-            self.conf_8_2.configure(fg="black"); self.conf_8_2.configure(bg=self.color_trans_bg)
-            self.conf_9_1.configure(fg=self.color_trans_fg); self.conf_9_1.configure(bg=self.color_trans_bg)
-            self.conf_9_2.configure(fg="black"); self.conf_9_2.configure(bg=self.color_trans_bg)
-            self.conf_10_1.configure(fg=self.color_trans_fg); self.conf_10_1.configure(bg=self.color_trans_bg)
-            self.conf_10_2.configure(fg="black"); self.conf_10_2.configure(bg=self.color_trans_bg)
-            self.conf_11_1.configure(fg=self.color_trans_fg); self.conf_11_1.configure(bg=self.color_trans_bg)
-            self.conf_11_2.configure(fg="black"); self.conf_11_2.configure(bg=self.color_trans_bg)
-            self.conf_12_1.configure(fg=self.color_trans_fg); self.conf_12_1.configure(bg=self.color_trans_bg)
-            self.conf_12_2.configure(fg="black"); self.conf_12_2.configure(bg=self.color_trans_bg)
-            self.conf_13_1.configure(fg=self.color_trans_fg); self.conf_13_1.configure(bg=self.color_trans_bg)
-            self.conf_13_2.configure(fg="black"); self.conf_13_2.configure(bg=self.color_trans_bg)
-            self.conf_14_1.configure(fg=self.color_trans_fg); self.conf_14_1.configure(bg=self.color_trans_bg)
-            self.conf_14_2.configure(fg="black"); self.conf_14_2.configure(bg=self.color_trans_bg)
+            for option in self.config_options:
+                if "label" in option:
+                    option["label"].configure(fg=self.color_trans_fg)
+                    option["label"].configure(bg=self.color_trans_bg)
+                if "checkbutton" in option:
+                    option["checkbutton"].configure(fg="black")
+                    option["checkbutton"].configure(bg=self.color_trans_bg)
             self.conf_15_1.configure(bg=self.color_trans_bg)
             self.conf_15_2.configure(fg=self.color_trans_fg); self.conf_15_2.configure(bg="#222222")
             self.conf_save.configure(fg=self.color_trans_fg); self.conf_save.configure(bg="#222222")
@@ -1710,34 +1693,15 @@ class Racer():
             self.t_9.configure(fg=self.color_normal_fg); self.t_9.configure(bg=self.color_normal_bg)
             self.t_10.configure(fg=self.color_normal_fg); self.t_10.configure(bg=self.color_normal_bg)
             self.conf_move.configure(fg=self.color_normal_fg); self.conf_move.configure(bg=self.color_normal_bg)
-            self.conf_1_1.configure(fg=self.color_normal_fg); self.conf_1_1.configure(bg=self.color_normal_bg)
-            self.conf_1_2.configure(fg=self.color_normal_fg); self.conf_1_2.configure(bg=self.color_normal_bg)
-            self.conf_2_1.configure(fg=self.color_normal_fg); self.conf_2_1.configure(bg=self.color_normal_bg)
-            self.conf_2_2.configure(fg=self.color_normal_fg); self.conf_2_2.configure(bg=self.color_normal_bg)
-            self.conf_3_1.configure(fg=self.color_normal_fg); self.conf_3_1.configure(bg=self.color_normal_bg)
-            self.conf_3_2.configure(fg=self.color_normal_fg); self.conf_3_2.configure(bg=self.color_normal_bg)
-            self.conf_4_1.configure(fg=self.color_normal_fg); self.conf_4_1.configure(bg=self.color_normal_bg)
-            self.conf_4_2.configure(fg=self.color_normal_fg); self.conf_4_2.configure(bg=self.color_normal_bg)
-            self.conf_5_1.configure(fg=self.color_normal_fg); self.conf_5_1.configure(bg=self.color_normal_bg)
-            self.conf_5_2.configure(fg=self.color_normal_fg); self.conf_5_2.configure(bg=self.color_normal_bg)
-            self.conf_6_1.configure(fg=self.color_normal_fg); self.conf_6_1.configure(bg=self.color_normal_bg)
-            self.conf_6_2.configure(fg=self.color_normal_fg); self.conf_6_2.configure(bg=self.color_normal_bg)
-            self.conf_7_1.configure(fg=self.color_normal_fg); self.conf_7_1.configure(bg=self.color_normal_bg)
-            self.conf_7_2.configure(fg=self.color_normal_fg); self.conf_7_2.configure(bg=self.color_normal_bg)
-            self.conf_8_1.configure(fg=self.color_normal_fg); self.conf_8_1.configure(bg=self.color_normal_bg)
-            self.conf_8_2.configure(fg=self.color_normal_fg); self.conf_8_2.configure(bg=self.color_normal_bg)
-            self.conf_9_1.configure(fg=self.color_normal_fg); self.conf_9_1.configure(bg=self.color_normal_bg)
-            self.conf_9_2.configure(fg=self.color_normal_fg); self.conf_9_2.configure(bg=self.color_normal_bg)
-            self.conf_10_1.configure(fg=self.color_normal_fg); self.conf_10_1.configure(bg=self.color_normal_bg)
-            self.conf_10_2.configure(fg=self.color_normal_fg); self.conf_10_2.configure(bg=self.color_normal_bg)
-            self.conf_11_1.configure(fg=self.color_normal_fg); self.conf_11_1.configure(bg=self.color_normal_bg)
-            self.conf_11_2.configure(fg=self.color_normal_fg); self.conf_11_2.configure(bg=self.color_normal_bg)
-            self.conf_12_1.configure(fg=self.color_normal_fg); self.conf_12_1.configure(bg=self.color_normal_bg)
-            self.conf_12_2.configure(fg=self.color_normal_fg); self.conf_12_2.configure(bg=self.color_normal_bg)
-            self.conf_13_1.configure(fg=self.color_normal_fg); self.conf_13_1.configure(bg=self.color_normal_bg)
-            self.conf_13_2.configure(fg=self.color_normal_fg); self.conf_13_2.configure(bg=self.color_normal_bg)
-            self.conf_14_1.configure(fg=self.color_normal_fg); self.conf_14_1.configure(bg=self.color_normal_bg)
-            self.conf_14_2.configure(fg=self.color_normal_fg); self.conf_14_2.configure(bg=self.color_normal_bg)
+
+            for option in self.config_options:
+                if "label" in option:
+                    option["label"].configure(fg=self.color_normal_fg)
+                    option["label"].configure(bg=self.color_normal_bg)
+                if "checkbutton" in option:
+                    option["checkbutton"].configure(fg=self.color_normal_fg)
+                    option["checkbutton"].configure(bg=self.color_normal_bg)
+
             self.conf_15_1.configure(bg=self.color_normal_bg)
             self.conf_15_2.configure(fg=self.color_normal_fg); self.conf_15_2.configure(bg=self.color_normal_bg)
             self.conf_save.configure(fg=self.color_normal_fg); self.conf_save.configure(bg=self.color_normal_bg)
@@ -1919,6 +1883,8 @@ class Racer():
         global hud_angles_bubbles
         global hud_angles_airboost
         global hud_max_speed
+        global hud_hide_no_focus
+        global hud_hide_no_beetle
         global hud_drift_hold
         global enable_livesplit_hotkey
         global enable_ghost_keys
@@ -1972,197 +1938,49 @@ class Racer():
 
         self.conf_move = tk.Button(self.root, text='MOVE SPEEDOMETER', command=lambda:toggleAll(),font=("Lucida Console", 10))
         self.conf_move.place(x=310, y=18, width=160, height=25)
-         
-        #OPTION 1 
-        self.conf_1_0 = IntVar(self.root, hud_slope)
 
-        self.conf_1_1 = tk.Label(self.root, text="""Show slope""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.conf_1_1.place(x=314, y=44 )
+        self.config_options = []
+        self.config_vars = []
 
-        self.conf_1_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
-            text = "",
-            variable=self.conf_1_0,
-            borderwidth=0, command=lambda:conf_toggle("hud_slope"))
-        self.conf_1_2.place(x=310, y=44 )
+        def add_config_checkbox(int_var, label_text, checkbutton_command):
+            self.config_vars.append(int_var)
 
-        #OPTION 1 
-        self.conf_2_0 = IntVar(self.root, hud_gauge)
+            label = tk.Label(self.root, text=label_text, justify=tk.LEFT, padx=20, fg=self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10));
+            label.place(x=314, y=44+20*len(self.config_options))
 
-        self.conf_2_1 = tk.Label(self.root, text="""Show gauge""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.conf_2_1.place(x=314, y=44 + 1 * 20)
+            checkbutton = tk.Checkbutton(self.root, font=("Lucida Console", 10), text="", variable=int_var, borderwidth=0, command=checkbutton_command)
+            checkbutton.place(x=310, y=44+20*len(self.config_options))
 
-        self.conf_2_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
-            text = "",
-            variable=self.conf_2_0,
-            borderwidth=0, command=lambda:conf_toggle("hud_gauge"))
-        self.conf_2_2.place(x=310, y=44 + 1 * 20 )
-        
-        
-        #OPTION 1 
-        self.conf_3_0 = IntVar(self.root, hud_speed)
+            self.config_options.append({"label": label, "checkbutton": checkbutton})
 
-        self.conf_3_1 = tk.Label(self.root, text="""Show speed""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.conf_3_1.place(x=314, y=44 + 2 * 20)
-
-        self.conf_3_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
-            text = "",
-            variable=self.conf_3_0,
-            borderwidth=0, command=lambda:conf_toggle("hud_speed"))
-        self.conf_3_2.place(x=310, y=44 + 2 * 20)
-        
-        
-        #OPTION 1 
-        self.conf_4_0 = IntVar(self.root, hud_distance)
-
-        self.conf_4_1 = tk.Label(self.root, text="""Show distance""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.conf_4_1.place(x=314, y=44 + 3 * 20)
-
-        self.conf_4_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
-            text = "",
-            variable=self.conf_4_0,
-            borderwidth=0, command=lambda:conf_toggle("hud_distance"))
-        self.conf_4_2.place(x=310, y=44 + 3 * 20)
-        
-        
-        #OPTION 1 
-        self.conf_5_0 = IntVar(self.root, hud_acceleration)
-
-        self.conf_5_1 = tk.Label(self.root, text="""Show acceleration""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.conf_5_1.place(x=314, y=44 + 4 * 20)
-
-        self.conf_5_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
-            text = "",
-            variable=self.conf_5_0,
-            borderwidth=0, command=lambda:conf_toggle("hud_acceleration"))
-        self.conf_5_2.place(x=310, y=44 + 4 * 20)
-        
-        
-        #OPTION 1 
-        self.conf_6_0 = IntVar(self.root, hud_angles)
-
-        self.conf_6_1 = tk.Label(self.root, text="""Show angles""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.conf_6_1.place(x=314, y=44 + 5 * 20)
-
-        self.conf_6_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
-            text = "",
-            variable=self.conf_6_0,
-            borderwidth=0, command=lambda:conf_toggle("hud_angles"))
-        self.conf_6_2.place(x=310, y=44 + 5 * 20)
-        
-        
-        #OPTION 1 
-        self.conf_7_0 = IntVar(self.root, hud_angles_bubbles)
-
-        self.conf_7_1 = tk.Label(self.root, text="""Show angle orbs""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.conf_7_1.place(x=314, y=44 + 6 * 20)
-
-        self.conf_7_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
-            text = "",
-            variable=self.conf_7_0,
-            borderwidth=0, command=lambda:conf_toggle("hud_angles_bubbles"))
-        self.conf_7_2.place(x=310, y=44 + 6 * 20)
-        
-        #OPTION 1 
-        self.conf_8_0 = IntVar(self.root, hud_drift_hold)
-
-        self.conf_8_1 = tk.Label(self.root, text="""Show drift hold""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.conf_8_1.place(x=314, y=44 + 7 * 20)
-
-        self.conf_8_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
-            text = "",
-            variable=self.conf_8_0,
-            borderwidth=0, command=lambda:conf_toggle("hud_drift_hold"))
-        self.conf_8_2.place(x=310, y=44 + 7 * 20)
-        
-        
-        #OPTION 1 
-        self.conf_9_0 = IntVar(self.root, enable_livesplit_hotkey)
-
-        self.conf_9_1 = tk.Label(self.root, text="""Enable livesplit hotkeys""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.conf_9_1.place(x=314, y=44 + 8 * 20)
-
-        self.conf_9_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
-            text = "",
-            variable=self.conf_9_0,
-            borderwidth=0, command=lambda:conf_toggle("enable_livesplit_hotkey"))
-        self.conf_9_2.place(x=310, y=44 + 8 * 20)
-        
-        
-        #OPTION 1 
-        self.conf_10_0 = IntVar(self.root, enable_ghost_keys)
-
-        self.conf_10_1 = tk.Label(self.root, text="""Enable ghost hotkeys""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.conf_10_1.place(x=314, y=44 + 9 * 20)
-
-        self.conf_10_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
-            text = "",
-            variable=self.conf_10_0,
-            borderwidth=0, command=lambda:conf_toggle("enable_ghost_keys"))
-        self.conf_10_2.place(x=310, y=44 + 9 * 20)
-        
-        
-        #OPTION 1 
-        self.conf_11_0 = IntVar(self.root, speed_in_3D)
-
-        self.conf_11_1 = tk.Label(self.root, text="""Measure speed in 3D""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.conf_11_1.place(x=314, y=44 + 10 * 20)
-
-        self.conf_11_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
-            text = "",
-            variable=self.conf_11_0,
-            borderwidth=0, command=lambda:conf_toggle("speed_in_3D"))
-        self.conf_11_2.place(x=310, y=44 + 10 * 20)
-        
-        
-        #OPTION 1 
-        self.conf_12_0 = IntVar(self.root, log)
-
-        self.conf_12_1 = tk.Label(self.root, text="""Log to file (need if want to upload)""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.conf_12_1.place(x=314, y=44 + 11 * 20)
-
-        self.conf_12_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
-            text = "",
-            variable=self.conf_12_0,
-            borderwidth=0, command=lambda:conf_toggle("log"))
-        self.conf_12_2.place(x=310, y=44 + 11 * 20)
-
-        #OPTION 1 
-        self.conf_13_0 = IntVar(self.root, hud_angles_airboost)
-
-        self.conf_13_1 = tk.Label(self.root, text="""Show airboost helper""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.conf_13_1.place(x=314, y=44 + 12 * 20)
-
-        self.conf_13_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
-            text = "",
-            variable=self.conf_13_0,
-            borderwidth=0, command=lambda:conf_toggle("hud_angles_airboost"))
-        self.conf_13_2.place(x=310, y=44 + 12 * 20)
-
-        #OPTION 1 
-        self.conf_14_0 = IntVar(self.root, hud_max_speed)
-
-        self.conf_14_1 = tk.Label(self.root, text="""Show max speed on gauge""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.conf_14_1.place(x=314, y=44 + 13 * 20)
-
-        self.conf_14_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
-            text = "",
-            variable=self.conf_14_0,
-            borderwidth=0, command=lambda:conf_toggle("hud_max_speed"))
-        self.conf_14_2.place(x=310, y=44 + 13 * 20)
-
- 
+        add_config_checkbox(IntVar(self.root, hud_slope), """Show slope""", lambda: conf_toggle("hud_slope"))
+        add_config_checkbox(IntVar(self.root, hud_gauge), """Show gauge""", lambda: conf_toggle("hud_gauge"))
+        add_config_checkbox(IntVar(self.root, hud_speed), """Show speed""", lambda: conf_toggle("hud_speed"))
+        add_config_checkbox(IntVar(self.root, hud_distance), """Show distance""", lambda: conf_toggle("hud_distance"))
+        add_config_checkbox(IntVar(self.root, hud_acceleration), """Show acceleration""", lambda: conf_toggle("hud_acceleration"))
+        add_config_checkbox(IntVar(self.root, hud_angles), """Show angles""", lambda: conf_toggle("hud_angles"))
+        add_config_checkbox(IntVar(self.root, hud_angles_bubbles), """Show angle orbs""", lambda: conf_toggle("hud_angles_bubbles"))
+        add_config_checkbox(IntVar(self.root, hud_drift_hold), """Show drift hold""", lambda: conf_toggle("hud_drift_hold"))
+        add_config_checkbox(IntVar(self.root, enable_livesplit_hotkey), """Enable livesplit hotkeys""", lambda: conf_toggle("enable_livesplit_hotkey"))
+        add_config_checkbox(IntVar(self.root, enable_ghost_keys), """Enable ghost hotkeys""", lambda: conf_toggle("enable_ghost_keys"))
+        add_config_checkbox(IntVar(self.root, speed_in_3D), """Measure speed in 3D""", lambda: conf_toggle("speed_in_3D"))
+        add_config_checkbox(IntVar(self.root, log), """Log to file (need if want to upload)""", lambda: conf_toggle("log"))
+        add_config_checkbox(IntVar(self.root, hud_angles_airboost), """Show airboost helper""", lambda: conf_toggle("hud_angles_airboost"))
+        add_config_checkbox(IntVar(self.root, hud_max_speed), """Show max speed on gauge""", lambda: conf_toggle("hud_max_speed"))
+        add_config_checkbox(IntVar(self.root, hud_hide_no_focus), """Hide speedometer when game not focused""", lambda: conf_toggle("hud_hide_no_focus"))
+        add_config_checkbox(IntVar(self.root, hud_hide_no_beetle), """Hide speedometer when not on rollerbeetle""", lambda: conf_toggle("hud_hide_no_beetle"))
 
 
         self.conf_15_1 = tk.Label(self.root, text="■", justify = tk.LEFT, padx = 0, fg = player_color, bg=self.bg.get(), font=("Lucida Console", 15))
-        self.conf_15_1.place(x=311, y=42 + 14 * 20)
+        self.conf_15_1.place(x=311, y=42 + len(self.config_options) * 20)
 
         #SAVE OPTIONS
         self.conf_15_2 = tk.Button(self.root, text='Change color', command=lambda:choose_color() ,font=("Lucida Console", 10))
-        self.conf_15_2.place(x=336, y=44 + 14 * 20, width=120, height=23)
+        self.conf_15_2.place(x=336, y=44 + len(self.config_options) * 20, width=120, height=23)
 
         #SAVE OPTIONS
         self.conf_save = tk.Button(self.root, text='SAVE & RESTART', command=lambda:conf_save() ,font=("Lucida Console", 10))
-        self.conf_save.place(x=320, y=44 + 16 * 20, width=120, height=27)
+        self.conf_save.place(x=320, y=44 + (len(self.config_options)+2) * 20, width=120, height=27)
 
 
         def changeConfigVisibility():
@@ -2171,37 +1989,14 @@ class Racer():
             if show_config == 1:
                 #mostrarlo
                 self.conf_move.place(x=310, y=18, width=160, height=25)
-                self.conf_1_1.place(x=314, y=44 + 0 * 20)
-                self.conf_1_2.place(x=310, y=44 + 0 * 20)
-                self.conf_2_1.place(x=314, y=44 + 1 * 20)
-                self.conf_2_2.place(x=310, y=44 + 1 * 20)
-                self.conf_3_1.place(x=314, y=44 + 2 * 20)
-                self.conf_3_2.place(x=310, y=44 + 2 * 20)
-                self.conf_4_1.place(x=314, y=44 + 3 * 20)
-                self.conf_4_2.place(x=310, y=44 + 3 * 20)
-                self.conf_5_1.place(x=314, y=44 + 4 * 20)
-                self.conf_5_2.place(x=310, y=44 + 4 * 20)
-                self.conf_6_1.place(x=314, y=44 + 5 * 20)
-                self.conf_6_2.place(x=310, y=44 + 5 * 20)
-                self.conf_7_1.place(x=314, y=44 + 6 * 20)
-                self.conf_7_2.place(x=310, y=44 + 6 * 20)
-                self.conf_8_1.place(x=314, y=44 + 7 * 20)
-                self.conf_8_2.place(x=310, y=44 + 7 * 20)
-                self.conf_9_1.place(x=314, y=44 + 8 * 20)
-                self.conf_9_2.place(x=310, y=44 + 8 * 20)
-                self.conf_10_1.place(x=314, y=44 + 9 * 20)
-                self.conf_10_2.place(x=310, y=44 + 9 * 20)
-                self.conf_11_1.place(x=314, y=44 + 10 * 20)
-                self.conf_11_2.place(x=310, y=44 + 10 * 20)
-                self.conf_12_1.place(x=314, y=44 + 11 * 20)
-                self.conf_12_2.place(x=310, y=44 + 11 * 20)
-                self.conf_13_1.place(x=314, y=44 + 12 * 20)
-                self.conf_13_2.place(x=310, y=44 + 12 * 20)
-                self.conf_14_1.place(x=314, y=44 + 13 * 20)
-                self.conf_14_2.place(x=310, y=44 + 13 * 20)
-                self.conf_15_1.place(x=311, y=42 + 14 * 20)
-                self.conf_15_2.place(x=336, y=44 + 14 * 20, width=120, height=23)
-                self.conf_save.place(x=320, y=48 + 15 * 20, width=120, height=27)
+                for idx, option in enumerate(self.config_options):
+                    if 'label' in option:
+                        option["label"].place(x=314, y=44+idx*20)
+                    if 'checkbutton' in option:
+                        option["checkbutton"].place(x=310, y=44+idx*20)
+                self.conf_15_1.place(x=311, y=42 + len(self.config_options) * 20)
+                self.conf_15_2.place(x=336, y=44 + len(self.config_options) * 20, width=120, height=23)
+                self.conf_save.place(x=320, y=48 + (len(self.config_options)+1) * 20, width=120, height=27)
 
 
                 show_config = 0
@@ -2209,34 +2004,11 @@ class Racer():
 
             else:
                 #ocultarlo
-                self.conf_1_1.place_forget()
-                self.conf_1_2.place_forget()
-                self.conf_2_1.place_forget()
-                self.conf_2_2.place_forget()
-                self.conf_3_1.place_forget()
-                self.conf_3_2.place_forget()
-                self.conf_4_1.place_forget()
-                self.conf_4_2.place_forget()
-                self.conf_5_1.place_forget()
-                self.conf_5_2.place_forget()
-                self.conf_6_1.place_forget()
-                self.conf_6_2.place_forget()
-                self.conf_7_1.place_forget()
-                self.conf_7_2.place_forget()
-                self.conf_8_1.place_forget()
-                self.conf_8_2.place_forget()
-                self.conf_9_1.place_forget()
-                self.conf_9_2.place_forget()
-                self.conf_10_1.place_forget()
-                self.conf_10_2.place_forget()
-                self.conf_11_1.place_forget()
-                self.conf_11_2.place_forget()
-                self.conf_12_1.place_forget()
-                self.conf_12_2.place_forget()
-                self.conf_13_1.place_forget()
-                self.conf_13_2.place_forget()
-                self.conf_14_1.place_forget()
-                self.conf_14_2.place_forget()
+                for option in self.config_options:
+                    if "label" in option:
+                        option["label"].place_forget()
+                    if "checkbutton" in option:
+                        option["checkbutton"].place_forget()
                 self.conf_15_1.place_forget()
                 self.conf_15_2.place_forget()
                 self.conf_move.place_forget()

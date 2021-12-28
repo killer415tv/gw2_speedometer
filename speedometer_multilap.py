@@ -1791,7 +1791,7 @@ class Racer():
                     'Origin': 'null',
                     'Referer': 'null'
                 }
-                response = requests.get('https://www.beetlerank.com/rank/api/' + str(guildhall_name.get()), headers)
+                response = requests.get('https://www.beetlerank.com/rank/api/' + str(guildhall_name.get()) + "/" + self.username.get() , headers)
             
                 self.map_ranking_var.set(response.text)
 
@@ -1848,7 +1848,7 @@ class Racer():
         guildhall_laps = StringVar(self.root)
         guildhall_laps.set("1 lap")
 
-        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.12.14""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
+        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.12.28""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
         self.t_1.place(x=0, y=10)
         self.t_2 = tk.Label(self.root, text="""Choose map to race""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_2.place(x=0, y=40)

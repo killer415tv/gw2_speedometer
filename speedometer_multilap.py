@@ -246,6 +246,8 @@ class Configuration():
         global meter
         global player_color
         global hud_slope
+        global hud_hide_no_focus
+        global hud_hide_no_beetle
 
         cfg.add_section("general")
 
@@ -273,6 +275,8 @@ class Configuration():
         if player_color == None:
             player_color = '#333333'
         cfg.set("general", "player_color", player_color)
+        cfg.set("general", "hud_hide_no_focus", hud_hide_no_focus)
+        cfg.set("general", "hud_hide_no_beetle", hud_hide_no_beetle)
 
 
         if 'racer' in globals():
@@ -310,6 +314,8 @@ class Configuration():
         global hud_angles_airboost
         global hud_max_speed
         global player_color
+        global hud_hide_no_focus
+        global hud_hide_no_beetle
 
 
         if (cfg.read(["./config.txt"])):
@@ -362,6 +368,10 @@ class Configuration():
                 geometry_speedometer = (cfg.get("general", "geometry_speedometer"))
             if (cfg.has_option("general", "geometry_racer")):
                 geometry_racer = (cfg.get("general", "geometry_racer"))
+            if (cfg.has_option("general", "hud_hide_no_focus")):
+                hud_hide_no_focus = int(cfg.get("general", "hud_hide_no_focus"))
+            if (cfg.has_option("general", "hud_hide_no_beetle")):
+                hud_hide_no_beetle = int(cfg.get("general", "hud_hide_no_beetle"))
 
         else:
             # Generate a default config file with default values
@@ -1891,6 +1901,8 @@ class Racer():
         global speed_in_3D
         global log
         global player_color
+        global hud_hide_no_focus
+        global hud_hide_no_beetle
 
         def conf_toggle(field):
             if globals()[field] == 1:

@@ -1009,7 +1009,7 @@ class Menu():
 
         ml.read()
         if (ml.data.identity):
-            user = ml.data.identity['name']
+            user = json.loads(ml.data.identity)["name"]
         else:
             user = ""
 

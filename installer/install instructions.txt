@@ -9,6 +9,7 @@ Install python with the installer
 
 STEP 2:
 Did you check "add to PATH" option when you installed python? check that or you cant continue
+Open a cmd window, (window key and write cmd) and run "python --version" to check if python is working fine
 
 STEP 3:
 Run install_requirements.bat , a console window appears and wait till it finish

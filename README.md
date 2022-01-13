@@ -42,6 +42,7 @@ http://www.beetlerank.com/
  - BREAK-A-BONE
  - OLLO The Line
  - Yuru Camp Skate Park
+ - EQE
  
 ## Tyria
  - TYRIA INF.LEAP
@@ -82,6 +83,8 @@ http://www.beetlerank.com/
  
 ## Griffon maps
  - FLY-1 Verdant Brink Hunt
+ - FLY-2 Yuru Camp Hot Pot
+ - Wing RK Race
 
 ## Jumping puzzles
  - JP-1 Morgan spiral",

@@ -172,17 +172,112 @@ class Ghost3d(object):
     def on_press(self,key):
         global filename_timer
         global fAvatarPosition
+        global fCameraFront
         global order
 
+        def unit_vector(a):
+            return a/ np.linalg.norm(a)
+
+        def angle_between(v1, v2):
+            arg1 = np.cross(v1, v2)
+            arg2 = np.dot(v1, v2)
+            angle = np.arctan2(arg1, arg2)
+            return np.degrees(angle)
+
         try:
-            if key.char == "1":
+
+            if key.char == "5":
+
+                c = np.array([fCameraFront[0], fCameraFront[2]])
+                uaf = unit_vector(c)
+                map_angle = float(angle_between([0 , 1], uaf))+180
+
                 order = 0
                 self.best_file = os.path.dirname(os.path.abspath(sys.argv[0])) + "\\maps\\NEW.csv"
                 writer = open(self.best_file, 'w',newline='', encoding='utf-8')
                 writer.seek(0,2)
-                writer.writelines( (',').join(["STEP","STEPNAME","X","Y","Z","RADIUS"]))
+                writer.writelines( (',').join(["STEP","STEPNAME","X","Y","Z","RADIUS","ANGLE"]))
                 writer.writelines("\r")
-                writer.writelines( (',').join([str(order),"start",str(fAvatarPosition[0]),str(fAvatarPosition[1]),str(fAvatarPosition[2]),"15"]))
+                writer.writelines( (',').join([str(order),"start",str(fAvatarPosition[0]),str(fAvatarPosition[1]),str(fAvatarPosition[2]),"15",str(map_angle)]))
+                order = order + 1
+                writer.close()
+                self.file_ready = False
+
+                if self.balls != {}:
+                    balls = self.balls.values()
+                    value_iterator = iter(balls)
+                    first_value = next(value_iterator)
+                    
+                    print("delete", first_value)
+                    self.w.clear()
+
+                self.searchGhost()
+                self.balls = {}
+                self.last_balls_positions = {}
+                self.file_ready = True
+                filename_timer = 99999
+            
+            if key.char == "6":
+                c = np.array([fCameraFront[0], fCameraFront[2]])
+                uaf = unit_vector(c)
+                map_angle = float(angle_between([0 , 1], uaf))+180
+                writer = open(self.best_file, 'a',newline='', encoding='utf-8')
+                writer.seek(0,2)
+                writer.writelines("\r")
+                writer.writelines( (',').join([str(order),"*",str(fAvatarPosition[0]),str(fAvatarPosition[1]),str(fAvatarPosition[2]),"15",str(map_angle)]))
+                order = order + 1
+                writer.close()
+                self.file_ready = False
+
+                if self.balls != {}:
+                    balls = self.balls.values()
+                    value_iterator = iter(balls)
+                    first_value = next(value_iterator)
+                    
+                    print("delete", first_value)
+                    self.w.clear()
+
+                self.searchGhost()
+                self.balls = {}
+                self.last_balls_positions = {}
+                self.file_ready = True
+                filename_timer = 99999
+                
+
+            if key.char == "7":
+                c = np.array([fCameraFront[0], fCameraFront[2]])
+                uaf = unit_vector(c)
+                map_angle = float(angle_between([0 , 1], uaf))+180
+                writer = open(self.best_file, 'a',newline='', encoding='utf-8')
+                writer.seek(0,2)
+                writer.writelines("\r")
+                writer.writelines( (',').join([str(order),"end",str(fAvatarPosition[0]),str(fAvatarPosition[1]),str(fAvatarPosition[2]),"15",str(map_angle)]))
+                writer.close()
+                self.file_ready = False
+
+                if self.balls != {}:
+                    balls = self.balls.values()
+                    value_iterator = iter(balls)
+                    first_value = next(value_iterator)
+                    
+                    print("delete", first_value)
+                    self.w.clear()
+
+                self.searchGhost()
+                self.balls = {}
+                self.last_balls_positions = {}
+                self.file_ready = True
+                filename_timer = 99999
+
+            if key.char == "1":
+                order = 0
+                map_angle = -1
+                self.best_file = os.path.dirname(os.path.abspath(sys.argv[0])) + "\\maps\\NEW.csv"
+                writer = open(self.best_file, 'w',newline='', encoding='utf-8')
+                writer.seek(0,2)
+                writer.writelines( (',').join(["STEP","STEPNAME","X","Y","Z","RADIUS","ANGLE"]))
+                writer.writelines("\r")
+                writer.writelines( (',').join([str(order),"start",str(fAvatarPosition[0]),str(fAvatarPosition[1]),str(fAvatarPosition[2]),"15",str(map_angle)]))
                 order = order + 1
                 writer.close()
                 self.file_ready = False
@@ -202,10 +297,11 @@ class Ghost3d(object):
                 filename_timer = 99999
                
             if key.char == "2":
+                map_angle = -1
                 writer = open(self.best_file, 'a',newline='', encoding='utf-8')
                 writer.seek(0,2)
                 writer.writelines("\r")
-                writer.writelines( (',').join([str(order), "*", str(fAvatarPosition[0]),str(fAvatarPosition[1]),str(fAvatarPosition[2]),"15"]))
+                writer.writelines( (',').join([str(order),"*",str(fAvatarPosition[0]),str(fAvatarPosition[1]),str(fAvatarPosition[2]),"15",str(map_angle)]))
                 order = order + 1
                 writer.close()
                 self.file_ready = False
@@ -226,10 +322,11 @@ class Ghost3d(object):
                 
 
             if key.char == "3":
+                map_angle = -1
                 writer = open(self.best_file, 'a',newline='', encoding='utf-8')
                 writer.seek(0,2)
                 writer.writelines("\r")
-                writer.writelines( (',').join([str(order), "end", str(fAvatarPosition[0]),str(fAvatarPosition[1]),str(fAvatarPosition[2]),"15"]))
+                writer.writelines( (',').join([str(order),"end",str(fAvatarPosition[0]),str(fAvatarPosition[1]),str(fAvatarPosition[2]),"15",str(map_angle)]))
                 writer.close()
                 self.file_ready = False
 
@@ -249,10 +346,11 @@ class Ghost3d(object):
 
 
             if key.char == "4":
+                map_angle = -1
                 writer = open(self.best_file, 'a',newline='', encoding='utf-8')
                 writer.seek(0,2)
                 writer.writelines("\r")
-                writer.writelines( (',').join([str(-1), "reset", str(fAvatarPosition[0]),str(fAvatarPosition[1]),str(fAvatarPosition[2]),"5"]))
+                writer.writelines( (',').join([str(-1), "reset", str(fAvatarPosition[0]),str(fAvatarPosition[1]),str(fAvatarPosition[2]),"5",str(map_angle)]))
                 writer.close()
                 self.file_ready = False
 
@@ -312,6 +410,11 @@ class Ghost3d(object):
         print("- KEY 2 - place normal checkpoint ")
         print("- KEY 3 - place end checkpoint ")
         print("- KEY 4 - place a position to reset the timer ")
+        print("-----------------------------------------------")
+        print("- (NEW) key 5 - clean the file and place start vertically")
+        print("- (NEW) key 6 - place a normal checkpoint vertically")
+        print("- (NEW) key 7 - place end checkpoint vertically")
+        print("-----------------------------------------------")
         print("- CHECKPOINTS FILE" , self.best_file )
         print("-----------------------------------------------")
         print("- ONCE YOU FINISH YOUR CREATION, RENAME -")
@@ -438,6 +541,8 @@ class Ghost3d(object):
     def updateCam(self):
         
         global fAvatarPosition
+        global fAvatarFront
+        global fCameraFront
         global timer
         global ghost_number
         global filename_timer
@@ -482,6 +587,7 @@ class Ghost3d(object):
         global fAvatarPosition
         global checkpoint
 
+
         file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "checkpoint.txt")
         filedata = file.read()
         if filedata == '': 
@@ -508,6 +614,8 @@ class Ghost3d(object):
                     posx = p[2]
                     posy = p[3]
                     posz = p[4]
+                    radius = p[5]
+                    angle = p[6]
                     file = random.random()
 
                     step_index = str(file)
@@ -544,8 +652,9 @@ class Ghost3d(object):
                     transy = float(posz) - float(last_pos[1])
                     transz = float(posy) - float(last_pos[2])
 
-                    #self.balls[step_index].resetTransform()
-                    #self.balls[step_index].rotate(1,0,0,1,True)
+                    if (angle != -1):
+                        self.balls[step_index].rotate(90,0,1,0,True)
+                        self.balls[step_index].rotate(90-angle,1,0,0,True)
                     self.balls[step_index].translate(transx,transy,transz)
                     
 
@@ -566,15 +675,17 @@ class Ghost3d(object):
                     posx = p[2]
                     posy = p[3]
                     posz = p[4]
+                    radius = p[5]
+                    angle = p[6]
                     file = random.random()
 
                     step_index = str(file)
 
-                    speedcolor = [44, 44, 255]
+                    speedcolor = [0, 0, 200]
 
                     #print(vel, speedcolor)
                     
-                    self.md = gl.MeshData.cylinder(rows=1, cols=40, radius=[15 * 0.666,15 * 0.666], length=0.4)
+                    self.md = gl.MeshData.cylinder(rows=1, cols=40, radius=[radius * 0.666,15 * 0.666], length=0.4)
 
                     colors = np.ones((self.md.faceCount(), 4), dtype=float)
                     colors[::1,0] = 1
@@ -598,10 +709,10 @@ class Ghost3d(object):
                     transz = float(posy) - float(last_pos[2])
 
                     #self.balls[step_index].resetTransform()
-                    #self.balls[step_index].rotate(1,0,0,1,True)
+                    if (angle != -1):
+                        self.balls[step_index].rotate(90,0,1,0,True)
+                        self.balls[step_index].rotate(90-angle,1,0,0,True)
                     self.balls[step_index].translate(transx,transy,transz)
-                    
-
                     
                     self.balls[step_index].setColor(QtGui.QColor(speedcolor[0], speedcolor[1], speedcolor[2]))
 
@@ -620,6 +731,8 @@ class Ghost3d(object):
                     posx = p[2]
                     posy = p[3]
                     posz = p[4]
+                    radius = p[5]
+                    angle = p[6]
                     file = random.random()
 
                     step_index = str(file)
@@ -651,11 +764,10 @@ class Ghost3d(object):
                     transy = float(posz) - float(last_pos[1])
                     transz = float(posy) - float(last_pos[2])
 
-                    #self.balls[step_index].resetTransform()
-                    #self.balls[step_index].rotate(1,0,0,1,True)
+                    if (angle != -1):
+                        self.balls[step_index].rotate(90,0,1,0,True)
+                        self.balls[step_index].rotate(90-angle,1,0,0,True)
                     self.balls[step_index].translate(transx,transy,transz)
-                    
-
                     
                     self.balls[step_index].setColor(QtGui.QColor(speedcolor[0], speedcolor[1], speedcolor[2]))
 

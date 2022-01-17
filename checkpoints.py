@@ -170,7 +170,6 @@ class MumbleLink:
 
 class Ghost3d(object):
 
-    
 
     def on_press(self,key):
         global filename_timer
@@ -456,7 +455,8 @@ class Ghost3d(object):
                         posy = p[3]
                         posz = p[4]
                         radius = p[5] * 0.666
-                        file = p[6]
+                        angle = p[6]
+                        file = p[7]
 
                     step_index = str(step)
                 
@@ -482,6 +482,9 @@ class Ghost3d(object):
 
                     #self.balls[step_index].resetTransform()
                     #self.balls[step_index].rotate(1,0,0,1,True)
+                    if (angle != -1):
+                        self.balls[step_index].rotate(90,0,1,0,True)
+                        self.balls[step_index].rotate(90-angle,1,0,0,True)
                     self.balls[step_index].translate(transx,transy,transz)
                     self.balls[step_index].setColor(QtGui.QColor(speedcolor[0], speedcolor[1], speedcolor[2]))
 
@@ -511,7 +514,9 @@ class Ghost3d(object):
                         posy = p[3]
                         posz = p[4]
                         radius = p[5] * 0.666
-                        file = p[6]
+                        angle = p[6]
+                        file = p[7]
+
 
                     step_index = str(step)
                  
@@ -536,8 +541,9 @@ class Ghost3d(object):
                     transy = float(posz) - float(last_pos[1])
                     transz = float(posy) - float(last_pos[2])
 
-                    #self.balls[step_index].resetTransform()
-                    #self.balls[step_index].rotate(1,0,0,1,True)
+                    if (angle != -1):
+                        self.balls[step_index].rotate(90,0,1,0,True)
+                        self.balls[step_index].rotate(90-angle,1,0,0,True)
                     self.balls[step_index].translate(transx,transy,transz)
                     self.balls[step_index].setColor((speedcolor[0], speedcolor[1], speedcolor[2], 0))
 
@@ -568,7 +574,9 @@ class Ghost3d(object):
                         posy = p[3]
                         posz = p[4]
                         radius = p[5] * 0.666
-                        file = p[6]
+                        angle = p[6]
+                        file = p[7]
+
 
 
 
@@ -599,6 +607,9 @@ class Ghost3d(object):
 
                     #self.balls[step_index].resetTransform()
                     #self.balls[step_index].rotate(1,0,0,1,True)
+                    if (angle != -1):
+                        self.balls[step_index].rotate(90,0,1,0,True)
+                        self.balls[step_index].rotate(90-angle,1,0,0,True)
                     self.balls[step_index].translate(transx,transy,transz)
                     
 
@@ -630,7 +641,9 @@ class Ghost3d(object):
                         posy = p[3]
                         posz = p[4]
                         radius = p[5] * 0.666
-                        file = p[6]
+                        angle = p[6]
+                        file = p[7]
+
 
                     step_index = str(step) + "_" + str(subindex)
                     subindex = subindex + 1
@@ -659,6 +672,9 @@ class Ghost3d(object):
 
                     #self.balls[step_index].resetTransform()
                     #self.balls[step_index].rotate(1,0,0,1,True)
+                    if (angle != -1):
+                        self.balls[step_index].rotate(90,0,1,0,True)
+                        self.balls[step_index].rotate(90-angle,1,0,0,True)
                     self.balls[step_index].translate(transx,transy,transz)
                     
 
@@ -691,7 +707,9 @@ class Ghost3d(object):
                         posy = p[3]
                         posz = p[4]
                         radius = p[5] * 0.666
-                        file = p[6]
+                        angle = p[6]
+                        file = p[7]
+
 
                     step_index = str(step) + "_" + str(subindex)
                     subindex = subindex + 1
@@ -720,6 +738,9 @@ class Ghost3d(object):
 
                     #self.balls[step_index].resetTransform()
                     #self.balls[step_index].rotate(1,0,0,1,True)
+                    if (angle != -1):
+                        self.balls[step_index].rotate(90,0,1,0,True)
+                        self.balls[step_index].rotate(90-angle,1,0,0,True)
                     self.balls[step_index].translate(transx,transy,transz)
                     
 

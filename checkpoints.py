@@ -482,7 +482,7 @@ class Ghost3d(object):
 
                     #self.balls[step_index].resetTransform()
                     #self.balls[step_index].rotate(1,0,0,1,True)
-                    if (angle != -1):
+                    if ('angle' in locals() and angle != -1):
                         self.balls[step_index].rotate(90,0,1,0,True)
                         self.balls[step_index].rotate(90-angle,1,0,0,True)
                     self.balls[step_index].translate(transx,transy,transz)
@@ -541,7 +541,7 @@ class Ghost3d(object):
                     transy = float(posz) - float(last_pos[1])
                     transz = float(posy) - float(last_pos[2])
 
-                    if (angle != -1):
+                    if ('angle' in locals() and angle != -1):
                         self.balls[step_index].rotate(90,0,1,0,True)
                         self.balls[step_index].rotate(90-angle,1,0,0,True)
                     self.balls[step_index].translate(transx,transy,transz)
@@ -607,7 +607,7 @@ class Ghost3d(object):
 
                     #self.balls[step_index].resetTransform()
                     #self.balls[step_index].rotate(1,0,0,1,True)
-                    if (angle != -1):
+                    if ('angle' in locals() and angle != -1):
                         self.balls[step_index].rotate(90,0,1,0,True)
                         self.balls[step_index].rotate(90-angle,1,0,0,True)
                     self.balls[step_index].translate(transx,transy,transz)
@@ -672,7 +672,7 @@ class Ghost3d(object):
 
                     #self.balls[step_index].resetTransform()
                     #self.balls[step_index].rotate(1,0,0,1,True)
-                    if (angle != -1):
+                    if ('angle' in locals() and angle != -1):
                         self.balls[step_index].rotate(90,0,1,0,True)
                         self.balls[step_index].rotate(90-angle,1,0,0,True)
                     self.balls[step_index].translate(transx,transy,transz)
@@ -738,7 +738,7 @@ class Ghost3d(object):
 
                     #self.balls[step_index].resetTransform()
                     #self.balls[step_index].rotate(1,0,0,1,True)
-                    if (angle != -1):
+                    if ('angle' in locals() and angle != -1):
                         self.balls[step_index].rotate(90,0,1,0,True)
                         self.balls[step_index].rotate(90-angle,1,0,0,True)
                     self.balls[step_index].translate(transx,transy,transz)

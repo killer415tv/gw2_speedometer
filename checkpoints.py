@@ -486,7 +486,7 @@ class Ghost3d(object):
                     #self.balls[step_index].rotate(1,0,0,1,True)
                     if ('angle' in locals() and angle and angle != -1):
                         self.balls[step_index].rotate(90,0,1,0,True)
-                        self.balls[step_index].rotate(90-int(angle),1,0,0,True)
+                        self.balls[step_index].rotate(90-int(float(angle)),1,0,0,True)
                     self.balls[step_index].translate(transx,transy,transz)
                     self.balls[step_index].setColor(QtGui.QColor(speedcolor[0], speedcolor[1], speedcolor[2]))
 
@@ -547,7 +547,7 @@ class Ghost3d(object):
 
                     if ('angle' in locals() and angle and angle != -1):
                         self.balls[step_index].rotate(90,0,1,0,True)
-                        self.balls[step_index].rotate(90-int(angle),1,0,0,True)
+                        self.balls[step_index].rotate(90-int(float(angle)),1,0,0,True)
                     self.balls[step_index].translate(transx,transy,transz)
                     self.balls[step_index].setColor((speedcolor[0], speedcolor[1], speedcolor[2], 0))
 
@@ -614,7 +614,7 @@ class Ghost3d(object):
                     #self.balls[step_index].rotate(1,0,0,1,True)
                     if ('angle' in locals() and angle and angle != -1):
                         self.balls[step_index].rotate(90,0,1,0,True)
-                        self.balls[step_index].rotate(90-int(angle),1,0,0,True)
+                        self.balls[step_index].rotate(90-int(float(angle)),1,0,0,True)
                     self.balls[step_index].translate(transx,transy,transz)
                     
 
@@ -681,7 +681,7 @@ class Ghost3d(object):
                     #self.balls[step_index].rotate(1,0,0,1,True)
                     if ('angle' in locals() and angle and angle != -1):
                         self.balls[step_index].rotate(90,0,1,0,True)
-                        self.balls[step_index].rotate(90-int(angle),1,0,0,True)
+                        self.balls[step_index].rotate(90-int(float(angle)),1,0,0,True)
                     self.balls[step_index].translate(transx,transy,transz)
                     
 
@@ -749,7 +749,7 @@ class Ghost3d(object):
                     #self.balls[step_index].rotate(1,0,0,1,True)
                     if ('angle' in locals() and angle and angle != -1):
                         self.balls[step_index].rotate(90,0,1,0,True)
-                        self.balls[step_index].rotate(90-int(angle),1,0,0,True)
+                        self.balls[step_index].rotate(90-int(float(angle)),1,0,0,True)
                     self.balls[step_index].translate(transx,transy,transz)
                     
 

@@ -1774,7 +1774,7 @@ class Racer():
 
         print("-----------------------------------------------")
 
-        file = open(Path(sys.argv[0]).parent / "guildhall.txt", "w")
+        file = open(Path(sys.argv[0]).parent / "guildhall.txt", "w", encoding="utf-8")
         file.write(str(guildhall_name.get()))
         file.close()
         if enable_ghost_keys:

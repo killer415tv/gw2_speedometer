@@ -227,7 +227,7 @@ class Ghost3d(object):
         else:
 
              #actualizamos el nombre del guildhall o mapa
-            file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "guildhall.txt")
+            file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "guildhall.txt", "r", encoding="utf-8")
             guildhall_name = file.read()
 
             file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "cup.txt")
@@ -247,7 +247,7 @@ class Ghost3d(object):
                 print("-----------------------------------------------")
 
                 self.df = pd.DataFrame()
-                file_df = pd.read_csv(self.best_file)
+                file_df = pd.read_csv(self.best_file, encoding = 'utf8')
                 file_df['file_name'] = self.best_file
                 self.df = self.df.append(file_df)
                 min_time = 99999

@@ -78,7 +78,7 @@ ghost_start = 't'
 recalculate_ghost = 'y'
 
 #show timer
-hud_slope = 1 # 1 = on , 0 = off
+hud_slope = 0 # 1 = on , 0 = off
 
 #show timer
 hud_speed = 1 # 1 = on , 0 = off

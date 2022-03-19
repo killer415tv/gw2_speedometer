@@ -227,13 +227,12 @@ class Ghost3d():
     # EVENTS
 
     def read_guildhall(self):
-
         global guildhall_name
         global cup_name
         global check_guildhall_change
 
         #check the actual guildhall name from guildhall.txt
-        file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "guildhall.txt")
+        file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "guildhall.txt","r", encoding="utf-8")
         guildhall_name = file.read()
 
         #check the actual guildhall name from guildhall.txt
@@ -989,8 +988,9 @@ class Menu():
         global cup_name
         global chosen_option 
 
+
         #check the actual guildhall name from guildhall.txt
-        file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "guildhall.txt")
+        file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "guildhall.txt","r", encoding="utf-8")
         guildhall_name = file.read()
 
         file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "cup.txt")

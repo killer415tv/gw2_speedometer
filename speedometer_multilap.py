@@ -1,4 +1,3 @@
-from ast import Try
 import tkinter as tk
 from tkinter import simpledialog
 from tkinter import *
@@ -1795,7 +1794,6 @@ class Racer():
                     'Origin': 'null',
                     'Referer': 'null'
                 }
-                print("SAVEGUILDHALL")
                 response = requests.get('https://www.beetlerank.com/rank/api/' + str(guildhall_name.get()) + "/" + self.username.get() , headers)
             
                 self.map_ranking_var.set(response.text)

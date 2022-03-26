@@ -1,3 +1,4 @@
+from ast import Try
 import tkinter as tk
 from tkinter import simpledialog
 from tkinter import *
@@ -471,6 +472,9 @@ class Meter():
                                  files={'file': open(Path(sys.argv[0]).parent / "logs" / old_filename, 'rb')},
                                  headers=headers)
         print("Log uploaded to web")
+
+
+
         print(response.text)
         return response.text
         
@@ -1791,6 +1795,7 @@ class Racer():
                     'Origin': 'null',
                     'Referer': 'null'
                 }
+                print("SAVEGUILDHALL")
                 response = requests.get('https://www.beetlerank.com/rank/api/' + str(guildhall_name.get()) + "/" + self.username.get() , headers)
             
                 self.map_ranking_var.set(response.text)
@@ -2706,6 +2711,8 @@ if __name__ == '__main__':
                 'Origin': 'null',
                 'Referer': 'null'
             }
+
+            
             response = requests.get('https://www.beetlerank.com/api/info', headers)
         
             #"Welcome:\nNew event MMO B&T will start\non October 5th\nvisit beetlerank.com\nfor more details"
@@ -2713,7 +2720,7 @@ if __name__ == '__main__':
                 message.write(response.text)
 
         except:
-            self.map_ranking_var.set("")
+            print("NO CONNECTION TO BEETLERANK.COM")
 
     
     """

@@ -40,6 +40,7 @@ from pynput import keyboard
 import shlex, subprocess
 
 
+
 try:
     ctypes.windll.shcore.SetProcessDpiAwareness(2) # if your windows version >= 8.1
 except:
@@ -66,6 +67,14 @@ checkpoint = 0
 filename_timer = 99999
 ghost_number = 1
 forceFile = False
+
+yellowColor = [255, 182, 24, 255] #USED FOR RESET CHECKPOINT
+greenColor = [85, 181, 16] #USED TO START CHECKPOINT
+redColor = [255, 42, 0] #USED FOR FINISH CHECKPOINT
+purpleColor = [166, 0, 255] #not used
+blueColor = [44, 44, 255] #USED FOR NEXT CHECKPOINT
+cyanColor = [44, 218, 235] #USED FOR NEXT OF NEXT CHECKPOINT
+whiteColor = [200, 200, 200] #USED FOR NEXT OF NEXT OF NEXT CHECKPOINT
 
 splitTime = 1  #check time diff each 1 secs
 
@@ -182,7 +191,7 @@ class Ghost3d(object):
                     value_iterator = iter(balls)
                     for element in balls:
                         self.w.removeItem(element)
-                    
+                time.sleep(1)
                 self.searchGhost()
                 self.balls = {}
                 self.last_balls_positions = {}
@@ -407,6 +416,14 @@ class Ghost3d(object):
         global fAvatarPosition
         global checkpoint
 
+        global yellowColor
+        global greenColor
+        global redColor
+        global purpleColor
+        global blueColor
+        global cyanColor
+        global whiteColor
+
         file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "checkpoint.txt")
         filedata = file.read()
         if filedata == '': 
@@ -462,7 +479,7 @@ class Ghost3d(object):
 
                     step_index = str(step)
                 
-                    speedcolor = [255, 182, 24, 255]
+                    speedcolor = yellowColor
                     #radius = 5
                     #print(vel, speedcolor)
                     
@@ -524,7 +541,7 @@ class Ghost3d(object):
 
                     step_index = str(step)
                  
-                    speedcolor = [40, 40, 40, 0]
+                    speedcolor = whiteColor
                     #radius = 10
 
                     #print(vel, speedcolor)
@@ -588,8 +605,12 @@ class Ghost3d(object):
                     step_index = str(step) + "_" + str(subindex)
                     subindex = subindex + 1
 
-                    speedcolor = [44, 44, 255]
+                    speedcolor = blueColor
 
+                    if (stepname == 'start'):
+                        speedcolor = greenColor
+                    if (stepname == 'end'):
+                        speedcolor = redColor
                     #radius = 10
 
                     #print(vel, speedcolor)
@@ -655,7 +676,7 @@ class Ghost3d(object):
                     step_index = str(step) + "_" + str(subindex)
                     subindex = subindex + 1
 
-                    speedcolor = [44, 218, 235]
+                    speedcolor = cyanColor
 
                     #print(vel, speedcolor)
 
@@ -723,7 +744,7 @@ class Ghost3d(object):
                     step_index = str(step) + "_" + str(subindex)
                     subindex = subindex + 1
 
-                    speedcolor = [200, 200, 200]
+                    speedcolor = whiteColor
 
                     #print(vel, speedcolor)
 

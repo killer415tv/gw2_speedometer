@@ -312,6 +312,47 @@ class Ghost3d(object):
             else:
                 print("THERE IS NO LOG FILES YET")
 
+    def on_message(self, client_, userdata, message):
+        global client
+        #print("message received " ,json.loads(str(message.payload.decode("utf-8"))))
+        received = json.loads(str(message.payload.decode("utf-8")))
+
+        
+        
+        # {"option": "position", "x": ml.data.fAvatarPosition[0], "y": ml.data.fAvatarPosition[1], "z": ml.data.fAvatarPosition[2], "user": racer.username.get(), "map": guildhall_name.get(), "color": player_color}
+
+        #receive player position
+        if received.get('option') == 'position':
+            self.paintPlayer(received.get('user'),received.get('x'),received.get('z'),received.get('color'))
+
+
+    def joinRace(self):
+        global client
+        global session_id
+        global tag_game_subscription
+
+        #ignore old channel
+        if client != "":
+            client.on_message=self.ignore_message 
+
+        #subscribición al topico
+        broker_address="www.beetlerank.com"
+        #print("creating new instance")
+        client = mqtt.Client(client_id=str(random.random())) #create new instance
+        #client.tls_set("./chain.pem")
+        #client.tls_insecure_set(True)
+        client.on_message=self.on_message #attach function to callback
+        #print("connecting to broker")
+        client.connect(broker_address) #connect to broker
+        client.loop_start() #start the loop
+        #print("Subscribing to topic","/gw2/speedometer/race/" + str(self.session_id.get()))
+        client.subscribe("/gw2/speedometer/race/"+ tag_game_subscription)
+        print("+ connected")
+        #self.thread_queue.put('Waiting for start.')
+
+
+
+    
     def __init__(self):
 
         global fAvatarPosition
@@ -353,7 +394,8 @@ class Ghost3d(object):
         ml.read()
 
         self.drawMap()
-        self.updateOwnPosition()
+        #self.updateOwnPosition()
+        self.joinRace()
 
         self.root.mainloop()
 
@@ -499,7 +541,7 @@ class Ghost3d(object):
         if not hasattr(self, 'maxX'):
             return
 
-        self.paintPlayer(json.loads(ml.data.identity)["name"],fAvatarPosition2D[0],fAvatarPosition2D[1],"#F11")
+        self.paintPlayer(json.loads(ml.data.identity)["name"],fAvatarPosition2D[0],fAvatarPosition2D[1])
 
         self.root.after(50, self.updateOwnPosition)
 
@@ -525,8 +567,14 @@ class Ghost3d(object):
 if __name__ == '__main__':
 
     print("*****************************************************************")
-    print("*             REALTIME MAP - OFFLINE VERSION                    *")
+    print("*             REALTIME MAP - MULTIPLAYER VERSION                *")
+    print("*    IMPORTANT: write your multiplayer code and press enter     *")
     print("*****************************************************************")
+
+    tag_game_subscription = input("Type your multiplayer code:")
+
+    print("+ code: ",tag_game_subscription," written")
+    print("+ connecting....")
 
     ml = MumbleLink()
     t = Ghost3d()

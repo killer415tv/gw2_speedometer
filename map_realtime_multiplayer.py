@@ -1,7 +1,13 @@
+import asyncio
+import concurrent
 import tkinter as tk
+from threading import Thread
 from tkinter import *
 import ctypes
 import datetime
+
+import rel
+import websocket
 from scipy.spatial import distance
 
 import os
@@ -27,7 +33,6 @@ from pyqtgraph import Vector
 from pynput import keyboard
 
 from mumblelink import MumbleLink
-from websocket_util import WebsocketClient
 
 try:
     ctypes.windll.shcore.SetProcessDpiAwareness(2)  # if your windows version >= 8.1
@@ -49,15 +54,49 @@ filename_timer = 99999
 ghost_number = 1
 forceFile = False
 
-client = ""
-tag_game_subscription = ''
+chosen_room = None
+character_name = None
 
 HOSTNAME = "localhost"
 PORT = 30200
 
+INTERVAL_UPDATE_SELF = 30  # ms
+INTERVAL_PURGE_OLD_USERS = 2000  # ms
+TIMESPAN_RETAIN_USERS = 10  # s
+
 
 class Ghost3d(object):
-    ws_client = None;
+    ws_client = None
+
+    def __init__(self):
+        self.file_ready = False
+
+        self.root = Tk()
+        self.root.title("Map")
+        self.root.geometry("1000x1000+20+20")  # Whatever size
+        self.root.overrideredirect(1)  # Remove border
+        self.root.wm_attributes("-transparentcolor", "#666666")
+        self.root.attributes('-topmost', 1)
+        self.root.configure(bg='#f0f0f0')
+        """
+        def disable_event():
+            self.toggleTrans()
+        self.root.protocol("WM_DELETE_WINDOW", disable_event)
+
+        """
+        self.canvas = tk.Canvas(self.root, width=800, height=800,
+                                borderwidth=0, highlightthickness=0,
+                                bg='#666666')
+
+        self.canvas.pack(side='top', fill='both', expand='yes')
+
+        self.searchGhost()
+        self.file_ready = True
+
+        self.balls = {}
+        self.last_balls_positions = {}
+
+        self.current_users = {}
 
     def on_press(self, key):
         global filename_timer
@@ -142,14 +181,14 @@ class Ghost3d(object):
 
             checkpoints_list = pd.DataFrame()
             file_df = pd.read_csv(self.checkpoints_file)
-            checkpoints_list = checkpoints_list.append(file_df)
+            checkpoints_list = pd.concat([checkpoints_list, file_df])
 
             if len(self.all_files) > 0:
                 self.df = pd.DataFrame()
                 for file_ in self.all_files:
                     file_df = pd.read_csv(file_)
                     file_df['file_name'] = file_
-                    self.df = self.df.append(file_df)
+                    self.df = pd.concat([self.df, file_df])
 
                 # aquí tenemos que quedarnos solo con el mejor tiempo
 
@@ -202,7 +241,7 @@ class Ghost3d(object):
                     self.df = pd.DataFrame()
                     file_df = pd.read_csv(self.best_file)
                     file_df['file_name'] = self.best_file
-                    self.df = self.df.append(file_df)
+                    self.df = pd.concat([self.df, file_df])
                     min_time = 99999
                     print("-----------------------------------------------")
                     print("- LOAD LOG FILE", self.best_file)
@@ -210,87 +249,44 @@ class Ghost3d(object):
             else:
                 print("THERE IS NO LOG FILES YET")
 
-    def on_message(self, client_, userdata, message):
-        global client
-        # print("message received " ,json.loads(str(message.payload.decode("utf-8"))))
-        received = json.loads(str(message.payload.decode("utf-8")))
+    # def on_message(self, msg):
+    # print("message received " ,json.loads(str(message.payload.decode("utf-8"))))
 
-        # {"option": "position", "x": ml.data.fAvatarPosition[0], "y": ml.data.fAvatarPosition[1], "z": ml.data.fAvatarPosition[2], "user": racer.username.get(), "map": guildhall_name.get(), "color": player_color}
+    # {"option": "position", "x": ml.data.fAvatarPosition[0], "y": ml.data.fAvatarPosition[1], "z": ml.data.fAvatarPosition[2], "user": racer.username.get(), "map": guildhall_name.get(), "color": player_color}
 
-        # receive player position
-        if received.get('option') == 'position':
-            self.paintPlayer(received.get('user'), received.get('x'), received.get('z'), received.get('color'))
+    # receive player position
+    # if data.get('option') == 'position':
+    #     self.paintPlayer(data.get('user'), data.get('x'), data.get('z'), data.get('color'))
 
-    def joinRace(self):
-        # global client
-        # global session_id
-        # global tag_game_subscription
-        #
-        # # ignore old channel
-        # if client != "":
-        #     client.on_message = self.ignore_message
-        #
-        #     # subscribición al topico
-        # broker_address = "www.beetlerank.com"
-        # # print("creating new instance")
-        # client = mqtt.Client(client_id=str(random.random()))  # create new instance
-        # # client.tls_set("./chain.pem")
-        # # client.tls_insecure_set(True)
-        # client.on_message = self.on_message  # attach function to callback
-        # # print("connecting to broker")
-        # client.connect(broker_address)  # connect to broker
-        # client.loop_start()  # start the loop
-        # # print("Subscribing to topic","/gw2/speedometer/race/" + str(self.session_id.get()))
-        # client.subscribe("/gw2/speedometer/race/" + tag_game_subscription)
-        # print("+ connected")
-        # # self.thread_queue.put('Waiting for start.')
+    def getPlayerPositions(self):
+        def on_open(ws):
+            init_packet = {
+                "type": "init",
+                "client": "map",
+                "room": chosen_room
+            }
+            ws.send(json.dumps(init_packet))
 
-        ws_client = WebsocketClient(HOSTNAME, PORT)
+        def on_message(ws, message):
+            data = json.loads(message)
 
-    def __init__(self):
+            if data.get("type") == "position":
+                self.paintPlayer(data.get('user'), data.get('x'), data.get('y'), "blue")
+                self.current_users[data.get('user')] = time.time()
 
-        global fAvatarPosition
-        global guildhall_name
+        print("+ connecting....")
+        websocket.enableTrace(True)
+        ws_app = websocket.WebSocketApp(f"ws://{HOSTNAME}:{PORT}", on_open=on_open, on_message=on_message)
+        ws_app.run_forever()
 
-        self.file_ready = False
+    def deleteOldPositions(self):
+        for user, timestamp in self.current_users.copy().items():
+            if time.time() - timestamp >= TIMESPAN_RETAIN_USERS:
+                self.deletePlayer(self.generateNameMD5(user))
+                del self.current_users[user]
 
-        self.root = Tk()
-        self.root.title("Map")
-        self.root.geometry("1000x1000+20+20")  # Whatever size
-        self.root.overrideredirect(1)  # Remove border
-        self.root.wm_attributes("-transparentcolor", "#666666")
-        self.root.attributes('-topmost', 1)
-        self.root.configure(bg='#f0f0f0')
-        """
-        def disable_event():
-            self.toggleTrans()
-        self.root.protocol("WM_DELETE_WINDOW", disable_event)
-        
-        """
-        self.canvas = tk.Canvas(self.root, width=800, height=800,
-                                borderwidth=0, highlightthickness=0,
-                                bg='#666666')
+        self.root.after(INTERVAL_PURGE_OLD_USERS, self.deleteOldPositions)
 
-        self.canvas.pack(side='top', fill='both', expand='yes')
-
-        self.searchGhost()
-        self.file_ready = True
-
-        self.balls = {}
-        self.last_balls_positions = {}
-
-        listener = keyboard.Listener(
-            on_press=self.on_press,
-            on_release=self.on_release)
-        listener.start()
-
-        ml.read()
-
-        self.drawMap()
-        # self.updateOwnPosition()
-        self.joinRace()
-
-        self.root.mainloop()
 
     def drawMap(self):
 
@@ -418,43 +414,64 @@ class Ghost3d(object):
                 self.canvas.create_line(points, width=4, fill=self.color2, tags="startline", dash="4")
 
     def updateOwnPosition(self):
-
-        global fAvatarPosition
-        global timer
-        global filename_timer
-
         ml.read()
 
         if ml.data.uiVersion == 0:
             return
 
-        fAvatarPosition2D = [ml.data.fAvatarPosition[0], ml.data.fAvatarPosition[2]]
-
         if not hasattr(self, 'maxX'):
             return
 
-        self.paintPlayer(json.loads(ml.data.identity)["name"], fAvatarPosition2D[0], fAvatarPosition2D[1])
+        fAvatarPosition2D = [ml.data.fAvatarPosition[0], ml.data.fAvatarPosition[2]]
+        character_name = json.loads(ml.data.identity)["name"]
 
-        self.root.after(50, self.updateOwnPosition)
+        self.paintPlayer(character_name, fAvatarPosition2D[0], fAvatarPosition2D[1], "red")
+
+        self.root.after(INTERVAL_UPDATE_SELF, self.updateOwnPosition)
+
+    @staticmethod
+    def generateNameMD5(name):
+        return str(hashlib.md5(name.encode()).hexdigest())
+
+    def deletePlayer(self, namemd5):
+        self.canvas.delete(namemd5 + "marker")
+        self.canvas.delete(namemd5 + "label")
 
     def paintPlayer(self, name, x, y, color):
-
         if not hasattr(self, 'maxX'):
             return
 
         if not hasattr(ml, 'data'):
             return
 
+        # print(f"{name} {x} {y} {color}")
+
         positionX = (-x + abs(float(self.maxX)) + 90) * self.scale
         positionY = (y + abs(float(self.minZ)) + 90) * self.scale
 
-        namemd5 = str(hashlib.md5(name.encode()).hexdigest())
-
-        self.canvas.delete(namemd5 + "label")
-        self.canvas.create_text(positionX + 40, positionY + 5, fill="#fff", text=name, tags=namemd5 + "label")
-        self.canvas.delete(namemd5 + "marker")
+        namemd5 = self.generateNameMD5(name)
+        self.deletePlayer(namemd5)
         self.canvas.create_oval(positionX + 0, positionY + 0, positionX + 10, positionY + 10, outline=color, fill=color,
                                 width=1, tags=namemd5 + "marker")
+        self.canvas.create_text(positionX + 13, positionY - 3, anchor="nw", fill="#fff", text=name,
+                                tags=namemd5 + "label")
+
+    def start(self):
+        listener = keyboard.Listener(
+            on_press=self.on_press,
+            on_release=self.on_release)
+        listener.start()
+
+        ml.read()
+
+        self.drawMap()
+        # self.updateOwnPosition()
+        self.deleteOldPositions()
+
+        t = Thread(target=self.getPlayerPositions)
+        t.start()
+
+        self.root.mainloop()
 
 
 if __name__ == '__main__':
@@ -463,10 +480,10 @@ if __name__ == '__main__':
     print("*    IMPORTANT: write your multiplayer code and press enter     *")
     print("*****************************************************************")
 
-    tag_game_subscription = input("Type your multiplayer code:")
-
-    print("+ code: ", tag_game_subscription, " written")
-    print("+ connecting....")
+    chosen_room = input("Type your multiplayer code:")
+    print("+ code: ", chosen_room, " chosen")
 
     ml = MumbleLink()
-    t = Ghost3d()
+    map_gui = Ghost3d()
+
+    map_gui.start()

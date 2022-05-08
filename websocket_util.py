@@ -1,4 +1,5 @@
 import asyncio
+import json
 import logging
 
 import websockets
@@ -17,32 +18,104 @@ class WebsocketClient:
             msg = await producer()
             await ws.send(msg)
 
-    async def combined_handler(self, ws, consumer, handler):
+    async def combined_handler(self, ws, consumer, producer):
         await asyncio.gather(
             self.consumer_handler(ws, consumer),
-            self.producer_handler(ws, handler),
+            self.producer_handler(ws, producer),
         )
 
-    async def start(self, consumer, producer):
+    async def _start(self, handler, *args, **kwargs):
+        init_packet = kwargs.get("init_packet")
+
         async for ws in websockets.connect(self.server_url):
             try:
-                await self.combined_handler(ws, consumer, producer)
+                if init_packet is not None:
+                    await ws.send(json.dumps(init_packet))
+                await handler(ws, *args)
             except websockets.ConnectionClosed:
                 continue
 
+    async def start_combined(self, consumer, producer):
+        await self._start(self.combined_handler, consumer, producer)
+
+    async def start_map(self, consumer, room):
+        init_packet = {
+            "type": "init",
+            "client": "map",
+            "room": room
+        }
+        await self._start(self.consumer_handler, consumer, init_packet=init_packet)
+
+    async def start_speedometer(self, producer, room):
+        init_packet = {
+            "type": "init",
+            "client": "speedometer",
+            "room": room
+        }
+        await self._start(self.producer_handler, producer, init_packet=init_packet)
+
 
 class WebsocketServer:
-    connections = set()
+    rooms = dict()
+
+    async def speedometer_handler(self, ws, room):
+        logging.info(f"speedo joined [{room}]")
+        # last_username = None
+
+        async for msg in ws:
+            if room in self.rooms:
+                # data = json.loads(msg)
+                # if data.get("type") == "position":
+                #     last_username = data.get("user")
+                websockets.broadcast(self.rooms[room], msg)
+            logging.info(msg)
+
+        # connection closed
+        # if room in self.rooms and last_username is not None:
+        #     event = {
+        #         "type": "disconnect",
+        #         "user": last_username
+        #     }
+        #     websockets.broadcast(self.rooms[room], json.dumps(event))
+
+    async def map_handler(self, ws, room):
+        logging.info(f"map joined [{room}]")
+        # print(f"ma: {self.rooms}")
+        # create room if necessary
+        if room not in self.rooms:
+            self.rooms[room] = set()
+        self.rooms[room].add(ws)
+
+        try:
+            async for _ in ws:
+                pass
+        except websockets.ConnectionClosedError:
+            pass
+
+        # connection closed
+        if len(self.rooms[room]) > 1:
+            self.rooms[room].remove(ws)
+        else:
+            del self.rooms[room]
+
 
     async def handler(self, ws):
         print(f"con opened: {ws.id}")
-        self.connections.add(ws)
 
-        async for msg in ws:
-            websockets.broadcast(self.connections, msg)
-            logging.info(msg)
+        msg = await ws.recv()
+        event = json.loads(msg)
 
-        self.connections.remove(ws)
+        assert event["type"] == "init"
+        client = event["client"]
+        room = str(event["room"])
+
+        if client == "speedometer":
+            await self.speedometer_handler(ws, room)
+        elif client == "map":
+            await self.map_handler(ws, room)
+        else:
+            return
+
         print(f"con closed: {ws.id}")
 
     async def start(self, hostname, port):

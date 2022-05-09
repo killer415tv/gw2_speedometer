@@ -57,15 +57,13 @@ forceFile = False
 chosen_room = None
 character_name = None
 
-WEBSOCKET_HOSTNAME = "localhost"
-WEBSOCKET_PORT = 30200
+WEBSOCKET_HOSTNAME = "beetlerank.com"
+WEBSOCKET_PORT = 1234
 
 INTERVAL_UPDATE_SELF = 30  # ms
 INTERVAL_DRAW_USERS = 200  # ms
 INTERVAL_PURGE_OLD_USERS = 2000  # ms
 TIMESPAN_RETAIN_USERS = 10  # s
-
-
 
 
 class Ghost3d(object):
@@ -475,7 +473,8 @@ class Ghost3d(object):
         if self.TEST_DELAY:
             ping = (self.current_users[name] - self.timestamps_packet_sent[name]) * 1000
             draw_time = (time.time() - self.current_users[name]) * 1000
-            name = f"P:{ping:.3g} ms | D:{draw_time:.3g} ms"
+            total_time = (time.time() - self.timestamps_packet_sent[name]) * 1000
+            name = f"P:{ping:.3g} ms | D:{draw_time:.3g} ms [T:{total_time:.3g} ms]"
             print(name)
         self.canvas.create_text(positionX + 13, positionY - 2, anchor="nw", fill="#fff", text=name,
                                 tags=namemd5 + "label")

@@ -65,6 +65,7 @@ class WebsocketServer:
             async for msg in ws:
                 if room in self.rooms:
                     websockets.broadcast(self.rooms[room], msg)
+                # logging.info(msg)
         except websockets.ConnectionClosedError:
             pass
 

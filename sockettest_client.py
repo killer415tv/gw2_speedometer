@@ -17,7 +17,6 @@ async def consume(msg):
 
 async def produce():
     await asyncio.sleep(0.2)
-    # return f"[{ID}] pog  {time.strftime('%X')}"
 
     event = {
         "type": "position",
@@ -32,7 +31,7 @@ async def produce():
 async def server_test():
     print(f"started at {time.strftime('%X')}")
 
-    ws_client = WebsocketClient("localhost", 30200)
+    ws_client = WebsocketClient("beetlerank.com", 1234)
     # await ws_client.start_map(consume, 111)
     await ws_client.start_speedometer(produce, 333)
 

@@ -48,8 +48,8 @@ position_up_down_offset = -250
 # this variable adjust the position of the gauge +250 for right position or -250 for left position , 0 is default and center on screen
 position_right_left_offset = -104
 
-WEBSOCKET_HOSTNAME = "localhost"
-WEBSOCKET_PORT = 30200
+WEBSOCKET_HOSTNAME = "beetlerank.com"
+WEBSOCKET_PORT = 1234
 
 #-----------------------------
 #  DEFAULT CONFIGURATION VARIABLES 

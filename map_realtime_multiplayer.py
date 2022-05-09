@@ -1,12 +1,10 @@
-import asyncio
-import concurrent
 import tkinter as tk
+from colorsys import hsv_to_rgb
 from threading import Thread
 from tkinter import *
 import ctypes
 import datetime
 
-import rel
 import websocket
 from scipy.spatial import distance
 
@@ -18,7 +16,6 @@ import hashlib
 
 import random
 
-import paho.mqtt.client as mqtt  # import the client1
 import time
 from datetime import datetime
 
@@ -65,6 +62,13 @@ INTERVAL_DRAW_USERS = 200  # ms
 INTERVAL_PURGE_OLD_USERS = 2000  # ms
 TIMESPAN_RETAIN_USERS = 10  # s
 
+GOLDEN_RATIO_CONJUGATE = 0.618033988749895
+
+
+def rgb_to_hex(rgb):
+    r, g, b = rgb
+    return f'#{int(r*255):02x}{int(g*255):02x}{int(b*255):02x}'
+
 
 class Ghost3d(object):
     ws_client = None
@@ -99,8 +103,11 @@ class Ghost3d(object):
         self.balls = {}
         self.last_balls_positions = {}
 
+        self.COLOR_BASE_VAL = random.random()
+        self.current_color_id = 0
+        self.free_color_ids = []
+
         self.current_users = {}
-        self.current_positions = {}
 
         if self.TEST_DELAY:
             self.timestamps_packet_sent = {}
@@ -278,34 +285,51 @@ class Ghost3d(object):
             data = json.loads(message)
 
             if data.get("type") == "position":
-                # self.paintPlayer(data.get('user'), data.get('x'), data.get('y'), "blue")
-                self.current_positions[data.get('user')] = (data.get('x'), data.get('y'))
-                self.current_users[data.get('user')] = time.time()
+                user = data.get('user')
+                if user not in self.current_users:
+                    self.current_users[user] = {}
+                self.current_users[user]["position"] = (data.get('x'), data.get('y'))
+                self.current_users[user]["timestamp"] = time.time()
                 if self.TEST_DELAY:
-                    self.timestamps_packet_sent[data.get('user')] = data.get('timestamp')
+                    self.timestamps_packet_sent[user] = data.get('timestamp')
 
         print("+ connecting....")
         # websocket.enableTrace(True)
         ws_app = websocket.WebSocketApp(f"ws://{WEBSOCKET_HOSTNAME}:{WEBSOCKET_PORT}", on_open=on_open, on_message=on_message)
         ws_app.run_forever()
 
+    def get_distinct_color(self, n):
+        hue = (self.COLOR_BASE_VAL + n * GOLDEN_RATIO_CONJUGATE) % 1
+        return hsv_to_rgb(hue, 0.65, 0.85)
+
     def drawPositions(self):
-        for user, (x, y) in self.current_positions.copy().items():
-            self.paintPlayer(user, x, y, "blue")
+        for user, data in self.current_users.copy().items():
+            if "color" in self.current_users[user]:
+                color = self.current_users[user]["color"]
+            else:
+                if len(self.free_color_ids) > 0:
+                    color_id = self.free_color_ids.pop(0)
+                else:
+                    color_id = self.current_color_id
+                    self.current_color_id += 1
+                color = rgb_to_hex(self.get_distinct_color(color_id))
+                self.current_users[user]["color_id"] = color_id
+                self.current_users[user]["color"] = color
+
+            self.paintPlayer(user, data["position"][0], data["position"][1], color)
 
         self.root.after(INTERVAL_DRAW_USERS, self.drawPositions)
 
     def deleteOldPositions(self):
-        for user, timestamp in self.current_users.copy().items():
-            if time.time() - timestamp >= TIMESPAN_RETAIN_USERS:
-                self.deletePlayer(self.generateNameMD5(user))
+        for user, data in self.current_users.copy().items():
+            if time.time() - data["timestamp"] >= TIMESPAN_RETAIN_USERS:
+                self.free_color_ids.append(data["color_id"])
                 del self.current_users[user]
-                del self.current_positions[user]
                 if self.TEST_DELAY:
                     del self.timestamps_packet_sent[user]
+                self.deletePlayer(self.generateNameMD5(user))
 
         self.root.after(INTERVAL_PURGE_OLD_USERS, self.deleteOldPositions)
-
 
     def drawMap(self):
 
@@ -471,11 +495,12 @@ class Ghost3d(object):
         self.canvas.create_oval(positionX + 0, positionY + 0, positionX + 10, positionY + 10, outline=color, fill=color,
                                 width=1, tags=namemd5 + "marker")
         if self.TEST_DELAY:
-            ping = (self.current_users[name] - self.timestamps_packet_sent[name]) * 1000
-            draw_time = (time.time() - self.current_users[name]) * 1000
-            total_time = (time.time() - self.timestamps_packet_sent[name]) * 1000
-            name = f"P:{ping:.3g} ms | D:{draw_time:.3g} ms [T:{total_time:.3g} ms]"
-            print(name)
+            char_name = name
+            ping = (self.current_users[name]["timestamp"] - self.timestamps_packet_sent[name]) * 1000
+            draw_time = (time.time() - self.current_users[name]["timestamp"]) * 1000
+            # total_time = (time.time() - self.timestamps_packet_sent[name]) * 1000
+            name = f"P:{ping:.3g} ms | D:{draw_time:.3g} ms [T:{(ping + draw_time):.3g} ms]"
+            print(f"{char_name}: {name}")
         self.canvas.create_text(positionX + 13, positionY - 2, anchor="nw", fill="#fff", text=name,
                                 tags=namemd5 + "label")
 

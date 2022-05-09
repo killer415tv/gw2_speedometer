@@ -57,8 +57,8 @@ forceFile = False
 chosen_room = None
 character_name = None
 
-HOSTNAME = "localhost"
-PORT = 30200
+WEBSOCKET_HOSTNAME = "localhost"
+WEBSOCKET_PORT = 30200
 
 INTERVAL_UPDATE_SELF = 30  # ms
 INTERVAL_PURGE_OLD_USERS = 2000  # ms
@@ -97,6 +97,7 @@ class Ghost3d(object):
         self.last_balls_positions = {}
 
         self.current_users = {}
+        self.current_positions = {}
 
     def on_press(self, key):
         global filename_timer
@@ -275,8 +276,8 @@ class Ghost3d(object):
                 self.current_users[data.get('user')] = time.time()
 
         print("+ connecting....")
-        websocket.enableTrace(True)
-        ws_app = websocket.WebSocketApp(f"ws://{HOSTNAME}:{PORT}", on_open=on_open, on_message=on_message)
+        # websocket.enableTrace(True)
+        ws_app = websocket.WebSocketApp(f"ws://{WEBSOCKET_HOSTNAME}:{WEBSOCKET_PORT}", on_open=on_open, on_message=on_message)
         ws_app.run_forever()
 
     def deleteOldPositions(self):
@@ -444,8 +445,6 @@ class Ghost3d(object):
         if not hasattr(ml, 'data'):
             return
 
-        # print(f"{name} {x} {y} {color}")
-
         positionX = (-x + abs(float(self.maxX)) + 90) * self.scale
         positionY = (y + abs(float(self.minZ)) + 90) * self.scale
 
@@ -453,7 +452,7 @@ class Ghost3d(object):
         self.deletePlayer(namemd5)
         self.canvas.create_oval(positionX + 0, positionY + 0, positionX + 10, positionY + 10, outline=color, fill=color,
                                 width=1, tags=namemd5 + "marker")
-        self.canvas.create_text(positionX + 13, positionY - 3, anchor="nw", fill="#fff", text=name,
+        self.canvas.create_text(positionX + 13, positionY - 2, anchor="nw", fill="#fff", text=name,
                                 tags=namemd5 + "label")
 
     def start(self):
@@ -469,6 +468,7 @@ class Ghost3d(object):
         self.deleteOldPositions()
 
         t = Thread(target=self.getPlayerPositions)
+        t.daemon = True
         t.start()
 
         self.root.mainloop()

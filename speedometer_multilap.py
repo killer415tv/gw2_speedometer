@@ -9,6 +9,7 @@ import time
 import datetime
 import math
 import scipy.spatial.transform._rotation_groups
+import websocket
 from scipy.spatial import distance
 import pynput.keyboard._win32 
 import pynput.mouse._win32 
@@ -44,6 +45,9 @@ np.seterr(divide='ignore', invalid='ignore')
 position_up_down_offset = -250
 # this variable adjust the position of the gauge +250 for right position or -250 for left position , 0 is default and center on screen
 position_right_left_offset = -104
+
+WEBSOCKET_HOSTNAME = "localhost"
+WEBSOCKET_PORT = 30200
 
 #-----------------------------
 #  DEFAULT CONFIGURATION VARIABLES 
@@ -114,6 +118,9 @@ game_focus = 0
 client = ""
 mapId = 0
 lastMapId = 0
+
+websocket_client = None
+websocket_client_thread = None
 
 winh = 110
 winw = 200
@@ -1041,12 +1048,22 @@ class Meter():
         else:
             _pos = [ml.data.fAvatarPosition[0],ml.data.fAvatarPosition[2]]
 
-        
-        if 'racer' in globals() and client != "":
+        global websocket_client
+        if 'racer' in globals() and (client != "" or websocket_client):
             if map_position_last_time_send != round(_time*10/2):
                 map_position_last_time_send = round(_time*10/2)
-                racer.sendMQTT({"option": "position", "x": ml.data.fAvatarPosition[0], "y": ml.data.fAvatarPosition[1], "z": ml.data.fAvatarPosition[2], "user": racer.username.get(), "map": guildhall_name.get(), "color": player_color})
-        
+                if client != "":
+                    racer.sendMQTT({"option": "position", "x": ml.data.fAvatarPosition[0], "y": ml.data.fAvatarPosition[1], "z": ml.data.fAvatarPosition[2], "user": racer.username.get(), "map": guildhall_name.get(), "color": player_color})
+
+                if websocket_client:
+                    event = {
+                        "type": "position",
+                        "x":  ml.data.fAvatarPosition[0],
+                        "y": ml.data.fAvatarPosition[2],
+                        "z": ml.data.fAvatarPosition[1],
+                        "user": racer.username.get(),
+                    }
+                    websocket_client.send(json.dumps(event))
 
         if show_checkpoints_window and 'racer' in globals():  
             if ml.data.identity != "":
@@ -1463,6 +1480,36 @@ class Racer():
         client.subscribe(self.prefix_topic + str(self.session_id.get()))
         
         #self.thread_queue.put('Waiting for start.')
+
+        global websocket_client
+        global websocket_client_thread
+
+        if websocket_client is not None:
+            websocket_client.close()
+            websocket_client = None
+            websocket_client_thread.join()
+
+        websocket_client = websocket.WebSocketApp(f"ws://{WEBSOCKET_HOSTNAME}:{WEBSOCKET_PORT}")
+
+        websocket_client_thread = Thread(target=websocket_client.run_forever)
+        websocket_client_thread.daemon = True
+        websocket_client_thread.start()
+
+        conn_timeout = 5
+        while not websocket_client.sock.connected and conn_timeout:
+            time.sleep(1)
+            conn_timeout -= 1
+
+        if not websocket_client.sock.connected:
+            print("Failed to connect to websocket server")
+            return
+
+        init_packet = {
+            "type": "init",
+            "client": "speedometer",
+            "room": self.session_id.get()
+        }
+        websocket_client.send(json.dumps(init_packet))
 
     def reset(self):
 

@@ -60,23 +60,13 @@ class WebsocketServer:
 
     async def speedometer_handler(self, ws, room):
         logging.info(f"speedo joined [{room}]")
-        # last_username = None
 
-        async for msg in ws:
-            if room in self.rooms:
-                # data = json.loads(msg)
-                # if data.get("type") == "position":
-                #     last_username = data.get("user")
-                websockets.broadcast(self.rooms[room], msg)
-            logging.info(msg)
-
-        # connection closed
-        # if room in self.rooms and last_username is not None:
-        #     event = {
-        #         "type": "disconnect",
-        #         "user": last_username
-        #     }
-        #     websockets.broadcast(self.rooms[room], json.dumps(event))
+        try:
+            async for msg in ws:
+                if room in self.rooms:
+                    websockets.broadcast(self.rooms[room], msg)
+        except websockets.ConnectionClosedError:
+            pass
 
     async def map_handler(self, ws, room):
         logging.info(f"map joined [{room}]")
@@ -98,11 +88,15 @@ class WebsocketServer:
         else:
             del self.rooms[room]
 
-
     async def handler(self, ws):
         print(f"con opened: {ws.id}")
 
-        msg = await ws.recv()
+        try:
+            msg = await ws.recv()
+        except websockets.ConnectionClosedError:
+            return
+
+        # print(msg)
         event = json.loads(msg)
 
         assert event["type"] == "init"

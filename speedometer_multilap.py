@@ -37,6 +37,8 @@ import requests
 from configparser import RawConfigParser
 import shlex, subprocess
 
+from websocket import WebSocketConnectionClosedException
+
 from mumblelink import MumbleLink
 
 np.seterr(divide='ignore', invalid='ignore')
@@ -1062,8 +1064,12 @@ class Meter():
                         "y": ml.data.fAvatarPosition[2],
                         "z": ml.data.fAvatarPosition[1],
                         "user": racer.username.get(),
+                        "timestamp": time.time()
                     }
-                    websocket_client.send(json.dumps(event))
+                    try:
+                        websocket_client.send(json.dumps(event))
+                    except WebSocketConnectionClosedException:
+                        pass
 
         if show_checkpoints_window and 'racer' in globals():  
             if ml.data.identity != "":
@@ -1494,6 +1500,10 @@ class Racer():
         websocket_client_thread = Thread(target=websocket_client.run_forever)
         websocket_client_thread.daemon = True
         websocket_client_thread.start()
+
+        if websocket_client.sock is None:
+            print("Failed to connect to websocket server")
+            return
 
         conn_timeout = 5
         while not websocket_client.sock.connected and conn_timeout:

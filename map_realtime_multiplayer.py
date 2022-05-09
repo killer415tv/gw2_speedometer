@@ -66,8 +66,12 @@ INTERVAL_PURGE_OLD_USERS = 2000  # ms
 TIMESPAN_RETAIN_USERS = 10  # s
 
 
+
+
 class Ghost3d(object):
     ws_client = None
+
+    TEST_DELAY = False
 
     def __init__(self):
         self.file_ready = False
@@ -99,6 +103,9 @@ class Ghost3d(object):
 
         self.current_users = {}
         self.current_positions = {}
+
+        if self.TEST_DELAY:
+            self.timestamps_packet_sent = {}
 
     def on_press(self, key):
         global filename_timer
@@ -276,6 +283,8 @@ class Ghost3d(object):
                 # self.paintPlayer(data.get('user'), data.get('x'), data.get('y'), "blue")
                 self.current_positions[data.get('user')] = (data.get('x'), data.get('y'))
                 self.current_users[data.get('user')] = time.time()
+                if self.TEST_DELAY:
+                    self.timestamps_packet_sent[data.get('user')] = data.get('timestamp')
 
         print("+ connecting....")
         # websocket.enableTrace(True)
@@ -294,6 +303,8 @@ class Ghost3d(object):
                 self.deletePlayer(self.generateNameMD5(user))
                 del self.current_users[user]
                 del self.current_positions[user]
+                if self.TEST_DELAY:
+                    del self.timestamps_packet_sent[user]
 
         self.root.after(INTERVAL_PURGE_OLD_USERS, self.deleteOldPositions)
 
@@ -461,6 +472,11 @@ class Ghost3d(object):
         self.deletePlayer(namemd5)
         self.canvas.create_oval(positionX + 0, positionY + 0, positionX + 10, positionY + 10, outline=color, fill=color,
                                 width=1, tags=namemd5 + "marker")
+        if self.TEST_DELAY:
+            ping = (self.current_users[name] - self.timestamps_packet_sent[name]) * 1000
+            draw_time = (time.time() - self.current_users[name]) * 1000
+            name = f"P:{ping:.3g} ms | D:{draw_time:.3g} ms"
+            print(name)
         self.canvas.create_text(positionX + 13, positionY - 2, anchor="nw", fill="#fff", text=name,
                                 tags=namemd5 + "label")
 

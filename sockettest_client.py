@@ -21,9 +21,10 @@ async def produce():
 
     event = {
         "type": "position",
-        "user": f"test{ID}",
+        "user": f"{ID}",
         "x": random.randrange(-115, 400, 1),
         "y": random.randrange(-1010, -500, 1),
+        "timestamp": time.time()
     }
     return json.dumps(event)
 

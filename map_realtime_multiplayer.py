@@ -61,6 +61,7 @@ WEBSOCKET_HOSTNAME = "localhost"
 WEBSOCKET_PORT = 30200
 
 INTERVAL_UPDATE_SELF = 30  # ms
+INTERVAL_DRAW_USERS = 200  # ms
 INTERVAL_PURGE_OLD_USERS = 2000  # ms
 TIMESPAN_RETAIN_USERS = 10  # s
 
@@ -272,7 +273,8 @@ class Ghost3d(object):
             data = json.loads(message)
 
             if data.get("type") == "position":
-                self.paintPlayer(data.get('user'), data.get('x'), data.get('y'), "blue")
+                # self.paintPlayer(data.get('user'), data.get('x'), data.get('y'), "blue")
+                self.current_positions[data.get('user')] = (data.get('x'), data.get('y'))
                 self.current_users[data.get('user')] = time.time()
 
         print("+ connecting....")
@@ -280,11 +282,18 @@ class Ghost3d(object):
         ws_app = websocket.WebSocketApp(f"ws://{WEBSOCKET_HOSTNAME}:{WEBSOCKET_PORT}", on_open=on_open, on_message=on_message)
         ws_app.run_forever()
 
+    def drawPositions(self):
+        for user, (x, y) in self.current_positions.copy().items():
+            self.paintPlayer(user, x, y, "blue")
+
+        self.root.after(INTERVAL_DRAW_USERS, self.drawPositions)
+
     def deleteOldPositions(self):
         for user, timestamp in self.current_users.copy().items():
             if time.time() - timestamp >= TIMESPAN_RETAIN_USERS:
                 self.deletePlayer(self.generateNameMD5(user))
                 del self.current_users[user]
+                del self.current_positions[user]
 
         self.root.after(INTERVAL_PURGE_OLD_USERS, self.deleteOldPositions)
 
@@ -465,6 +474,7 @@ class Ghost3d(object):
 
         self.drawMap()
         # self.updateOwnPosition()
+        self.drawPositions()
         self.deleteOldPositions()
 
         t = Thread(target=self.getPlayerPositions)

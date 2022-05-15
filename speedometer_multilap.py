@@ -1050,27 +1050,6 @@ class Meter():
         else:
             _pos = [ml.data.fAvatarPosition[0],ml.data.fAvatarPosition[2]]
 
-        global websocket_client
-        if 'racer' in globals() and (client != "" or websocket_client):
-            if map_position_last_time_send != round(_time*10/2):
-                map_position_last_time_send = round(_time*10/2)
-                if client != "":
-                    racer.sendMQTT({"option": "position", "x": ml.data.fAvatarPosition[0], "y": ml.data.fAvatarPosition[1], "z": ml.data.fAvatarPosition[2], "user": racer.username.get(), "map": guildhall_name.get(), "color": player_color})
-
-                if websocket_client:
-                    event = {
-                        "type": "position",
-                        "x":  ml.data.fAvatarPosition[0],
-                        "y": ml.data.fAvatarPosition[2],
-                        "z": ml.data.fAvatarPosition[1],
-                        "user": racer.username.get(),
-                        "timestamp": time.time()
-                    }
-                    try:
-                        websocket_client.send(json.dumps(event))
-                    except WebSocketConnectionClosedException:
-                        pass
-
         if show_checkpoints_window and 'racer' in globals():  
             if ml.data.identity != "":
                 racer.username.set(json.loads(ml.data.identity).get("name"))
@@ -1123,6 +1102,12 @@ class Meter():
                     norms = np.linalg.norm(v1) * np.linalg.norm(v2)
                 
                     return str(round(np.rad2deg(np.arccos(dot_pr / norms))))
+
+                def angle_between360(v1, v2):
+                    dot = v1.dot(v2)
+                    det = v1[0]*v2[1] - v1[1]*v2[0]
+                    deg = np.rad2deg(np.arctan2(-det, -dot)) + 180
+                    return str(round(deg, 2))
 
                 # construimos un vector con la posición actual y la anterior
                 if speed_in_3D == 1:
@@ -1311,6 +1296,34 @@ class Meter():
             _lastPos = _pos
             #_lastVel = velocity
             _lastTick = _tick
+
+        global websocket_client
+        if 'racer' in globals() and (client != "" or websocket_client):
+            if map_position_last_time_send != round(_time * 10 / 2):
+                map_position_last_time_send = round(_time * 10 / 2)
+                if client != "":
+                    racer.sendMQTT(
+                        {"option": "position", "x": ml.data.fAvatarPosition[0], "y": ml.data.fAvatarPosition[1],
+                         "z": ml.data.fAvatarPosition[2], "user": racer.username.get(), "map": guildhall_name.get(),
+                         "color": player_color})
+
+                if websocket_client:
+                    north = np.array([0, 1])
+                    avatar_direction = np.array([ml.data.fAvatarFront[0], ml.data.fAvatarFront[2]])
+
+                    event = {
+                        "type": "position",
+                        "x": ml.data.fAvatarPosition[0],
+                        "y": ml.data.fAvatarPosition[2],
+                        "z": ml.data.fAvatarPosition[1],
+                        "angle": angle_between360(avatar_direction, north),
+                        "user": racer.username.get(),
+                        "timestamp": time.time()
+                    }
+                    try:
+                        websocket_client.send(json.dumps(event))
+                    except WebSocketConnectionClosedException:
+                        pass
 
         self.root.after(10, self.updateMeterTimer)
 

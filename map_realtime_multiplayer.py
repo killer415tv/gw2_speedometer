@@ -263,15 +263,6 @@ class Ghost3d(object):
             else:
                 print("THERE IS NO LOG FILES YET")
 
-    # def on_message(self, msg):
-    # print("message received " ,json.loads(str(message.payload.decode("utf-8"))))
-
-    # {"option": "position", "x": ml.data.fAvatarPosition[0], "y": ml.data.fAvatarPosition[1], "z": ml.data.fAvatarPosition[2], "user": racer.username.get(), "map": guildhall_name.get(), "color": player_color}
-
-    # receive player position
-    # if data.get('option') == 'position':
-    #     self.paintPlayer(data.get('user'), data.get('x'), data.get('z'), data.get('color'))
-
     def getPlayerPositions(self):
         def on_open(ws):
             init_packet = {

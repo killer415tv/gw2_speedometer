@@ -16,13 +16,15 @@ async def consume(msg):
 
 
 async def produce():
-    await asyncio.sleep(0.2)
+    await asyncio.sleep(1)
 
     event = {
         "type": "position",
         "user": f"{ID}",
         "x": random.randrange(-115, 400, 1),
         "y": random.randrange(-1010, -500, 1),
+        "z": random.randrange(-1, 5, 1),
+        "angle": random.randrange(0, 360, 1),
         "timestamp": time.time()
     }
     return json.dumps(event)

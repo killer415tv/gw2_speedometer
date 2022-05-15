@@ -1308,7 +1308,7 @@ class Meter():
                          "color": player_color})
 
                 if websocket_client:
-                    north = np.array([0, 1])
+                    south = np.array([0, -1])
                     avatar_direction = np.array([ml.data.fAvatarFront[0], ml.data.fAvatarFront[2]])
 
                     event = {
@@ -1316,7 +1316,7 @@ class Meter():
                         "x": ml.data.fAvatarPosition[0],
                         "y": ml.data.fAvatarPosition[2],
                         "z": ml.data.fAvatarPosition[1],
-                        "angle": angle_between360(avatar_direction, north),
+                        "angle": angle_between360(avatar_direction, south),
                         "user": racer.username.get(),
                         "timestamp": time.time()
                     }

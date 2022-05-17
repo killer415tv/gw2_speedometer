@@ -63,12 +63,12 @@ root.configure(bg='#666666')
 windowWidth = 650
 windowHeight = 300
 positionRight = int(root.winfo_screenwidth()/2 - windowWidth/2) + 120
-positionDown = int(root.winfo_screenheight()/2 - windowHeight/2) 
+positionDown = int(root.winfo_screenheight()/2 - windowHeight/2)
 
     # IMPORTANT!!!! DONT CHANGE VALUES HERE
     # CHANGE THEM AT CONFIG.TXT
 geometry_speedometer = "650x300+{}+{}".format(positionRight, positionDown)
-geometry_racer = "750x450+0+400"
+geometry_racer = "750x500+0+400"
 
 #measure the speed in 3 dimensions or ignore the altitude axis
 speed_in_3D = 0 # 1 = on , 0 = off
@@ -120,6 +120,10 @@ game_focus = 0
 client = ""
 mapId = 0
 lastMapId = 0
+
+use_websocket = 0
+websocket_host = "beetlerank.com"
+websocket_port = 1234
 
 websocket_client = None
 websocket_client_thread = None
@@ -1327,6 +1331,7 @@ class Meter():
 
         self.root.after(10, self.updateMeterTimer)
 
+
 class Racer():
 
     def setOnTopfullscreen(self):
@@ -1579,117 +1584,84 @@ class Racer():
     def toggleTrans(self):
         if (self.move):
             self.root.overrideredirect(1)
-            self.map_ranking.configure(fg=self.color_trans_fg); self.map_ranking.configure(bg=self.color_trans_bg)
-            self.t_1.configure(fg=self.color_trans_fg); self.t_1.configure(bg=self.color_trans_bg)
-            self.t_2.configure(fg=self.color_trans_fg); self.t_2.configure(bg=self.color_trans_bg)
-            self.t_3.configure(fg=self.color_trans_fg); self.t_3.configure(bg="#222222")
-            self.t_3_2.configure(fg=self.color_trans_fg); self.t_3_2.configure(bg="#222222")
-            self.t_4.configure(fg=self.color_trans_fg); self.t_4.configure(bg=self.color_trans_bg)
-            self.t_4_4.configure(fg=self.color_trans_fg); self.t_4_4.configure(bg=self.color_trans_bg)
-            self.t_4_5.configure(fg="black"); self.t_4_5.configure(bg=self.color_trans_bg)
-            self.t_4_6.configure(fg="black"); self.t_4_6.configure(bg=self.color_trans_bg)
-            self.t_5.configure(fg=self.color_trans_fg); self.t_5.configure(bg="#222222")
-            self.t_6.configure(fg=self.color_trans_fg); self.t_6.configure(bg="#222222")
+            self.map_ranking.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
+            self.t_1.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
+            self.t_2.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
+            self.t_3.configure(fg=self.color_trans_fg, bg="#222222")
+            self.t_3_2.configure(fg=self.color_trans_fg, bg="#222222")
+            self.t_4.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
+            self.t_4_4.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
+            self.t_4_5.configure(fg="black", bg=self.color_trans_bg)
+            self.t_4_6.configure(fg="black", bg=self.color_trans_bg)
+            self.t_5.configure(fg=self.color_trans_fg, bg="#222222")
+            self.t_6.configure(fg=self.color_trans_fg, bg="#222222")
             #self.t_6_1.configure(fg=self.color_trans_fg); self.t_6_1.configure(bg="#222222")
-            self.t_7.configure(fg=self.color_trans_fg); self.t_7.configure(bg="#222222")
-            self.t_7_1.configure(fg=self.color_trans_fg); self.t_7_1.configure(bg="#222222")
-            self.t_7_2.configure(fg=self.color_trans_fg); self.t_7_2.configure(bg="#222222")
-            self.t_3_5.configure(fg=self.color_trans_fg); self.t_3_5.configure(bg="#222222")
-            self.t_3_6.configure(fg=self.color_trans_fg); self.t_3_6.configure(bg="#222222")
-            self.t_8.configure(fg=self.color_trans_fg); self.t_8.configure(bg=self.color_trans_bg)
-            self.t_9.configure(fg=self.color_trans_fg); self.t_9.configure(bg=self.color_trans_bg)
-            self.t_10.configure(fg=self.color_trans_fg); self.t_10.configure(bg=self.color_trans_bg)
-            self.conf_move.configure(fg=self.color_trans_fg); self.conf_move.configure(bg="#222222")
-            self.conf_1_1.configure(fg=self.color_trans_fg); self.conf_1_1.configure(bg=self.color_trans_bg)
-            self.conf_1_2.configure(fg="black"); self.conf_1_2.configure(bg=self.color_trans_bg)
-            self.conf_2_1.configure(fg=self.color_trans_fg); self.conf_2_1.configure(bg=self.color_trans_bg)
-            self.conf_2_2.configure(fg="black"); self.conf_2_2.configure(bg=self.color_trans_bg)
-            self.conf_3_1.configure(fg=self.color_trans_fg); self.conf_3_1.configure(bg=self.color_trans_bg)
-            self.conf_3_2.configure(fg="black"); self.conf_3_2.configure(bg=self.color_trans_bg)
-            self.conf_4_1.configure(fg=self.color_trans_fg); self.conf_4_1.configure(bg=self.color_trans_bg)
-            self.conf_4_2.configure(fg="black"); self.conf_4_2.configure(bg=self.color_trans_bg)
-            self.conf_5_1.configure(fg=self.color_trans_fg); self.conf_5_1.configure(bg=self.color_trans_bg)
-            self.conf_5_2.configure(fg="black"); self.conf_5_2.configure(bg=self.color_trans_bg)
-            self.conf_6_1.configure(fg=self.color_trans_fg); self.conf_6_1.configure(bg=self.color_trans_bg)
-            self.conf_6_2.configure(fg="black"); self.conf_6_2.configure(bg=self.color_trans_bg)
-            self.conf_7_1.configure(fg=self.color_trans_fg); self.conf_7_1.configure(bg=self.color_trans_bg)
-            self.conf_7_2.configure(fg="black"); self.conf_7_2.configure(bg=self.color_trans_bg)
-            self.conf_8_1.configure(fg=self.color_trans_fg); self.conf_8_1.configure(bg=self.color_trans_bg)
-            self.conf_8_2.configure(fg="black"); self.conf_8_2.configure(bg=self.color_trans_bg)
-            self.conf_9_1.configure(fg=self.color_trans_fg); self.conf_9_1.configure(bg=self.color_trans_bg)
-            self.conf_9_2.configure(fg="black"); self.conf_9_2.configure(bg=self.color_trans_bg)
-            self.conf_10_1.configure(fg=self.color_trans_fg); self.conf_10_1.configure(bg=self.color_trans_bg)
-            self.conf_10_2.configure(fg="black"); self.conf_10_2.configure(bg=self.color_trans_bg)
-            self.conf_11_1.configure(fg=self.color_trans_fg); self.conf_11_1.configure(bg=self.color_trans_bg)
-            self.conf_11_2.configure(fg="black"); self.conf_11_2.configure(bg=self.color_trans_bg)
-            self.conf_12_1.configure(fg=self.color_trans_fg); self.conf_12_1.configure(bg=self.color_trans_bg)
-            self.conf_12_2.configure(fg="black"); self.conf_12_2.configure(bg=self.color_trans_bg)
-            self.conf_13_1.configure(fg=self.color_trans_fg); self.conf_13_1.configure(bg=self.color_trans_bg)
-            self.conf_13_2.configure(fg="black"); self.conf_13_2.configure(bg=self.color_trans_bg)
-            self.conf_14_1.configure(fg=self.color_trans_fg); self.conf_14_1.configure(bg=self.color_trans_bg)
-            self.conf_14_2.configure(fg="black"); self.conf_14_2.configure(bg=self.color_trans_bg)
-            self.conf_15_1.configure(bg=self.color_trans_bg)
-            self.conf_15_2.configure(fg=self.color_trans_fg); self.conf_15_2.configure(bg="#222222")
-            self.conf_save.configure(fg=self.color_trans_fg); self.conf_save.configure(bg="#222222")
-            self.conf.configure(fg=self.color_trans_fg); self.conf.configure(bg="#222222")
+            self.t_7.configure(fg=self.color_trans_fg, bg="#222222")
+            self.t_7_1.configure(fg=self.color_trans_fg, bg="#222222")
+            self.t_7_2.configure(fg=self.color_trans_fg, bg="#222222")
+            self.t_3_5.configure(fg=self.color_trans_fg, bg="#222222")
+            self.t_3_6.configure(fg=self.color_trans_fg, bg="#222222")
+            self.t_8.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
+            self.t_9.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
+            self.t_10.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
+
+            def makeCheckboxTransparent(label, cb):
+                label.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
+                cb.configure(fg="black", bg=self.color_trans_bg)
+
+            self.conf_move.configure(fg=self.color_trans_fg, bg="#222222")
+
+            for (label, cb) in self.config_checkboxes:
+                makeCheckboxTransparent(label, cb)
+
+            self.conf_color_label.configure(bg=self.color_trans_bg)
+            self.conf_color_btn.configure(fg=self.color_trans_fg, bg="#222222")
+            makeCheckboxTransparent(self.conf_websocket_label, self.conf_websocket_cbtn)
+            self.conf_websocket_host_entry.configure(fg=self.color_trans_fg, bg="#222222")
+            self.conf_websocket_port_entry.configure(fg=self.color_trans_fg, bg="#222222")
+            self.conf_save.configure(fg=self.color_trans_fg, bg="#222222")
+            self.conf.configure(fg=self.color_trans_fg, bg="#222222")
 
             self.root.configure(bg=self.color_trans_bg)
-            
         else:
             self.root.overrideredirect(0)
-            self.map_ranking.configure(fg=self.color_normal_fg); self.map_ranking.configure(bg=self.color_normal_bg)
-            self.t_1.configure(fg=self.color_normal_fg); self.t_1.configure(bg=self.color_normal_bg)
-            self.t_2.configure(fg=self.color_normal_fg); self.t_2.configure(bg=self.color_normal_bg)
-            self.t_3.configure(fg=self.color_normal_fg); self.t_3.configure(bg=self.color_normal_bg)
-            self.t_3_2.configure(fg=self.color_normal_fg); self.t_3_2.configure(bg=self.color_normal_bg)
-            self.t_4.configure(fg=self.color_normal_fg); self.t_4.configure(bg=self.color_normal_bg)
-            self.t_4_4.configure(fg=self.color_normal_fg); self.t_4_4.configure(bg=self.color_normal_bg)
-            self.t_4_5.configure(fg=self.color_normal_fg); self.t_4_5.configure(bg=self.color_normal_bg)
-            self.t_4_6.configure(fg=self.color_normal_fg); self.t_4_6.configure(bg=self.color_normal_bg)
-            self.t_5.configure(fg=self.color_normal_fg); self.t_5.configure(bg=self.color_normal_bg)
-            self.t_6.configure(fg=self.color_normal_fg); self.t_6.configure(bg=self.color_normal_bg)
+            self.map_ranking.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.t_1.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.t_2.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.t_3.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.t_3_2.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.t_4.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.t_4_4.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.t_4_5.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.t_4_6.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.t_5.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.t_6.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
             #self.t_6_1.configure(fg=self.color_normal_fg); self.t_6_1.configure(bg=self.color_normal_bg)
-            self.t_7.configure(fg=self.color_normal_fg); self.t_7.configure(bg=self.color_normal_bg)
-            self.t_7_1.configure(fg=self.color_normal_fg); self.t_7_1.configure(bg=self.color_normal_bg)
-            self.t_7_2.configure(fg=self.color_normal_fg); self.t_7_2.configure(bg=self.color_normal_bg)
-            self.t_3_5.configure(fg=self.color_normal_fg); self.t_3_5.configure(bg=self.color_normal_bg)
-            self.t_3_6.configure(fg=self.color_normal_fg); self.t_3_6.configure(bg=self.color_normal_bg)
-            self.t_8.configure(fg=self.color_normal_fg); self.t_8.configure(bg=self.color_normal_bg)
-            self.t_9.configure(fg=self.color_normal_fg); self.t_9.configure(bg=self.color_normal_bg)
-            self.t_10.configure(fg=self.color_normal_fg); self.t_10.configure(bg=self.color_normal_bg)
-            self.conf_move.configure(fg=self.color_normal_fg); self.conf_move.configure(bg=self.color_normal_bg)
-            self.conf_1_1.configure(fg=self.color_normal_fg); self.conf_1_1.configure(bg=self.color_normal_bg)
-            self.conf_1_2.configure(fg=self.color_normal_fg); self.conf_1_2.configure(bg=self.color_normal_bg)
-            self.conf_2_1.configure(fg=self.color_normal_fg); self.conf_2_1.configure(bg=self.color_normal_bg)
-            self.conf_2_2.configure(fg=self.color_normal_fg); self.conf_2_2.configure(bg=self.color_normal_bg)
-            self.conf_3_1.configure(fg=self.color_normal_fg); self.conf_3_1.configure(bg=self.color_normal_bg)
-            self.conf_3_2.configure(fg=self.color_normal_fg); self.conf_3_2.configure(bg=self.color_normal_bg)
-            self.conf_4_1.configure(fg=self.color_normal_fg); self.conf_4_1.configure(bg=self.color_normal_bg)
-            self.conf_4_2.configure(fg=self.color_normal_fg); self.conf_4_2.configure(bg=self.color_normal_bg)
-            self.conf_5_1.configure(fg=self.color_normal_fg); self.conf_5_1.configure(bg=self.color_normal_bg)
-            self.conf_5_2.configure(fg=self.color_normal_fg); self.conf_5_2.configure(bg=self.color_normal_bg)
-            self.conf_6_1.configure(fg=self.color_normal_fg); self.conf_6_1.configure(bg=self.color_normal_bg)
-            self.conf_6_2.configure(fg=self.color_normal_fg); self.conf_6_2.configure(bg=self.color_normal_bg)
-            self.conf_7_1.configure(fg=self.color_normal_fg); self.conf_7_1.configure(bg=self.color_normal_bg)
-            self.conf_7_2.configure(fg=self.color_normal_fg); self.conf_7_2.configure(bg=self.color_normal_bg)
-            self.conf_8_1.configure(fg=self.color_normal_fg); self.conf_8_1.configure(bg=self.color_normal_bg)
-            self.conf_8_2.configure(fg=self.color_normal_fg); self.conf_8_2.configure(bg=self.color_normal_bg)
-            self.conf_9_1.configure(fg=self.color_normal_fg); self.conf_9_1.configure(bg=self.color_normal_bg)
-            self.conf_9_2.configure(fg=self.color_normal_fg); self.conf_9_2.configure(bg=self.color_normal_bg)
-            self.conf_10_1.configure(fg=self.color_normal_fg); self.conf_10_1.configure(bg=self.color_normal_bg)
-            self.conf_10_2.configure(fg=self.color_normal_fg); self.conf_10_2.configure(bg=self.color_normal_bg)
-            self.conf_11_1.configure(fg=self.color_normal_fg); self.conf_11_1.configure(bg=self.color_normal_bg)
-            self.conf_11_2.configure(fg=self.color_normal_fg); self.conf_11_2.configure(bg=self.color_normal_bg)
-            self.conf_12_1.configure(fg=self.color_normal_fg); self.conf_12_1.configure(bg=self.color_normal_bg)
-            self.conf_12_2.configure(fg=self.color_normal_fg); self.conf_12_2.configure(bg=self.color_normal_bg)
-            self.conf_13_1.configure(fg=self.color_normal_fg); self.conf_13_1.configure(bg=self.color_normal_bg)
-            self.conf_13_2.configure(fg=self.color_normal_fg); self.conf_13_2.configure(bg=self.color_normal_bg)
-            self.conf_14_1.configure(fg=self.color_normal_fg); self.conf_14_1.configure(bg=self.color_normal_bg)
-            self.conf_14_2.configure(fg=self.color_normal_fg); self.conf_14_2.configure(bg=self.color_normal_bg)
-            self.conf_15_1.configure(bg=self.color_normal_bg)
-            self.conf_15_2.configure(fg=self.color_normal_fg); self.conf_15_2.configure(bg=self.color_normal_bg)
-            self.conf_save.configure(fg=self.color_normal_fg); self.conf_save.configure(bg=self.color_normal_bg)
-            self.conf.configure(fg=self.color_normal_fg); self.conf.configure(bg=self.color_normal_bg)
+            self.t_7.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.t_7_1.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.t_7_2.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.t_3_5.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.t_3_6.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.t_8.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.t_9.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.t_10.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+
+            def makeCheckboxNormal(label, cb):
+                label.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+                cb.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+
+            self.conf_move.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+
+            for (label, cb) in self.config_checkboxes:
+                makeCheckboxNormal(label, cb)
+
+            self.conf_color_label.configure(bg=self.color_normal_bg)
+            self.conf_color_btn.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            makeCheckboxNormal(self.conf_websocket_label, self.conf_websocket_cbtn)
+            self.conf_websocket_host_entry.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.conf_websocket_port_entry.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.conf_save.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.conf.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
 
             self.root.configure(bg=self.color_normal_bg)
             
@@ -1917,289 +1889,146 @@ class Racer():
                     else:
                         meter.toggleTrans()
 
-
         self.conf_move = tk.Button(self.root, text='MOVE SPEEDOMETER', command=lambda:toggleAll(),font=("Lucida Console", 10))
-        self.conf_move.place(x=310, y=18, width=160, height=25)
-         
-        #OPTION 1 
-        self.conf_1_0 = IntVar(self.root, hud_slope)
 
-        self.conf_1_1 = tk.Label(self.root, text="""Show slope""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.conf_1_1.place(x=314, y=44 )
+        def createCheckboxLabel(text):
+            return tk.Label(
+                self.root,
+                text=text,
+                justify=tk.LEFT,
+                padx=20,
+                fg=self.fg.get(),
+                bg=self.bg.get(),
+                font=("Lucida Console", 10),
+            )
 
-        self.conf_1_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
-            text = "",
-            variable=self.conf_1_0,
-            borderwidth=0, command=lambda:conf_toggle("hud_slope"))
-        self.conf_1_2.place(x=310, y=44 )
+        self.config_cb_vars = {}
 
-        #OPTION 1 
-        self.conf_2_0 = IntVar(self.root, hud_gauge)
+        def createCheckbox(initValue, varName):
+            self.config_cb_vars[varName] = IntVar(self.root, initValue)
+            return tk.Checkbutton(
+                self.root,
+                variable=self.config_cb_vars[varName],
+                command=lambda: conf_toggle(varName),
+                font=("Lucida Console", 10),
+                text="",
+                borderwidth=0)
 
-        self.conf_2_1 = tk.Label(self.root, text="""Show gauge""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.conf_2_1.place(x=314, y=44 + 1 * 20)
+        checkboxes = [
+            ("Show slope", hud_slope, "hud_slope"),
+            ("Show gauge", hud_gauge, "hud_gauge"),
+            ("Show speed", hud_speed, "hud_speed"),
+            ("Show distance", hud_distance, "hud_distance"),
+            ("Show acceleration", hud_acceleration, "hud_acceleration"),
+            ("Show angles", hud_angles, "hud_angles"),
+            ("Show angle orbs", hud_angles_bubbles, "hud_angles_bubbles"),
+            ("Show drift hold", hud_drift_hold, "hud_drift_hold"),
+            ("Enable livesplit hotkeys", enable_livesplit_hotkey, "enable_livesplit_hotkey"),
+            ("Enable ghost hotkeys", enable_ghost_keys, "enable_ghost_keys"),
+            ("Measure speed in 3D", speed_in_3D, "speed_in_3D"),
+            ("Log to file (need if want to upload)", log, "log"),
+            ("Show airboost helper", hud_angles_airboost, "hud_angles_airboost"),
+            ("Show max speed on gauge", hud_max_speed, "hud_max_speed"),
+            ("Measure speed in 3D", speed_in_3D, "speed_in_3D"),
+        ]
+        self.config_checkboxes = [(createCheckboxLabel(text), createCheckbox(init, varName)) for (text, init, varName) in checkboxes]
 
-        self.conf_2_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
-            text = "",
-            variable=self.conf_2_0,
-            borderwidth=0, command=lambda:conf_toggle("hud_gauge"))
-        self.conf_2_2.place(x=310, y=44 + 1 * 20 )
-        
-        
-        #OPTION 1 
-        self.conf_3_0 = IntVar(self.root, hud_speed)
+        # print(self.config_checkboxes[0][1].var)
 
-        self.conf_3_1 = tk.Label(self.root, text="""Show speed""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.conf_3_1.place(x=314, y=44 + 2 * 20)
+        # COLOR
+        self.conf_color_label = tk.Label(self.root, text="■", justify = tk.LEFT, padx = 0, fg = player_color, bg=self.bg.get(), font=("Lucida Console", 15))
+        self.conf_color_btn = tk.Button(self.root, text='Change color', command=lambda:choose_color() ,font=("Lucida Console", 10))
 
-        self.conf_3_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
-            text = "",
-            variable=self.conf_3_0,
-            borderwidth=0, command=lambda:conf_toggle("hud_speed"))
-        self.conf_3_2.place(x=310, y=44 + 2 * 20)
-        
-        
-        #OPTION 1 
-        self.conf_4_0 = IntVar(self.root, hud_distance)
+        # WEBSOCKET OPTIONS
+        self.use_websocket = IntVar(self.root, use_websocket)
+        self.conf_websocket_label = createCheckboxLabel("Use websocket connection")
 
-        self.conf_4_1 = tk.Label(self.root, text="""Show distance""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.conf_4_1.place(x=314, y=44 + 3 * 20)
+        self.websocket_host = StringVar(self.root, websocket_host)
+        self.conf_websocket_host_entry = tk.Entry(self.root, textvariable=self.websocket_host, disabledbackground="#444444")
+        self.websocket_port = StringVar(self.root, str(websocket_port))
+        self.conf_websocket_port_entry = tk.Entry(self.root, textvariable=self.websocket_port, disabledbackground="#444444")
 
-        self.conf_4_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
-            text = "",
-            variable=self.conf_4_0,
-            borderwidth=0, command=lambda:conf_toggle("hud_distance"))
-        self.conf_4_2.place(x=310, y=44 + 3 * 20)
-        
-        
-        #OPTION 1 
-        self.conf_5_0 = IntVar(self.root, hud_acceleration)
+        def update_websocket_conf():
+            conf_toggle("use_websocket")
+            state = tk.NORMAL if self.use_websocket.get() else tk.DISABLED
+            self.conf_websocket_host_entry.configure(state=state)
+            self.conf_websocket_port_entry.configure(state=state)
 
-        self.conf_5_1 = tk.Label(self.root, text="""Show acceleration""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.conf_5_1.place(x=314, y=44 + 4 * 20)
+        self.conf_websocket_cbtn = tk.Checkbutton(
+            self.root,
+            font=("Lucida Console", 10),
+            text="",
+            variable=self.use_websocket,
+            command=update_websocket_conf,
+            borderwidth=0
+        )
 
-        self.conf_5_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
-            text = "",
-            variable=self.conf_5_0,
-            borderwidth=0, command=lambda:conf_toggle("hud_acceleration"))
-        self.conf_5_2.place(x=310, y=44 + 4 * 20)
-        
-        
-        #OPTION 1 
-        self.conf_6_0 = IntVar(self.root, hud_angles)
+        update_websocket_conf()
 
-        self.conf_6_1 = tk.Label(self.root, text="""Show angles""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.conf_6_1.place(x=314, y=44 + 5 * 20)
-
-        self.conf_6_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
-            text = "",
-            variable=self.conf_6_0,
-            borderwidth=0, command=lambda:conf_toggle("hud_angles"))
-        self.conf_6_2.place(x=310, y=44 + 5 * 20)
-        
-        
-        #OPTION 1 
-        self.conf_7_0 = IntVar(self.root, hud_angles_bubbles)
-
-        self.conf_7_1 = tk.Label(self.root, text="""Show angle orbs""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.conf_7_1.place(x=314, y=44 + 6 * 20)
-
-        self.conf_7_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
-            text = "",
-            variable=self.conf_7_0,
-            borderwidth=0, command=lambda:conf_toggle("hud_angles_bubbles"))
-        self.conf_7_2.place(x=310, y=44 + 6 * 20)
-        
-        #OPTION 1 
-        self.conf_8_0 = IntVar(self.root, hud_drift_hold)
-
-        self.conf_8_1 = tk.Label(self.root, text="""Show drift hold""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.conf_8_1.place(x=314, y=44 + 7 * 20)
-
-        self.conf_8_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
-            text = "",
-            variable=self.conf_8_0,
-            borderwidth=0, command=lambda:conf_toggle("hud_drift_hold"))
-        self.conf_8_2.place(x=310, y=44 + 7 * 20)
-        
-        
-        #OPTION 1 
-        self.conf_9_0 = IntVar(self.root, enable_livesplit_hotkey)
-
-        self.conf_9_1 = tk.Label(self.root, text="""Enable livesplit hotkeys""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.conf_9_1.place(x=314, y=44 + 8 * 20)
-
-        self.conf_9_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
-            text = "",
-            variable=self.conf_9_0,
-            borderwidth=0, command=lambda:conf_toggle("enable_livesplit_hotkey"))
-        self.conf_9_2.place(x=310, y=44 + 8 * 20)
-        
-        
-        #OPTION 1 
-        self.conf_10_0 = IntVar(self.root, enable_ghost_keys)
-
-        self.conf_10_1 = tk.Label(self.root, text="""Enable ghost hotkeys""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.conf_10_1.place(x=314, y=44 + 9 * 20)
-
-        self.conf_10_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
-            text = "",
-            variable=self.conf_10_0,
-            borderwidth=0, command=lambda:conf_toggle("enable_ghost_keys"))
-        self.conf_10_2.place(x=310, y=44 + 9 * 20)
-        
-        
-        #OPTION 1 
-        self.conf_11_0 = IntVar(self.root, speed_in_3D)
-
-        self.conf_11_1 = tk.Label(self.root, text="""Measure speed in 3D""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.conf_11_1.place(x=314, y=44 + 10 * 20)
-
-        self.conf_11_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
-            text = "",
-            variable=self.conf_11_0,
-            borderwidth=0, command=lambda:conf_toggle("speed_in_3D"))
-        self.conf_11_2.place(x=310, y=44 + 10 * 20)
-        
-        
-        #OPTION 1 
-        self.conf_12_0 = IntVar(self.root, log)
-
-        self.conf_12_1 = tk.Label(self.root, text="""Log to file (need if want to upload)""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.conf_12_1.place(x=314, y=44 + 11 * 20)
-
-        self.conf_12_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
-            text = "",
-            variable=self.conf_12_0,
-            borderwidth=0, command=lambda:conf_toggle("log"))
-        self.conf_12_2.place(x=310, y=44 + 11 * 20)
-
-        #OPTION 1 
-        self.conf_13_0 = IntVar(self.root, hud_angles_airboost)
-
-        self.conf_13_1 = tk.Label(self.root, text="""Show airboost helper""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.conf_13_1.place(x=314, y=44 + 12 * 20)
-
-        self.conf_13_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
-            text = "",
-            variable=self.conf_13_0,
-            borderwidth=0, command=lambda:conf_toggle("hud_angles_airboost"))
-        self.conf_13_2.place(x=310, y=44 + 12 * 20)
-
-        #OPTION 1 
-        self.conf_14_0 = IntVar(self.root, hud_max_speed)
-
-        self.conf_14_1 = tk.Label(self.root, text="""Show max speed on gauge""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.conf_14_1.place(x=314, y=44 + 13 * 20)
-
-        self.conf_14_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
-            text = "",
-            variable=self.conf_14_0,
-            borderwidth=0, command=lambda:conf_toggle("hud_max_speed"))
-        self.conf_14_2.place(x=310, y=44 + 13 * 20)
-
- 
-
-
-        self.conf_15_1 = tk.Label(self.root, text="■", justify = tk.LEFT, padx = 0, fg = player_color, bg=self.bg.get(), font=("Lucida Console", 15))
-        self.conf_15_1.place(x=311, y=42 + 14 * 20)
-
-        #SAVE OPTIONS
-        self.conf_15_2 = tk.Button(self.root, text='Change color', command=lambda:choose_color() ,font=("Lucida Console", 10))
-        self.conf_15_2.place(x=336, y=44 + 14 * 20, width=120, height=23)
-
-        #SAVE OPTIONS
+        # SAVE OPTIONS
         self.conf_save = tk.Button(self.root, text='SAVE & RESTART', command=lambda:conf_save() ,font=("Lucida Console", 10))
-        self.conf_save.place(x=320, y=44 + 16 * 20, width=120, height=27)
-
 
         def changeConfigVisibility():
             global show_config
 
-            if show_config == 1:
-                #mostrarlo
+            # flip
+            show_config = 0 if show_config else 1
+            updateConfigVisibility()
+
+        def updateConfigVisibility():
+            global show_config
+
+            if show_config:
+                # mostrarlo
                 self.conf_move.place(x=310, y=18, width=160, height=25)
-                self.conf_1_1.place(x=314, y=44 + 0 * 20)
-                self.conf_1_2.place(x=310, y=44 + 0 * 20)
-                self.conf_2_1.place(x=314, y=44 + 1 * 20)
-                self.conf_2_2.place(x=310, y=44 + 1 * 20)
-                self.conf_3_1.place(x=314, y=44 + 2 * 20)
-                self.conf_3_2.place(x=310, y=44 + 2 * 20)
-                self.conf_4_1.place(x=314, y=44 + 3 * 20)
-                self.conf_4_2.place(x=310, y=44 + 3 * 20)
-                self.conf_5_1.place(x=314, y=44 + 4 * 20)
-                self.conf_5_2.place(x=310, y=44 + 4 * 20)
-                self.conf_6_1.place(x=314, y=44 + 5 * 20)
-                self.conf_6_2.place(x=310, y=44 + 5 * 20)
-                self.conf_7_1.place(x=314, y=44 + 6 * 20)
-                self.conf_7_2.place(x=310, y=44 + 6 * 20)
-                self.conf_8_1.place(x=314, y=44 + 7 * 20)
-                self.conf_8_2.place(x=310, y=44 + 7 * 20)
-                self.conf_9_1.place(x=314, y=44 + 8 * 20)
-                self.conf_9_2.place(x=310, y=44 + 8 * 20)
-                self.conf_10_1.place(x=314, y=44 + 9 * 20)
-                self.conf_10_2.place(x=310, y=44 + 9 * 20)
-                self.conf_11_1.place(x=314, y=44 + 10 * 20)
-                self.conf_11_2.place(x=310, y=44 + 10 * 20)
-                self.conf_12_1.place(x=314, y=44 + 11 * 20)
-                self.conf_12_2.place(x=310, y=44 + 11 * 20)
-                self.conf_13_1.place(x=314, y=44 + 12 * 20)
-                self.conf_13_2.place(x=310, y=44 + 12 * 20)
-                self.conf_14_1.place(x=314, y=44 + 13 * 20)
-                self.conf_14_2.place(x=310, y=44 + 13 * 20)
-                self.conf_15_1.place(x=311, y=42 + 14 * 20)
-                self.conf_15_2.place(x=336, y=44 + 14 * 20, width=120, height=23)
-                self.conf_save.place(x=320, y=48 + 15 * 20, width=120, height=27)
 
+                cb_counter = 0
+                for (label, cb) in self.config_checkboxes:
+                    label.place(x=314, y=44 + cb_counter * 20)
+                    cb.place(x=310, y=44 + cb_counter * 20)
+                    cb_counter += 1
 
-                show_config = 0
+                self.conf_color_label.place(x=311, y=42 + cb_counter * 20)
+                self.conf_color_btn.place(x=336, y=44 + cb_counter * 20, width=120, height=23)
+                cb_counter += 1
 
+                self.conf_websocket_label.place(x=314, y=44 + cb_counter * 20)
+                self.conf_websocket_cbtn.place(x=310, y=44 + cb_counter * 20)
+                cb_counter += 1
 
+                host_entry_width = 150
+                self.conf_websocket_host_entry.place(x=330, y=44 + cb_counter * 20, height=28, width=host_entry_width)
+                self.conf_websocket_port_entry.place(x=330 + host_entry_width, y=44 + cb_counter * 20, height=28, width=40)
+                cb_counter += 1
+
+                self.conf_save.place(x=320, y=54 + cb_counter * 20, width=120, height=27)
+                cb_counter += 1
             else:
-                #ocultarlo
-                self.conf_1_1.place_forget()
-                self.conf_1_2.place_forget()
-                self.conf_2_1.place_forget()
-                self.conf_2_2.place_forget()
-                self.conf_3_1.place_forget()
-                self.conf_3_2.place_forget()
-                self.conf_4_1.place_forget()
-                self.conf_4_2.place_forget()
-                self.conf_5_1.place_forget()
-                self.conf_5_2.place_forget()
-                self.conf_6_1.place_forget()
-                self.conf_6_2.place_forget()
-                self.conf_7_1.place_forget()
-                self.conf_7_2.place_forget()
-                self.conf_8_1.place_forget()
-                self.conf_8_2.place_forget()
-                self.conf_9_1.place_forget()
-                self.conf_9_2.place_forget()
-                self.conf_10_1.place_forget()
-                self.conf_10_2.place_forget()
-                self.conf_11_1.place_forget()
-                self.conf_11_2.place_forget()
-                self.conf_12_1.place_forget()
-                self.conf_12_2.place_forget()
-                self.conf_13_1.place_forget()
-                self.conf_13_2.place_forget()
-                self.conf_14_1.place_forget()
-                self.conf_14_2.place_forget()
-                self.conf_15_1.place_forget()
-                self.conf_15_2.place_forget()
+                # ocultarlo
                 self.conf_move.place_forget()
-                self.conf_save.place_forget()
 
-                show_config = 1
+                for (label, cb) in self.config_checkboxes:
+                    label.place_forget()
+                    cb.place_forget()
+
+                self.conf_color_label.place_forget()
+                self.conf_color_btn.place_forget()
+
+                self.conf_websocket_label.place_forget()
+                self.conf_websocket_cbtn.place_forget()
+
+                self.conf_websocket_host_entry.place_forget()
+                self.conf_websocket_port_entry.place_forget()
+
+                self.conf_save.place_forget()
 
         self.conf = tk.Button(self.root, text='CONFIG', command=lambda:changeConfigVisibility(), font=("Lucida Console", '7'))
         self.conf.place(x=259, y=44, width=45, height=15)
 
-
         self.t_3_6 = tk.Button(self.root, text='RESET', command=lambda:self.reset(),font=("Lucida Console", 9))
         self.t_3_6.place(x=259, y=60, width=45, height=36)
 
-        changeConfigVisibility()
+        updateConfigVisibility()
 
         self.status = StringVar(self.root)
         self.status.set("JOIN")
@@ -2441,11 +2270,11 @@ class Countdown():
     def toggleTrans(self):
         if (self.move):
             self.root.overrideredirect(1)
-            self.time.configure(fg=self.color_trans_fg); self.time.configure(bg=self.color_trans_bg)
+            self.time.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
             self.root.configure(bg=self.color_trans_bg)
         else:
             self.root.overrideredirect(0)
-            self.time.configure(fg=self.color_trans_fg); self.time.configure(bg=self.color_trans_bg)
+            self.time.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
             self.root.configure(bg=self.color_normal_bg)
             
         self.move = not self.move
@@ -2525,13 +2354,13 @@ class Message():
     def toggleTrans(self):
         if (self.move):
             self.root.overrideredirect(1)
-            self.time.configure(fg=self.color_trans_fg); self.time.configure(bg=self.color_trans_bg)
-            self.btn.configure(fg=self.color_trans_fg); self.btn.configure(bg="#222")
+            self.time.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
+            self.btn.configure(fg=self.color_trans_fg, bg="#222")
             self.root.configure(bg=self.color_trans_bg)
         else:
             self.root.overrideredirect(0)
-            self.time.configure(fg=self.color_trans_fg); self.time.configure(bg=self.color_trans_bg)
-            self.btn.configure(fg=self.color_normal_fg); self.btn.configure(bg=self.color_normal_bg)
+            self.time.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
+            self.btn.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
             self.root.configure(bg=self.color_normal_bg)
             
         self.move = not self.move

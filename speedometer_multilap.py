@@ -242,6 +242,9 @@ class Configuration():
         global meter
         global player_color
         global hud_slope
+        global use_websocket
+        global websocket_host
+        global websocket_port
 
         cfg.add_section("general")
 
@@ -269,7 +272,9 @@ class Configuration():
         if player_color == None:
             player_color = '#333333'
         cfg.set("general", "player_color", player_color)
-
+        cfg.set("general", "use_websocket", use_websocket)
+        cfg.set("general", "websocket_host", websocket_host)
+        cfg.set("general", "websocket_port", websocket_port)
 
         if 'racer' in globals():
             cfg.set("general", "geometry_speedometer", meter.root.geometry())
@@ -306,59 +311,66 @@ class Configuration():
         global hud_angles_airboost
         global hud_max_speed
         global player_color
+        global use_websocket
+        global websocket_host
+        global websocket_port
 
+        if cfg.read(["./config.txt"]):
 
-        if (cfg.read(["./config.txt"])):
-
-            if (cfg.has_option("general", "speed_in_3D")):
+            if cfg.has_option("general", "speed_in_3D"):
                 speed_in_3D = int(cfg.get("general", "speed_in_3D"))
-            if (cfg.has_option("general", "hud_slope")):
+            if cfg.has_option("general", "hud_slope"):
                 hud_slope = int(cfg.get("general", "hud_slope"))
-            if (cfg.has_option("general", "enable_livesplit_hotkey")):
+            if cfg.has_option("general", "enable_livesplit_hotkey"):
                 enable_livesplit_hotkey = int(cfg.get("general", "enable_livesplit_hotkey"))
-            if (cfg.has_option("general", "live_start")):
+            if cfg.has_option("general", "live_start"):
                 live_start = cfg.get("general", "live_start")
-            if (cfg.has_option("general", "live_reset")):
+            if cfg.has_option("general", "live_reset"):
                 live_reset = cfg.get("general", "live_reset")
-            if (cfg.has_option("general", "log")):
+            if cfg.has_option("general", "log"):
                 log = int(cfg.get("general", "log"))
-            if (cfg.has_option("general", "hud_angles")):
+            if cfg.has_option("general", "hud_angles"):
                 hud_angles = int(cfg.get("general", "hud_angles"))
-            if (cfg.has_option("general", "hud_angles_bubbles")):
+            if cfg.has_option("general", "hud_angles_bubbles"):
                 hud_angles_bubbles = int(cfg.get("general", "hud_angles_bubbles"))
-            if (cfg.has_option("general", "hud_angles_airboost")):
+            if cfg.has_option("general", "hud_angles_airboost"):
                 hud_angles_airboost = int(cfg.get("general", "hud_angles_airboost"))
-            if (cfg.has_option("general", "hud_max_speed")):
+            if cfg.has_option("general", "hud_max_speed"):
                 hud_max_speed = int(cfg.get("general", "hud_max_speed"))
-            if (cfg.has_option("general", "magic_angle")):
+            if cfg.has_option("general", "magic_angle"):
                 magic_angle = int(cfg.get("general", "magic_angle"))
-            if (cfg.has_option("general", "hud_acceleration")):
+            if cfg.has_option("general", "hud_acceleration"):
                 hud_acceleration = int(cfg.get("general", "hud_acceleration"))
-            if (cfg.has_option("general", "hud_gauge")):
+            if cfg.has_option("general", "hud_gauge"):
                 hud_gauge = int(cfg.get("general", "hud_gauge"))
-            if (cfg.has_option("general", "hud_speed")):
+            if cfg.has_option("general", "hud_speed"):
                 hud_speed = int(cfg.get("general", "hud_speed"))
-            if (cfg.has_option("general", "hud_distance")):
+            if cfg.has_option("general", "hud_distance"):
                 hud_distance = int(cfg.get("general", "hud_distance"))
-            if (cfg.has_option("general", "enable_ghost_keys")):
+            if cfg.has_option("general", "enable_ghost_keys"):
                 enable_ghost_keys = int(cfg.get("general", "enable_ghost_keys"))
-            if (cfg.has_option("general", "ghost_start")):
+            if cfg.has_option("general", "ghost_start"):
                 ghost_start = cfg.get("general", "ghost_start")
-            if (cfg.has_option("general", "recalculate_ghost")):
+            if cfg.has_option("general", "recalculate_ghost"):
                 recalculate_ghost = cfg.get("general", "recalculate_ghost")
-            if (cfg.has_option("general", "show_checkpoints_window")):
+            if cfg.has_option("general", "show_checkpoints_window"):
                 show_checkpoints_window = int(cfg.get("general", "show_checkpoints_window"))
-            if (cfg.has_option("general", "hud_drift_hold")):
+            if cfg.has_option("general", "hud_drift_hold"):
                 hud_drift_hold = int(cfg.get("general", "hud_drift_hold"))
-            if (cfg.has_option("general", "drift_key")):
+            if cfg.has_option("general", "drift_key"):
                 drift_key = (cfg.get("general", "drift_key"))
-            if (cfg.has_option("general", "player_color")):
+            if cfg.has_option("general", "player_color"):
                 player_color = (cfg.get("general", "player_color"))
-            if (cfg.has_option("general", "geometry_speedometer")):
+            if cfg.has_option("general", "geometry_speedometer"):
                 geometry_speedometer = (cfg.get("general", "geometry_speedometer"))
-            if (cfg.has_option("general", "geometry_racer")):
+            if cfg.has_option("general", "geometry_racer"):
                 geometry_racer = (cfg.get("general", "geometry_racer"))
-
+            if cfg.has_option("general", "use_websocket"):
+                use_websocket = (cfg.get("general", "use_websocket"))
+            if cfg.has_option("general", "websocket_host"):
+                websocket_host = (cfg.get("general", "websocket_host"))
+            if cfg.has_option("general", "websocket_port"):
+                websocket_port = (cfg.get("general", "websocket_port"))
         else:
             # Generate a default config file with default values
             self.saveConf()
@@ -1864,6 +1876,11 @@ class Racer():
         def conf_save():
             print("saved and restart")
             global conf
+            global websocket_host
+            global websocket_port
+
+            websocket_host = self.websocket_host.get()
+            websocket_port = self.websocket_port.get()
 
             conf.saveConf()
 

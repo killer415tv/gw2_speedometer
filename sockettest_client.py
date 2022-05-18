@@ -34,7 +34,6 @@ async def server_test():
     print(f"started at {time.strftime('%X')}")
 
     ws_client = WebsocketClient("beetlerank.com", 1234)
-    # await ws_client.start_map(consume, 111)
     await ws_client.start_speedometer(produce, 333)
 
     print(f"finished at {time.strftime('%X')}")

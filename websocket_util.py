@@ -59,7 +59,7 @@ class WebsocketServer:
     rooms = dict()
 
     async def speedometer_handler(self, ws, room):
-        logging.info(f"speedo joined [{room}]")
+        logging.info(f"Speedometer joined [{room}]")
         if room not in self.rooms:
             self.rooms[room] = {
                 "maps": set(),
@@ -74,14 +74,15 @@ class WebsocketServer:
         except websockets.ConnectionClosedError:
             pass
 
-        if len(self.rooms[room]["speedometer"]) > 1 or len(self.rooms[room]["maps"]) > 0:
+        # connection closed
+        if len(self.rooms[room]["speedometer"]) > 1 or self.rooms[room]["maps"]:
             self.rooms[room]["speedometer"].remove(ws)
         else:
             del self.rooms[room]
 
     async def map_handler(self, ws, room):
-        logging.info(f"map joined [{room}]")
-        # print(f"ma: {self.rooms}")
+        logging.info(f"Map joined [{room}]")
+
         # create room if necessary
         if room not in self.rooms:
             self.rooms[room] = {
@@ -97,20 +98,19 @@ class WebsocketServer:
             pass
 
         # connection closed
-        if len(self.rooms[room]["maps"]) > 1 or len(self.rooms[room]["speedometer"]) > 0:
+        if len(self.rooms[room]["maps"]) > 1 or self.rooms[room]["speedometer"]:
             self.rooms[room]["maps"].remove(ws)
         else:
             del self.rooms[room]
 
     async def handler(self, ws):
-        print(f"con opened: {ws.id}")
+        logging.info(f"Connection opened: {ws.id}")
 
         try:
             msg = await ws.recv()
         except websockets.ConnectionClosedError:
             return
 
-        # print(msg)
         event = json.loads(msg)
 
         assert event["type"] == "init"
@@ -124,7 +124,7 @@ class WebsocketServer:
         else:
             return
 
-        print(f"con closed: {ws.id}")
+        logging.info(f"Connection closed: {ws.id}")
 
     async def start(self, hostname, port):
         async with websockets.serve(self.handler, hostname, port):

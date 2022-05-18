@@ -60,32 +60,45 @@ class WebsocketServer:
 
     async def speedometer_handler(self, ws, room):
         logging.info(f"speedo joined [{room}]")
+        if room not in self.rooms:
+            self.rooms[room] = {
+                "maps": set(),
+                "speedometer": set()
+            }
+        self.rooms[room]["speedometer"].add(ws)
 
         try:
             async for msg in ws:
                 if room in self.rooms:
-                    websockets.broadcast(self.rooms[room], msg)
-                # logging.info(msg)
+                    websockets.broadcast(self.rooms[room]["maps"], msg)
         except websockets.ConnectionClosedError:
             pass
+
+        if len(self.rooms[room]["speedometer"]) > 1 or len(self.rooms[room]["maps"]) > 0:
+            self.rooms[room]["speedometer"].remove(ws)
+        else:
+            del self.rooms[room]
 
     async def map_handler(self, ws, room):
         logging.info(f"map joined [{room}]")
         # print(f"ma: {self.rooms}")
         # create room if necessary
         if room not in self.rooms:
-            self.rooms[room] = set()
-        self.rooms[room].add(ws)
+            self.rooms[room] = {
+                "maps": set(),
+                "speedometer": set()
+            }
+        self.rooms[room]["maps"].add(ws)
 
         try:
-            async for _ in ws:
-                pass
+            async for msg in ws:
+                websockets.broadcast(self.rooms[room]["speedometer"], msg)
         except websockets.ConnectionClosedError:
             pass
 
         # connection closed
-        if len(self.rooms[room]) > 1:
-            self.rooms[room].remove(ws)
+        if len(self.rooms[room]["maps"]) > 1 or len(self.rooms[room]["speedometer"]) > 0:
+            self.rooms[room]["maps"].remove(ws)
         else:
             del self.rooms[room]
 

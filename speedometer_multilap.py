@@ -1672,13 +1672,11 @@ class Racer():
             self.t_3_5.configure(fg=self.color_trans_fg, bg="#222222")
             self.t_3_6.configure(fg=self.color_trans_fg, bg="#222222")
 
-            if use_websocket:
-                # self.websocket_start_timer_label.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
-                self.websocket_race_status_label.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
-            else:
-                self.t_8.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
-                self.t_9.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
-                self.t_10.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
+            self.websocket_race_status_label.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
+
+            self.t_8.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
+            self.t_9.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
+            self.t_10.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
 
             def makeCheckboxTransparent(label, cb):
                 label.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
@@ -1718,13 +1716,11 @@ class Racer():
             self.t_3_5.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
             self.t_3_6.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
 
-            if use_websocket:
-                # self.websocket_start_timer_label.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
-                self.websocket_race_status_label.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
-            else:
-                self.t_8.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
-                self.t_9.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
-                self.t_10.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.websocket_race_status_label.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+
+            self.t_8.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.t_9.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.t_10.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
 
             def makeCheckboxNormal(label, cb):
                 label.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
@@ -2153,24 +2149,14 @@ class Racer():
         self.t_7_2 = tk.Button(self.root, text='READY', command=lambda:self.ready(),font=("Lucida Console", 10))
         self.t_7_2.place(x=200, y=148, width=100)
 
-        if use_websocket:
-            # self.websocket_multi_frame = Frame(self.root, width=177, height=55, bg=self.color_trans_bg)
-            # self.websocket_start_timer = StringVar(self.root)
-            # self.websocket_start_timer_label = tk.Label(self.websocket_multi_frame, textvariable=self.websocket_start_timer,
-            #                                             justify=tk.CENTER, fg=self.fg.get(),
-            #                                             bg=self.bg.get(), font=("Lucida Console", 28))
-            self.websocket_race_status = StringVar(self.root, "Not connected")
-            self.websocket_race_status_label = tk.Label(self.root, textvariable=self.websocket_race_status,
+        self.websocket_race_status = StringVar(self.root, "Not connected")
+        self.websocket_race_status_label = tk.Label(self.root, textvariable=self.websocket_race_status,
                                                         justify=tk.LEFT, fg=self.fg.get(), bg=self.bg.get(),
                                                         font=("Lucida Console", 10), wraplength=165)
-        else:
-            # labels related to MQTT multiplayer
-            self.t_8 = tk.Label(self.root, text="""------""", justify = tk.CENTER, padx = 20,fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-            self.t_8.place(x=0, y=150)
-            self.t_9 = tk.Label(self.root, textvariable=self.race_status, justify = tk.CENTER, padx = 20,fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-            self.t_9.place(x=0, y=175)
-            self.t_10 = tk.Label(self.root, textvariable=self.ranking, justify = tk.LEFT, padx = 20,fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-            self.t_10.place(x=0, y=210)
+
+        self.t_8 = tk.Label(self.root, text="""------""", justify = tk.CENTER, padx = 20,fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
+        self.t_9 = tk.Label(self.root, textvariable=self.race_status, justify = tk.CENTER, padx = 20,fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
+        self.t_10 = tk.Label(self.root, textvariable=self.ranking, justify = tk.LEFT, padx = 20,fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
 
         #ranking label
         self.map_ranking_var = StringVar(self.root)
@@ -2191,10 +2177,9 @@ class Racer():
                 self.t_7_2.place(x=200, y=148, width=100, height=27)
 
                 if use_websocket:
-                    # self.websocket_multi_frame.place(x=22, y=148)
-                    # self.websocket_start_timer_label.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
                     self.websocket_race_status_label.place(x=20, y=148)
-                else:
+
+                if not use_websocket:
                     self.t_8.place(x=0, y=150)
                     self.t_9.place(x=0, y=175)
                     self.t_10.place(x=0, y=210)
@@ -2210,14 +2195,11 @@ class Racer():
                 self.t_7_1.place_forget()
                 self.t_7_2.place_forget()
 
-                if use_websocket:
-                    # self.websocket_multi_frame.place_forget()
-                    # self.websocket_start_timer_label.place_forget()
-                    self.websocket_race_status_label.place_forget()
-                else:
-                    self.t_8.place_forget()
-                    self.t_9.place_forget()
-                    self.t_10.place_forget()
+                self.websocket_race_status_label.place_forget()
+
+                self.t_8.place_forget()
+                self.t_9.place_forget()
+                self.t_10.place_forget()
 
                 #ranking show
                 self.map_ranking.place(x=20, y=130)
@@ -2327,7 +2309,6 @@ class Racer():
 
         except queue.Empty:
             self.root.after(100, self.listen_for_result)
-
 
 class Countdown():
     def setOnTopfullscreen(self):

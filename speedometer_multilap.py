@@ -1564,6 +1564,8 @@ class Racer():
         else:
             global websocket_client
             global websocket_client_thread
+            global websocket_host
+            global websocket_port
 
             if websocket_client is not None:
                 websocket_client.close()
@@ -1578,6 +1580,9 @@ class Racer():
                 if data.get("type") == "countdown_start":
                     websocket_countdown_ends_on = data.get("ends_on")
                     websocket_countdown_received = True
+
+            websocket_host = self.conf_websocket_host_entry.get()
+            websocket_port = self.conf_websocket_port_entry.get()
 
             websocket_client = websocket.WebSocketApp(f"ws://{websocket_host}:{websocket_port}",
                                                       on_message=on_message)

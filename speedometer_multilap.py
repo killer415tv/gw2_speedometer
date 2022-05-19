@@ -1509,6 +1509,12 @@ class Racer():
 
         self.root.after(100, self.websocket_countdown_watcher)
 
+    def set_countdown_text(self, text, final=False):
+        if countdownWidget:
+            countdownWidget.localcountdown.set(text)
+            if final:
+                self.root.after(2500, lambda: countdownWidget.localcountdown.set(""))
+
     def update_countdown_label(self, first=False):
         global websocket_countdown_active
 
@@ -1518,18 +1524,14 @@ class Racer():
 
         seconds_remaining = websocket_countdown_ends_on / 1000 - time.time()
         if seconds_remaining > 1:
-            if first:
-                self.websocket_start_timer.set(math.ceil(seconds_remaining))
-                delay = math.floor((seconds_remaining - math.floor(seconds_remaining)) * 1000)
-            else:
-                self.websocket_start_timer.set(math.ceil(seconds_remaining))
-                delay = 1000
+            self.set_countdown_text(math.ceil(seconds_remaining))
+            delay = math.floor((seconds_remaining - math.floor(seconds_remaining)) * 1000) if first else 1000
             self.root.after(delay, self.update_countdown_label)
         elif seconds_remaining > 0:
-            self.websocket_start_timer.set("1")
+            self.set_countdown_text("1")
             self.root.after(50, self.update_countdown_label)
         else:
-            self.websocket_start_timer.set("GO!")
+            self.set_countdown_text("GO!", final=True)
             websocket_countdown_active = False
 
     def joinRace(self):
@@ -1586,7 +1588,7 @@ class Racer():
 
             if not websocket_client.sock:
                 print("Failed to connect to websocket server")
-                self.websocket_start_timer.set("Error")
+                self.websocket_race_status.set("Error")
                 return
 
             conn_timeout = 5
@@ -1596,7 +1598,7 @@ class Racer():
 
             if not websocket_client.sock or not websocket_client.sock.connected:
                 print("Failed to connect to websocket server")
-                self.websocket_start_timer.set("Error")
+                self.websocket_race_status.set("Error")
                 return
 
             init_packet = {
@@ -1605,7 +1607,7 @@ class Racer():
                 "room": self.session_id.get()
             }
             websocket_client.send(json.dumps(init_packet))
-            self.websocket_start_timer.set("Waiting")
+            self.websocket_race_status.set("Connected")
 
     def reset(self):
 
@@ -1671,7 +1673,8 @@ class Racer():
             self.t_3_6.configure(fg=self.color_trans_fg, bg="#222222")
 
             if use_websocket:
-                self.websocket_start_timer_label.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
+                # self.websocket_start_timer_label.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
+                self.websocket_race_status_label.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
             else:
                 self.t_8.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
                 self.t_9.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
@@ -1716,7 +1719,8 @@ class Racer():
             self.t_3_6.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
 
             if use_websocket:
-                self.websocket_start_timer_label.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+                # self.websocket_start_timer_label.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+                self.websocket_race_status_label.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
             else:
                 self.t_8.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
                 self.t_9.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
@@ -1825,14 +1829,12 @@ class Racer():
                 self.map_ranking_var.set("")
     
     def __init__(self):
-        
         global guildhall_name
         global guildhall_laps
         global cup_name
         global upload
         global geometry_racer
         global player_color
-
 
         self.mapOpen = False
         self.move = True
@@ -2152,13 +2154,16 @@ class Racer():
         self.t_7_2.place(x=200, y=148, width=100)
 
         if use_websocket:
-            self.websocket_multi_frame = Frame(self.root, width=177, height=55, bg=self.color_trans_bg)
-            self.websocket_start_timer = StringVar(self.root)
-            self.websocket_start_timer_label = tk.Label(self.websocket_multi_frame, textvariable=self.websocket_start_timer,
-                                                        justify=tk.CENTER, fg=self.fg.get(),
-                                                        bg=self.bg.get(), font=("Lucida Console", 28))
-
-        if not use_websocket:
+            # self.websocket_multi_frame = Frame(self.root, width=177, height=55, bg=self.color_trans_bg)
+            # self.websocket_start_timer = StringVar(self.root)
+            # self.websocket_start_timer_label = tk.Label(self.websocket_multi_frame, textvariable=self.websocket_start_timer,
+            #                                             justify=tk.CENTER, fg=self.fg.get(),
+            #                                             bg=self.bg.get(), font=("Lucida Console", 28))
+            self.websocket_race_status = StringVar(self.root, "Not connected")
+            self.websocket_race_status_label = tk.Label(self.root, textvariable=self.websocket_race_status,
+                                                        justify=tk.LEFT, fg=self.fg.get(), bg=self.bg.get(),
+                                                        font=("Lucida Console", 10), wraplength=165)
+        else:
             # labels related to MQTT multiplayer
             self.t_8 = tk.Label(self.root, text="""------""", justify = tk.CENTER, padx = 20,fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
             self.t_8.place(x=0, y=150)
@@ -2186,8 +2191,9 @@ class Racer():
                 self.t_7_2.place(x=200, y=148, width=100, height=27)
 
                 if use_websocket:
-                    self.websocket_multi_frame.place(x=22, y=148)
-                    self.websocket_start_timer_label.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
+                    # self.websocket_multi_frame.place(x=22, y=148)
+                    # self.websocket_start_timer_label.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
+                    self.websocket_race_status_label.place(x=20, y=148)
                 else:
                     self.t_8.place(x=0, y=150)
                     self.t_9.place(x=0, y=175)
@@ -2195,8 +2201,6 @@ class Racer():
 
                 #ranking hide
                 self.map_ranking.place_forget()
-
-
             else:
                 #ocultarlo
                 self.t_6.place_forget()
@@ -2207,8 +2211,9 @@ class Racer():
                 self.t_7_2.place_forget()
 
                 if use_websocket:
-                    self.websocket_multi_frame.place_forget()
-                    self.websocket_start_timer_label.place_forget()
+                    # self.websocket_multi_frame.place_forget()
+                    # self.websocket_start_timer_label.place_forget()
+                    self.websocket_race_status_label.place_forget()
                 else:
                     self.t_8.place_forget()
                     self.t_9.place_forget()
@@ -2323,8 +2328,8 @@ class Racer():
         except queue.Empty:
             self.root.after(100, self.listen_for_result)
 
-class Countdown():
 
+class Countdown():
     def setOnTopfullscreen(self):
         self.root.attributes('-topmost', 1)
         self.root.after(500, self.setOnTopfullscreen)
@@ -2360,11 +2365,12 @@ class Countdown():
         
         self.localcountdown = tk.StringVar(self.root,"")
 
-        self.time = tk.Label(self.root, textvariable=self.localcountdown, justify = tk.CENTER, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 60, "bold"))
-        self.time.place(x=0, y=0)
+        self.time = tk.Label(self.root, textvariable=self.localcountdown, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 60, "bold"))
+        self.time.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
 
         self.toggleTrans()
-        self.checkCountdowntxt()
+        if not use_websocket:
+            self.checkCountdowntxt()
         self.setOnTopfullscreen()
 
     def toggleTrans(self):

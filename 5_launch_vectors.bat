@@ -1,4 +1,4 @@
 @ECHO OFF
 CLS
-python vectors.py
+python "%~dp0vectors.py"
 pause

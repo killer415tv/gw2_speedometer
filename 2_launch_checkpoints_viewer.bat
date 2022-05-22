@@ -1,6 +1,6 @@
 IF EXIST "%~1" (
-    python checkpoints.py "%~1"
+    python "%~dp0checkpoints.py" "%~1"
 ) ELSE (
-    python checkpoints.py
+    python "%~dp0checkpoints.py"
 )
 pause

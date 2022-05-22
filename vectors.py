@@ -354,6 +354,35 @@ class Ghost3d(object):
         lastfAvatarPosition = fAvatarPosition
 
 
+    def viewAngleTick(self,angle,index):
+        global fAvatarPosition
+
+        global posx
+        global posy
+        global posz
+
+        global angle_speed
+        
+        graycolor = [222,222,222,255]
+        
+        self.md = gl.MeshData.cylinder(rows=1, cols=4, radius=[0.07,0.01], length=10)
+
+        if not index in self.balls:
+            self.balls[index] = gl.GLMeshItem(meshdata=self.md, drawEdges=False, smooth=True, drawFaces=True, shader='balloon', color=(QtGui.QColor(graycolor[0], graycolor[1], graycolor[2])))
+            self.balls[index].scale(1.5, 1.5, 1.5)
+            self.w.addItem(self.balls[index])
+
+        self.balls[index].resetTransform()
+
+        temp_speed_angle = 90-int(float(angle_speed + angle_camera)) + angle
+    
+        self.balls[index].rotate(90,0,1,0,True)
+        self.balls[index].rotate(temp_speed_angle,1,0,0,True)
+
+        self.balls[index].translate(posx,posz,posy)
+        self.balls[index].setColor(QtGui.QColor(graycolor[0], graycolor[1], graycolor[2]))
+
+
     def update(self):
         global timer
         global ghost_number
@@ -369,51 +398,53 @@ class Ghost3d(object):
         global angle_beetle
         global angle_speed
 
-
-
-
         area_index = 1 #area
         beetle_index = 2 
         camera_index = 3
         speed_index = 4
 
         graycolor = [255,100,0,255]
-        cameracolor = [255,100,0,255]
+        cameracolor = [111,111,111,255]
         beetlecolor = [100, 255, 100, 255]
-        speedcolor = [255, 255, 100, 255]
+        speedcolor = [222, 222, 222, 255]
 
-        
+        #self.viewAngleTick(90,5)
+        #self.viewAngleTick(-90,6)
+        self.viewAngleTick(45,7)
+        self.viewAngleTick(-45,8)
+        self.viewAngleTick(0,9)
+
         # speed
         self.md = gl.MeshData.cylinder(rows=1, cols=40, radius=[0.3,0], length=10)
 
-        if not speed_index in self.balls:
-            self.balls[speed_index] = gl.GLMeshItem(meshdata=self.md, drawEdges=False, smooth=True, drawFaces=True, shader='balloon', color=(QtGui.QColor(cameracolor[0], cameracolor[1], cameracolor[2])))
-            self.balls[speed_index].scale(1.5, 1.5, 1.5)
-            self.w.addItem(self.balls[speed_index])
-
-        self.balls[speed_index].resetTransform()
-
-        self.balls[speed_index].rotate(90,0,1,0,True)
-        self.balls[speed_index].rotate(90-int(float(angle_speed)),1,0,0,True)
-
-        self.balls[speed_index].translate(posx,posz,posy)
-        self.balls[speed_index].setColor(QtGui.QColor(cameracolor[0], cameracolor[1], cameracolor[2]))
-
-        # camera
-        self.md = gl.MeshData.cylinder(rows=1, cols=40, radius=[0.3,0], length=10)
-
         if not camera_index in self.balls:
-            self.balls[camera_index] = gl.GLMeshItem(meshdata=self.md, drawEdges=False, smooth=True, drawFaces=True, shader='balloon', color=(QtGui.QColor(speedcolor[0], speedcolor[1], speedcolor[2])))
+            self.balls[camera_index] = gl.GLMeshItem(meshdata=self.md, drawEdges=False, smooth=True, drawFaces=True, shader='balloon', color=(QtGui.QColor(cameracolor[0], cameracolor[1], cameracolor[2])))
             self.balls[camera_index].scale(1.5, 1.5, 1.5)
             self.w.addItem(self.balls[camera_index])
 
         self.balls[camera_index].resetTransform()
 
         self.balls[camera_index].rotate(90,0,1,0,True)
-        self.balls[camera_index].rotate(90-int(float(angle_speed + angle_camera)),1,0,0,True)
+        self.balls[camera_index].rotate(90-int(float(angle_speed)),1,0,0,True)
 
         self.balls[camera_index].translate(posx,posz,posy)
-        self.balls[camera_index].setColor(QtGui.QColor(speedcolor[0], speedcolor[1], speedcolor[2]))
+        self.balls[camera_index].setColor(QtGui.QColor(cameracolor[0], cameracolor[1], cameracolor[2]))
+
+        # camera
+        self.md = gl.MeshData.cylinder(rows=1, cols=40, radius=[0.3,0], length=10)
+
+        if not speed_index in self.balls:
+            self.balls[speed_index] = gl.GLMeshItem(meshdata=self.md, drawEdges=False, smooth=True, drawFaces=True, shader='balloon', color=(QtGui.QColor(speedcolor[0], speedcolor[1], speedcolor[2])))
+            self.balls[speed_index].scale(1.5, 1.5, 1.5)
+            self.w.addItem(self.balls[speed_index])
+
+        self.balls[speed_index].resetTransform()
+
+        self.balls[speed_index].rotate(90,0,1,0,True)
+        self.balls[speed_index].rotate(90-int(float(angle_speed + angle_camera)),1,0,0,True)
+
+        self.balls[speed_index].translate(posx,posz,posy)
+        self.balls[speed_index].setColor(QtGui.QColor(speedcolor[0], speedcolor[1], speedcolor[2]))
 
         # beetle
         self.md = gl.MeshData.cylinder(rows=1, cols=40, radius=[0.3,0], length=10)

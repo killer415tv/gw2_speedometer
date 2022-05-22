@@ -1,2 +1,2 @@
-python speedometer_multilap.py
+python "~dp0speedometer_multilap.py"
 pause

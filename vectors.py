@@ -408,14 +408,17 @@ class Ghost3d(object):
         beetlecolor = [100, 255, 100, 255]
         speedcolor = [222, 222, 222, 255]
 
-        #self.viewAngleTick(90,5)
-        #self.viewAngleTick(-90,6)
+
+
+
+        self.viewAngleTick(90,5)
+        self.viewAngleTick(-90,6)
         self.viewAngleTick(45,7)
         self.viewAngleTick(-45,8)
         self.viewAngleTick(0,9)
 
         # speed
-        self.md = gl.MeshData.cylinder(rows=1, cols=40, radius=[0.3,0], length=10)
+        self.md = gl.MeshData.cylinder(rows=1, cols=40, radius=[0.29,0], length=10)
 
         if not camera_index in self.balls:
             self.balls[camera_index] = gl.GLMeshItem(meshdata=self.md, drawEdges=False, smooth=True, drawFaces=True, shader='balloon', color=(QtGui.QColor(cameracolor[0], cameracolor[1], cameracolor[2])))
@@ -431,7 +434,7 @@ class Ghost3d(object):
         self.balls[camera_index].setColor(QtGui.QColor(cameracolor[0], cameracolor[1], cameracolor[2]))
 
         # camera
-        self.md = gl.MeshData.cylinder(rows=1, cols=40, radius=[0.3,0], length=10)
+        self.md = gl.MeshData.cylinder(rows=1, cols=40, radius=[0.29,0], length=10)
 
         if not speed_index in self.balls:
             self.balls[speed_index] = gl.GLMeshItem(meshdata=self.md, drawEdges=False, smooth=True, drawFaces=True, shader='balloon', color=(QtGui.QColor(speedcolor[0], speedcolor[1], speedcolor[2])))
@@ -447,20 +450,51 @@ class Ghost3d(object):
         self.balls[speed_index].setColor(QtGui.QColor(speedcolor[0], speedcolor[1], speedcolor[2]))
 
         # beetle
+
+        beetleRED = 0
+        beetleGREEN = 0
+        beetleBLUE = 0
+
+        angle_beetle_abs = abs(angle_beetle)
+
+
+        # 0     255,0,0
+        if angle_beetle_abs > 0 and angle_beetle_abs <=30:
+            beetleRED = 255
+            beetleGREEN = abs(angle_beetle_abs * 255 / 30)
+        # 30    255,255,0
+        if angle_beetle_abs > 30 and angle_beetle_abs <=45:
+            beetleGREEN = 255
+            beetleRED = abs(((angle_beetle_abs - 30) * 255 / 15 ) - 255)
+        # 45    0,255,0
+        if angle_beetle_abs > 45 and angle_beetle_abs <=60:
+            beetleGREEN = 255
+            beetleRED = abs(((angle_beetle_abs - 45) * 255 / 15 ))
+        # 60    255,255,0
+        if angle_beetle_abs > 60 and angle_beetle_abs <= 90:
+            beetleRED = 255
+            beetleGREEN = abs(((angle_beetle_abs - 60) * 255 / 30) - 255)
+        # 90    255,0,0
+        if angle_beetle_abs > 90:
+            beetleRED = 255
+            beetleGREEN = 0
+
+        beetle_final_angle = int(float((angle_speed + angle_camera) - angle_beetle))
+
         self.md = gl.MeshData.cylinder(rows=1, cols=40, radius=[0.3,0], length=10)
 
         if not beetle_index in self.balls:
-            self.balls[beetle_index] = gl.GLMeshItem(meshdata=self.md, drawEdges=False, smooth=True, drawFaces=True, shader='balloon', color=(QtGui.QColor(beetlecolor[0], beetlecolor[1], beetlecolor[2])))
+            self.balls[beetle_index] = gl.GLMeshItem(meshdata=self.md, drawEdges=False, smooth=True, drawFaces=True, shader='balloon', color=(QtGui.QColor(beetleRED, beetleGREEN, beetleBLUE)))
             self.balls[beetle_index].scale(1.5, 1.5, 1.5)
             self.w.addItem(self.balls[beetle_index])
 
         self.balls[beetle_index].resetTransform()
 
         self.balls[beetle_index].rotate(90,0,1,0,True)
-        self.balls[beetle_index].rotate(90-int(float((angle_speed + angle_camera) - angle_beetle)),1,0,0,True)
+        self.balls[beetle_index].rotate(90-beetle_final_angle,1,0,0,True)
 
         self.balls[beetle_index].translate(posx,posz,posy)
-        self.balls[beetle_index].setColor(QtGui.QColor(beetlecolor[0], beetlecolor[1], beetlecolor[2]))
+        self.balls[beetle_index].setColor(QtGui.QColor(beetleRED, beetleGREEN, beetleBLUE))
 
 
 
@@ -493,10 +527,10 @@ if __name__ == '__main__':
     print("***************************************************")
     print("* This program display the vectors of your beetle *")
     print("***************************************************")
-    print("***  GREEN  = speed angle  ************************")
-    print("***  RED    = camera angle ************************")
-    print("***  YELLOW = beetle angle ************************")
-    print("***************************************************")
+    print("***  COLOR ARROW  = beetle angle green with 45º red with 0 and 90  *****")
+    print("***  WHITE ARROW = speed direction with marks on 45 and 90º ************")
+    print("***  GRAY ARROW = camera direction  ************************************")
+    print("************************************************************************")
 
 
     root = tk.Tk()

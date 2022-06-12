@@ -109,9 +109,9 @@ Little info in spanish:
 https://www.youtube.com/watch?v=_6Pdw_SvgXc
 
 # Install
-Download the speedometer from https://github.com/killer415tv/gw2_speedometer/archive/refs/heads/main.zip
+Download and unzip the speedometer from https://github.com/killer415tv/gw2_speedometer/archive/refs/heads/main.zip
 1. Install python for windows (min version 3.9.2) with **add to PATH checked** (https://www.python.org/downloads/) 
-2. Or install from the /installer folder
+2. Or install python from installer at the /installer folder (python-3.9.6.exe)
 3. Did you check **add to PATH** option when you installed python? check that or you cant continue
 4. Download this program from github, green button on top right and download as a zip. Unpack somewhere on your pc
 5. Execute **"/installer/install_requirements.bat"** and wait until it closes, or execute "pip install -r requirements.txt" in console on the same folder of the program (cmd at windows)

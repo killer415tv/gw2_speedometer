@@ -10,3 +10,4 @@ PySide2
 pyopengl
 requests
 plotly
+websocket

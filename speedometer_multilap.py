@@ -9,6 +9,7 @@ import time
 import datetime
 import math
 import scipy.spatial.transform._rotation_groups
+import websocket
 from scipy.spatial import distance
 import pynput.keyboard._win32 
 import pynput.mouse._win32 
@@ -36,6 +37,10 @@ import requests
 from configparser import RawConfigParser
 import shlex, subprocess
 
+from websocket import WebSocketConnectionClosedException
+
+from mumblelink import MumbleLink
+
 np.seterr(divide='ignore', invalid='ignore')
 
 # this variable adjust the position of the gauge +250 for bottom position or -250 for upper position , 0 is default and center on screen
@@ -55,12 +60,12 @@ root.configure(bg='#666666')
 windowWidth = 650
 windowHeight = 300
 positionRight = int(root.winfo_screenwidth()/2 - windowWidth/2) + 120
-positionDown = int(root.winfo_screenheight()/2 - windowHeight/2) 
+positionDown = int(root.winfo_screenheight()/2 - windowHeight/2)
 
     # IMPORTANT!!!! DONT CHANGE VALUES HERE
     # CHANGE THEM AT CONFIG.TXT
 geometry_speedometer = "650x300+{}+{}".format(positionRight, positionDown)
-geometry_racer = "750x450+0+400"
+geometry_racer = "750x500+0+400"
 
 #measure the speed in 3 dimensions or ignore the altitude axis
 speed_in_3D = 0 # 1 = on , 0 = off
@@ -112,6 +117,18 @@ game_focus = 0
 client = ""
 mapId = 0
 lastMapId = 0
+
+use_websocket = 0
+websocket_host = "beetlerank.com"
+websocket_port = 1234
+
+websocket_client = None
+websocket_client_thread = None
+
+# workaround for using websocket on_message together with tkinter variables
+websocket_countdown_received = False
+websocket_countdown_active = False
+websocket_countdown_ends_on = None
 
 winh = 110
 winw = 200
@@ -227,6 +244,9 @@ class Configuration():
         global meter
         global player_color
         global hud_slope
+        global use_websocket
+        global websocket_host
+        global websocket_port
 
         cfg.add_section("general")
 
@@ -254,7 +274,9 @@ class Configuration():
         if player_color == None:
             player_color = '#333333'
         cfg.set("general", "player_color", player_color)
-
+        cfg.set("general", "use_websocket", use_websocket)
+        cfg.set("general", "websocket_host", websocket_host)
+        cfg.set("general", "websocket_port", websocket_port)
 
         if 'racer' in globals():
             cfg.set("general", "geometry_speedometer", meter.root.geometry())
@@ -291,159 +313,69 @@ class Configuration():
         global hud_angles_airboost
         global hud_max_speed
         global player_color
+        global use_websocket
+        global websocket_host
+        global websocket_port
 
+        if cfg.read(["./config.txt"]):
 
-        if (cfg.read(["./config.txt"])):
-
-            if (cfg.has_option("general", "speed_in_3D")):
+            if cfg.has_option("general", "speed_in_3D"):
                 speed_in_3D = int(cfg.get("general", "speed_in_3D"))
-            if (cfg.has_option("general", "hud_slope")):
+            if cfg.has_option("general", "hud_slope"):
                 hud_slope = int(cfg.get("general", "hud_slope"))
-            if (cfg.has_option("general", "enable_livesplit_hotkey")):
+            if cfg.has_option("general", "enable_livesplit_hotkey"):
                 enable_livesplit_hotkey = int(cfg.get("general", "enable_livesplit_hotkey"))
-            if (cfg.has_option("general", "live_start")):
+            if cfg.has_option("general", "live_start"):
                 live_start = cfg.get("general", "live_start")
-            if (cfg.has_option("general", "live_reset")):
+            if cfg.has_option("general", "live_reset"):
                 live_reset = cfg.get("general", "live_reset")
-            if (cfg.has_option("general", "log")):
+            if cfg.has_option("general", "log"):
                 log = int(cfg.get("general", "log"))
-            if (cfg.has_option("general", "hud_angles")):
+            if cfg.has_option("general", "hud_angles"):
                 hud_angles = int(cfg.get("general", "hud_angles"))
-            if (cfg.has_option("general", "hud_angles_bubbles")):
+            if cfg.has_option("general", "hud_angles_bubbles"):
                 hud_angles_bubbles = int(cfg.get("general", "hud_angles_bubbles"))
-            if (cfg.has_option("general", "hud_angles_airboost")):
+            if cfg.has_option("general", "hud_angles_airboost"):
                 hud_angles_airboost = int(cfg.get("general", "hud_angles_airboost"))
-            if (cfg.has_option("general", "hud_max_speed")):
+            if cfg.has_option("general", "hud_max_speed"):
                 hud_max_speed = int(cfg.get("general", "hud_max_speed"))
-            if (cfg.has_option("general", "magic_angle")):
+            if cfg.has_option("general", "magic_angle"):
                 magic_angle = int(cfg.get("general", "magic_angle"))
-            if (cfg.has_option("general", "hud_acceleration")):
+            if cfg.has_option("general", "hud_acceleration"):
                 hud_acceleration = int(cfg.get("general", "hud_acceleration"))
-            if (cfg.has_option("general", "hud_gauge")):
+            if cfg.has_option("general", "hud_gauge"):
                 hud_gauge = int(cfg.get("general", "hud_gauge"))
-            if (cfg.has_option("general", "hud_speed")):
+            if cfg.has_option("general", "hud_speed"):
                 hud_speed = int(cfg.get("general", "hud_speed"))
-            if (cfg.has_option("general", "hud_distance")):
+            if cfg.has_option("general", "hud_distance"):
                 hud_distance = int(cfg.get("general", "hud_distance"))
-            if (cfg.has_option("general", "enable_ghost_keys")):
+            if cfg.has_option("general", "enable_ghost_keys"):
                 enable_ghost_keys = int(cfg.get("general", "enable_ghost_keys"))
-            if (cfg.has_option("general", "ghost_start")):
+            if cfg.has_option("general", "ghost_start"):
                 ghost_start = cfg.get("general", "ghost_start")
-            if (cfg.has_option("general", "recalculate_ghost")):
+            if cfg.has_option("general", "recalculate_ghost"):
                 recalculate_ghost = cfg.get("general", "recalculate_ghost")
-            if (cfg.has_option("general", "show_checkpoints_window")):
+            if cfg.has_option("general", "show_checkpoints_window"):
                 show_checkpoints_window = int(cfg.get("general", "show_checkpoints_window"))
-            if (cfg.has_option("general", "hud_drift_hold")):
+            if cfg.has_option("general", "hud_drift_hold"):
                 hud_drift_hold = int(cfg.get("general", "hud_drift_hold"))
-            if (cfg.has_option("general", "drift_key")):
+            if cfg.has_option("general", "drift_key"):
                 drift_key = (cfg.get("general", "drift_key"))
-            if (cfg.has_option("general", "player_color")):
+            if cfg.has_option("general", "player_color"):
                 player_color = (cfg.get("general", "player_color"))
-            if (cfg.has_option("general", "geometry_speedometer")):
+            if cfg.has_option("general", "geometry_speedometer"):
                 geometry_speedometer = (cfg.get("general", "geometry_speedometer"))
-            if (cfg.has_option("general", "geometry_racer")):
+            if cfg.has_option("general", "geometry_racer"):
                 geometry_racer = (cfg.get("general", "geometry_racer"))
-
+            if cfg.has_option("general", "use_websocket"):
+                use_websocket = int(cfg.get("general", "use_websocket"))
+            if cfg.has_option("general", "websocket_host"):
+                websocket_host = (cfg.get("general", "websocket_host"))
+            if cfg.has_option("general", "websocket_port"):
+                websocket_port = (cfg.get("general", "websocket_port"))
         else:
             # Generate a default config file with default values
             self.saveConf()
-
-class Link(ctypes.Structure):
-    def __str__(self): 
-        
-        return  " uiVersion:" + str(self.uiVersion) \
-        + " \n uiTick: " + str(self.uiTick) \
-        + " \n fAvatarPosition: " + str(self.fAvatarPosition) \
-        + " \n fAvatarFront: " + str(self.fAvatarFront) \
-        + " \n fAvatarTop: " + str(self.fAvatarTop) \
-        + " \n name: " + str(self.name) \
-        + " \n fCameraPosition: " + str(self.fCameraPosition) \
-        + " \n fCameraFront: " + str(self.fCameraFront) \
-        + " \n fCameraTop: " + str(self.fCameraTop) \
-        + " \n identity: " + str(self.identity) \
-        + " \n context_len: " + str(self.context_len)
-
-    _fields_ = [
-        ("uiVersion", ctypes.c_uint32),           # 4 bytes
-        ("uiTick", ctypes.c_ulong),               # 4 bytes
-        ("fAvatarPosition", ctypes.c_float * 3),  # 3*4 bytes
-        ("fAvatarFront", ctypes.c_float * 3),     # 3*4 bytes
-        ("fAvatarTop", ctypes.c_float * 3),       # 3*4 bytes
-        ("name", ctypes.c_wchar * 256),           # 512 bytes
-        ("fCameraPosition", ctypes.c_float * 3),  # 3*4 bytes
-        ("fCameraFront", ctypes.c_float * 3),     # 3*4 bytes
-        ("fCameraTop", ctypes.c_float * 3),       # 3*4 bytes
-        ("identity", ctypes.c_wchar * 256),       # 512 bytes
-        ("context_len", ctypes.c_uint32),         # 4 bytes
-        # ("context", ctypes.c_byte * 256),       # 256 bytes, see below
-        # ("description", ctypes.c_byte * 2048),  # 2048 bytes, always empty
-    ]
-
-class Context(ctypes.Structure):
-    def __str__(self): 
-        return  ""\
-        + " \n serverAddress:" + str(self.serverAddress) \
-        + " \n mapId:" + str(self.mapId) \
-        + " \n mapType:" + str(self.mapType) \
-        + " \n shardId:" + str(self.shardId) \
-        + " \n instance:" + str(self.instance) \
-        + " \n buildId:" + str(self.buildId) \
-        + " \n uiState:" + str(self.uiState) \
-        + " \n compassWidth:" + str(self.compassWidth) \
-        + " \n compassHeight:" + str(self.compassHeight) \
-        + " \n compassRotation:" + str(self.compassRotation) \
-        + " \n playerX:" + str(self.playerX) \
-        + " \n playerY:" + str(self.playerY) \
-        + " \n mapCenterX:" + str(self.mapCenterX) \
-        + " \n mapCenterY:" + str(self.mapCenterY) \
-        + " \n mapScale:" + str(self.mapScale) 
-        
-    _fields_ = [
-        ("serverAddress", ctypes.c_byte * 28),    # 28 bytes
-        ("mapId", ctypes.c_uint32),               # 4 bytes
-        ("mapType", ctypes.c_uint32),             # 4 bytes
-        ("shardId", ctypes.c_uint32),             # 4 bytes
-        ("instance", ctypes.c_uint32),            # 4 bytes
-        ("buildId", ctypes.c_uint32),             # 4 bytes
-        ("uiState", ctypes.c_uint32),             # 4 bytes
-        ("compassWidth", ctypes.c_uint16),        # 2 bytes
-        ("compassHeight", ctypes.c_uint16),       # 2 bytes
-        ("compassRotation", ctypes.c_float),      # 4 bytes
-        ("playerX", ctypes.c_float),              # 4 bytes
-        ("playerY", ctypes.c_float),              # 4 bytes
-        ("mapCenterX", ctypes.c_float),           # 4 bytes
-        ("mapCenterY", ctypes.c_float),           # 4 bytes
-        ("mapScale", ctypes.c_float),             # 4 bytes
-    ]
-
-class MumbleLink:
-    data: Link
-    context: Context
-
-    def __init__(self):
-        self.size_link = ctypes.sizeof(Link)
-        self.size_context = ctypes.sizeof(Context)
-        size_discarded = 256 - self.size_context + 4096  # empty areas of context and description
-
-        # GW2 won't start sending data if memfile isn't big enough so we have to add discarded bits too
-        memfile_length = self.size_link + self.size_context + size_discarded
-
-        self.memfile = mmap.mmap(fileno=-1, length=memfile_length, tagname="MumbleLink")
-
-    def read(self):
-        self.memfile.seek(0)
-
-        self.data = self.unpack(Link, self.memfile.read(self.size_link))
-        self.context = self.unpack(Context, self.memfile.read(self.size_context))
-
-    def close(self):
-        self.memfile.close()
-
-    @staticmethod
-    def unpack(ctype, buf):
-        cstring = ctypes.create_string_buffer(buf)
-        ctype_instance = ctypes.cast(ctypes.pointer(cstring), ctypes.POINTER(ctype)).contents
-        return ctype_instance
 
 class ThreadWithReturnValue(Thread):
     def __init__(self, group=None, target=None, name=None, args=(), kwargs=None, *, daemon=None):
@@ -773,6 +705,9 @@ class Meter():
         global racer
         global client
         global map_position_last_time_send
+
+        global use_websocket
+        global websocket_client
 
         global mapId
         global lastMapId
@@ -1136,13 +1071,6 @@ class Meter():
         else:
             _pos = [ml.data.fAvatarPosition[0],ml.data.fAvatarPosition[2]]
 
-        
-        if 'racer' in globals() and client != "":
-            if map_position_last_time_send != round(_time*10/2):
-                map_position_last_time_send = round(_time*10/2)
-                racer.sendMQTT({"option": "position", "x": ml.data.fAvatarPosition[0], "y": ml.data.fAvatarPosition[1], "z": ml.data.fAvatarPosition[2], "user": racer.username.get(), "map": guildhall_name.get(), "color": player_color})
-        
-
         if show_checkpoints_window and 'racer' in globals():  
             if ml.data.identity != "":
                 racer.username.set(json.loads(ml.data.identity).get("name"))
@@ -1195,6 +1123,12 @@ class Meter():
                     norms = np.linalg.norm(v1) * np.linalg.norm(v2)
                 
                     return str(round(np.rad2deg(np.arccos(dot_pr / norms))))
+
+                def angle_between360(v1, v2):
+                    dot = v1.dot(v2)
+                    det = v1[0]*v2[1] - v1[1]*v2[0]
+                    deg = np.rad2deg(np.arctan2(-det, -dot)) + 180
+                    return str(round(deg, 2))
 
                 # construimos un vector con la posición actual y la anterior
                 if speed_in_3D == 1:
@@ -1384,7 +1318,37 @@ class Meter():
             #_lastVel = velocity
             _lastTick = _tick
 
+
+        if 'racer' in globals() and (client != "" or websocket_client):
+            if map_position_last_time_send != round(_time * 10 / 2):
+                map_position_last_time_send = round(_time * 10 / 2)
+                if not (ml.data.fAvatarPosition[0] == 0 and ml.data.fAvatarPosition[1] == 0 and ml.data.fAvatarPosition[2] == 0):
+                    if client != "":
+                        racer.sendMQTT(
+                            {"option": "position", "x": ml.data.fAvatarPosition[0], "y": ml.data.fAvatarPosition[1],
+                             "z": ml.data.fAvatarPosition[2], "user": racer.username.get(), "map": guildhall_name.get(),
+                             "color": player_color})
+
+                    if websocket_client:
+                        south = np.array([0, -1])
+                        avatar_direction = np.array([ml.data.fAvatarFront[0], ml.data.fAvatarFront[2]])
+
+                        event = {
+                            "type": "position",
+                            "x": ml.data.fAvatarPosition[0],
+                            "y": ml.data.fAvatarPosition[2],
+                            "z": ml.data.fAvatarPosition[1],
+                            "angle": angle_between360(avatar_direction, south),
+                            "user": racer.username.get(),
+                            "timestamp": time.time()
+                        }
+                        try:
+                            websocket_client.send(json.dumps(event))
+                        except WebSocketConnectionClosedException:
+                            pass
+
         self.root.after(10, self.updateMeterTimer)
+
 
 class Racer():
 
@@ -1394,13 +1358,13 @@ class Racer():
             self.root.attributes('-topmost', 1)
         self.root.after(5000, self.setOnTopfullscreen)
 
-    def on_message(self, client, userdata, message):
+    def on_message_MQTT(self, client, userdata, message):
 
         global countdowntxt
 
         #print("message received " ,json.loads(str(message.payload.decode("utf-8"))))
         received = json.loads(str(message.payload.decode("utf-8")))
-    
+
         if received.get('option') == "s":
             #print("first checkpoint for!!", received.get('user'))
             user = received.get('user')
@@ -1533,31 +1497,122 @@ class Racer():
             subprocess.Popen(["python", Path(sys.argv[0]).parent / "map_realtime_multiplayer.py", self.session_id.get()])
             self.mapOpen = True
 
+    def websocket_countdown_watcher(self):
+        global websocket_countdown_active
+        global websocket_countdown_received
+
+        if websocket_countdown_received:
+            if not websocket_countdown_active:
+                websocket_countdown_active = True
+                self.update_countdown_label(first=True)
+            websocket_countdown_received = False
+
+        self.root.after(100, self.websocket_countdown_watcher)
+
+    def set_countdown_text(self, text, final=False):
+        if countdownWidget:
+            countdownWidget.localcountdown.set(text)
+            if final:
+                self.root.after(2500, lambda: countdownWidget.localcountdown.set(""))
+
+    def update_countdown_label(self, first=False):
+        global websocket_countdown_active
+
+        if websocket_countdown_ends_on is None:
+            websocket_countdown_active = False
+            return
+
+        seconds_remaining = websocket_countdown_ends_on / 1000 - time.time()
+        if seconds_remaining > 1:
+            self.set_countdown_text(math.ceil(seconds_remaining))
+            delay = math.floor((seconds_remaining - math.floor(seconds_remaining)) * 1000) if first else 1000
+            self.root.after(delay, self.update_countdown_label)
+        elif seconds_remaining > 0:
+            self.set_countdown_text("1")
+            self.root.after(50, self.update_countdown_label)
+        else:
+            self.set_countdown_text("GO!", final=True)
+            websocket_countdown_active = False
+
     def joinRace(self):
         global client
         self.root.focus_set()
-        #ignore old channel
-        if client != "":
-            client.on_message=self.ignore_message 
 
-        self.status.set("JOINED!")
-        self.race_status.set("Waiting to start...")
-        #print(self.username.get() + " JOINED RACE: " + self.session_id.get())
-        #subscribición al topico
-        broker_address="www.beetlerank.com"
-        #broker_address="iot.eclipse.org"
-        #print("creating new instance")
-        client = mqtt.Client(client_id=self.username.get() + str(random.random())) #create new instance
-        #client.tls_set("./chain.pem")
-        #client.tls_insecure_set(True)
-        client.on_message=self.on_message #attach function to callback
-        #print("connecting to broker")
-        client.connect(broker_address) #connect to broker
-        client.loop_start() #start the loop
-        #print("Subscribing to topic",self.prefix_topic + str(self.session_id.get()))
-        client.subscribe(self.prefix_topic + str(self.session_id.get()))
-        
-        #self.thread_queue.put('Waiting for start.')
+        if not use_websocket:
+            #ignore old channel
+            if client != "":
+                client.on_message=self.ignore_message
+
+            self.status.set("JOINED!")
+            self.race_status.set("Waiting to start...")
+            #print(self.username.get() + " JOINED RACE: " + self.session_id.get())
+            #subscribición al topico
+            broker_address="www.beetlerank.com"
+            #broker_address="iot.eclipse.org"
+            #print("creating new instance")
+            client = mqtt.Client(client_id=self.username.get() + str(random.random())) #create new instance
+            #client.tls_set("./chain.pem")
+            #client.tls_insecure_set(True)
+            client.on_message=self.on_message_MQTT #attach function to callback
+            #print("connecting to broker")
+            client.connect(broker_address) #connect to broker
+            client.loop_start() #start the loop
+            #print("Subscribing to topic",self.prefix_topic + str(self.session_id.get()))
+            client.subscribe(self.prefix_topic + str(self.session_id.get()))
+
+            #self.thread_queue.put('Waiting for start.')
+        else:
+            global websocket_client
+            global websocket_client_thread
+            global websocket_host
+            global websocket_port
+
+            if websocket_client is not None:
+                websocket_client.close()
+                websocket_client = None
+                websocket_client_thread.join()
+
+            def on_message(ws, message):
+                data = json.loads(message)
+
+                global websocket_countdown_ends_on
+                global websocket_countdown_received
+                if data.get("type") == "countdown_start":
+                    websocket_countdown_ends_on = data.get("ends_on")
+                    websocket_countdown_received = True
+
+            websocket_host = self.conf_websocket_host_entry.get()
+            websocket_port = self.conf_websocket_port_entry.get()
+
+            websocket_client = websocket.WebSocketApp(f"ws://{websocket_host}:{websocket_port}",
+                                                      on_message=on_message)
+
+            websocket_client_thread = Thread(target=websocket_client.run_forever)
+            websocket_client_thread.daemon = True
+            websocket_client_thread.start()
+
+            if not websocket_client.sock:
+                print("Failed to connect to websocket server")
+                self.websocket_race_status.set("Error")
+                return
+
+            conn_timeout = 5
+            while websocket_client.sock and not websocket_client.sock.connected and conn_timeout:
+                time.sleep(1)
+                conn_timeout -= 1
+
+            if not websocket_client.sock or not websocket_client.sock.connected:
+                print("Failed to connect to websocket server")
+                self.websocket_race_status.set("Error")
+                return
+
+            init_packet = {
+                "type": "init",
+                "client": "speedometer",
+                "room": self.session_id.get()
+            }
+            websocket_client.send(json.dumps(init_packet))
+            self.websocket_race_status.set("Connected")
 
     def reset(self):
 
@@ -1604,117 +1659,90 @@ class Racer():
     def toggleTrans(self):
         if (self.move):
             self.root.overrideredirect(1)
-            self.map_ranking.configure(fg=self.color_trans_fg); self.map_ranking.configure(bg=self.color_trans_bg)
-            self.t_1.configure(fg=self.color_trans_fg); self.t_1.configure(bg=self.color_trans_bg)
-            self.t_2.configure(fg=self.color_trans_fg); self.t_2.configure(bg=self.color_trans_bg)
-            self.t_3.configure(fg=self.color_trans_fg); self.t_3.configure(bg="#222222")
-            self.t_3_2.configure(fg=self.color_trans_fg); self.t_3_2.configure(bg="#222222")
-            self.t_4.configure(fg=self.color_trans_fg); self.t_4.configure(bg=self.color_trans_bg)
-            self.t_4_4.configure(fg=self.color_trans_fg); self.t_4_4.configure(bg=self.color_trans_bg)
-            self.t_4_5.configure(fg="black"); self.t_4_5.configure(bg=self.color_trans_bg)
-            self.t_4_6.configure(fg="black"); self.t_4_6.configure(bg=self.color_trans_bg)
-            self.t_5.configure(fg=self.color_trans_fg); self.t_5.configure(bg="#222222")
-            self.t_6.configure(fg=self.color_trans_fg); self.t_6.configure(bg="#222222")
+            self.map_ranking.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
+            self.t_1.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
+            self.t_2.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
+            self.t_3.configure(fg=self.color_trans_fg, bg="#222222")
+            self.t_3_2.configure(fg=self.color_trans_fg, bg="#222222")
+            self.t_4.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
+            self.t_4_4.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
+            self.t_4_5.configure(fg="black", bg=self.color_trans_bg)
+            self.t_4_6.configure(fg="black", bg=self.color_trans_bg)
+            self.t_5.configure(fg=self.color_trans_fg, bg="#222222")
+            self.t_6.configure(fg=self.color_trans_fg, bg="#222222")
             #self.t_6_1.configure(fg=self.color_trans_fg); self.t_6_1.configure(bg="#222222")
-            self.t_7.configure(fg=self.color_trans_fg); self.t_7.configure(bg="#222222")
-            self.t_7_1.configure(fg=self.color_trans_fg); self.t_7_1.configure(bg="#222222")
-            self.t_7_2.configure(fg=self.color_trans_fg); self.t_7_2.configure(bg="#222222")
-            self.t_3_5.configure(fg=self.color_trans_fg); self.t_3_5.configure(bg="#222222")
-            self.t_3_6.configure(fg=self.color_trans_fg); self.t_3_6.configure(bg="#222222")
-            self.t_8.configure(fg=self.color_trans_fg); self.t_8.configure(bg=self.color_trans_bg)
-            self.t_9.configure(fg=self.color_trans_fg); self.t_9.configure(bg=self.color_trans_bg)
-            self.t_10.configure(fg=self.color_trans_fg); self.t_10.configure(bg=self.color_trans_bg)
-            self.conf_move.configure(fg=self.color_trans_fg); self.conf_move.configure(bg="#222222")
-            self.conf_1_1.configure(fg=self.color_trans_fg); self.conf_1_1.configure(bg=self.color_trans_bg)
-            self.conf_1_2.configure(fg="black"); self.conf_1_2.configure(bg=self.color_trans_bg)
-            self.conf_2_1.configure(fg=self.color_trans_fg); self.conf_2_1.configure(bg=self.color_trans_bg)
-            self.conf_2_2.configure(fg="black"); self.conf_2_2.configure(bg=self.color_trans_bg)
-            self.conf_3_1.configure(fg=self.color_trans_fg); self.conf_3_1.configure(bg=self.color_trans_bg)
-            self.conf_3_2.configure(fg="black"); self.conf_3_2.configure(bg=self.color_trans_bg)
-            self.conf_4_1.configure(fg=self.color_trans_fg); self.conf_4_1.configure(bg=self.color_trans_bg)
-            self.conf_4_2.configure(fg="black"); self.conf_4_2.configure(bg=self.color_trans_bg)
-            self.conf_5_1.configure(fg=self.color_trans_fg); self.conf_5_1.configure(bg=self.color_trans_bg)
-            self.conf_5_2.configure(fg="black"); self.conf_5_2.configure(bg=self.color_trans_bg)
-            self.conf_6_1.configure(fg=self.color_trans_fg); self.conf_6_1.configure(bg=self.color_trans_bg)
-            self.conf_6_2.configure(fg="black"); self.conf_6_2.configure(bg=self.color_trans_bg)
-            self.conf_7_1.configure(fg=self.color_trans_fg); self.conf_7_1.configure(bg=self.color_trans_bg)
-            self.conf_7_2.configure(fg="black"); self.conf_7_2.configure(bg=self.color_trans_bg)
-            self.conf_8_1.configure(fg=self.color_trans_fg); self.conf_8_1.configure(bg=self.color_trans_bg)
-            self.conf_8_2.configure(fg="black"); self.conf_8_2.configure(bg=self.color_trans_bg)
-            self.conf_9_1.configure(fg=self.color_trans_fg); self.conf_9_1.configure(bg=self.color_trans_bg)
-            self.conf_9_2.configure(fg="black"); self.conf_9_2.configure(bg=self.color_trans_bg)
-            self.conf_10_1.configure(fg=self.color_trans_fg); self.conf_10_1.configure(bg=self.color_trans_bg)
-            self.conf_10_2.configure(fg="black"); self.conf_10_2.configure(bg=self.color_trans_bg)
-            self.conf_11_1.configure(fg=self.color_trans_fg); self.conf_11_1.configure(bg=self.color_trans_bg)
-            self.conf_11_2.configure(fg="black"); self.conf_11_2.configure(bg=self.color_trans_bg)
-            self.conf_12_1.configure(fg=self.color_trans_fg); self.conf_12_1.configure(bg=self.color_trans_bg)
-            self.conf_12_2.configure(fg="black"); self.conf_12_2.configure(bg=self.color_trans_bg)
-            self.conf_13_1.configure(fg=self.color_trans_fg); self.conf_13_1.configure(bg=self.color_trans_bg)
-            self.conf_13_2.configure(fg="black"); self.conf_13_2.configure(bg=self.color_trans_bg)
-            self.conf_14_1.configure(fg=self.color_trans_fg); self.conf_14_1.configure(bg=self.color_trans_bg)
-            self.conf_14_2.configure(fg="black"); self.conf_14_2.configure(bg=self.color_trans_bg)
-            self.conf_15_1.configure(bg=self.color_trans_bg)
-            self.conf_15_2.configure(fg=self.color_trans_fg); self.conf_15_2.configure(bg="#222222")
-            self.conf_save.configure(fg=self.color_trans_fg); self.conf_save.configure(bg="#222222")
-            self.conf.configure(fg=self.color_trans_fg); self.conf.configure(bg="#222222")
+            self.t_7.configure(fg=self.color_trans_fg, bg="#222222")
+            self.t_7_1.configure(fg=self.color_trans_fg, bg="#222222")
+            self.t_7_2.configure(fg=self.color_trans_fg, bg="#222222")
+            self.t_3_5.configure(fg=self.color_trans_fg, bg="#222222")
+            self.t_3_6.configure(fg=self.color_trans_fg, bg="#222222")
+
+            self.websocket_race_status_label.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
+
+            self.t_8.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
+            self.t_9.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
+            self.t_10.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
+
+            def makeCheckboxTransparent(label, cb):
+                label.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
+                cb.configure(fg="black", bg=self.color_trans_bg)
+
+            self.conf_move.configure(fg=self.color_trans_fg, bg="#222222")
+
+            for (label, cb) in self.config_checkboxes:
+                makeCheckboxTransparent(label, cb)
+
+            self.conf_color_label.configure(bg=self.color_trans_bg)
+            self.conf_color_btn.configure(fg=self.color_trans_fg, bg="#222222")
+            makeCheckboxTransparent(self.conf_websocket_label, self.conf_websocket_cbtn)
+            self.conf_websocket_host_entry.configure(fg=self.color_trans_fg, bg="#222222")
+            self.conf_websocket_port_entry.configure(fg=self.color_trans_fg, bg="#222222")
+            self.conf_save.configure(fg=self.color_trans_fg, bg="#222222")
+            self.conf.configure(fg=self.color_trans_fg, bg="#222222")
 
             self.root.configure(bg=self.color_trans_bg)
-            
         else:
             self.root.overrideredirect(0)
-            self.map_ranking.configure(fg=self.color_normal_fg); self.map_ranking.configure(bg=self.color_normal_bg)
-            self.t_1.configure(fg=self.color_normal_fg); self.t_1.configure(bg=self.color_normal_bg)
-            self.t_2.configure(fg=self.color_normal_fg); self.t_2.configure(bg=self.color_normal_bg)
-            self.t_3.configure(fg=self.color_normal_fg); self.t_3.configure(bg=self.color_normal_bg)
-            self.t_3_2.configure(fg=self.color_normal_fg); self.t_3_2.configure(bg=self.color_normal_bg)
-            self.t_4.configure(fg=self.color_normal_fg); self.t_4.configure(bg=self.color_normal_bg)
-            self.t_4_4.configure(fg=self.color_normal_fg); self.t_4_4.configure(bg=self.color_normal_bg)
-            self.t_4_5.configure(fg=self.color_normal_fg); self.t_4_5.configure(bg=self.color_normal_bg)
-            self.t_4_6.configure(fg=self.color_normal_fg); self.t_4_6.configure(bg=self.color_normal_bg)
-            self.t_5.configure(fg=self.color_normal_fg); self.t_5.configure(bg=self.color_normal_bg)
-            self.t_6.configure(fg=self.color_normal_fg); self.t_6.configure(bg=self.color_normal_bg)
+            self.map_ranking.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.t_1.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.t_2.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.t_3.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.t_3_2.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.t_4.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.t_4_4.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.t_4_5.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.t_4_6.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.t_5.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.t_6.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
             #self.t_6_1.configure(fg=self.color_normal_fg); self.t_6_1.configure(bg=self.color_normal_bg)
-            self.t_7.configure(fg=self.color_normal_fg); self.t_7.configure(bg=self.color_normal_bg)
-            self.t_7_1.configure(fg=self.color_normal_fg); self.t_7_1.configure(bg=self.color_normal_bg)
-            self.t_7_2.configure(fg=self.color_normal_fg); self.t_7_2.configure(bg=self.color_normal_bg)
-            self.t_3_5.configure(fg=self.color_normal_fg); self.t_3_5.configure(bg=self.color_normal_bg)
-            self.t_3_6.configure(fg=self.color_normal_fg); self.t_3_6.configure(bg=self.color_normal_bg)
-            self.t_8.configure(fg=self.color_normal_fg); self.t_8.configure(bg=self.color_normal_bg)
-            self.t_9.configure(fg=self.color_normal_fg); self.t_9.configure(bg=self.color_normal_bg)
-            self.t_10.configure(fg=self.color_normal_fg); self.t_10.configure(bg=self.color_normal_bg)
-            self.conf_move.configure(fg=self.color_normal_fg); self.conf_move.configure(bg=self.color_normal_bg)
-            self.conf_1_1.configure(fg=self.color_normal_fg); self.conf_1_1.configure(bg=self.color_normal_bg)
-            self.conf_1_2.configure(fg=self.color_normal_fg); self.conf_1_2.configure(bg=self.color_normal_bg)
-            self.conf_2_1.configure(fg=self.color_normal_fg); self.conf_2_1.configure(bg=self.color_normal_bg)
-            self.conf_2_2.configure(fg=self.color_normal_fg); self.conf_2_2.configure(bg=self.color_normal_bg)
-            self.conf_3_1.configure(fg=self.color_normal_fg); self.conf_3_1.configure(bg=self.color_normal_bg)
-            self.conf_3_2.configure(fg=self.color_normal_fg); self.conf_3_2.configure(bg=self.color_normal_bg)
-            self.conf_4_1.configure(fg=self.color_normal_fg); self.conf_4_1.configure(bg=self.color_normal_bg)
-            self.conf_4_2.configure(fg=self.color_normal_fg); self.conf_4_2.configure(bg=self.color_normal_bg)
-            self.conf_5_1.configure(fg=self.color_normal_fg); self.conf_5_1.configure(bg=self.color_normal_bg)
-            self.conf_5_2.configure(fg=self.color_normal_fg); self.conf_5_2.configure(bg=self.color_normal_bg)
-            self.conf_6_1.configure(fg=self.color_normal_fg); self.conf_6_1.configure(bg=self.color_normal_bg)
-            self.conf_6_2.configure(fg=self.color_normal_fg); self.conf_6_2.configure(bg=self.color_normal_bg)
-            self.conf_7_1.configure(fg=self.color_normal_fg); self.conf_7_1.configure(bg=self.color_normal_bg)
-            self.conf_7_2.configure(fg=self.color_normal_fg); self.conf_7_2.configure(bg=self.color_normal_bg)
-            self.conf_8_1.configure(fg=self.color_normal_fg); self.conf_8_1.configure(bg=self.color_normal_bg)
-            self.conf_8_2.configure(fg=self.color_normal_fg); self.conf_8_2.configure(bg=self.color_normal_bg)
-            self.conf_9_1.configure(fg=self.color_normal_fg); self.conf_9_1.configure(bg=self.color_normal_bg)
-            self.conf_9_2.configure(fg=self.color_normal_fg); self.conf_9_2.configure(bg=self.color_normal_bg)
-            self.conf_10_1.configure(fg=self.color_normal_fg); self.conf_10_1.configure(bg=self.color_normal_bg)
-            self.conf_10_2.configure(fg=self.color_normal_fg); self.conf_10_2.configure(bg=self.color_normal_bg)
-            self.conf_11_1.configure(fg=self.color_normal_fg); self.conf_11_1.configure(bg=self.color_normal_bg)
-            self.conf_11_2.configure(fg=self.color_normal_fg); self.conf_11_2.configure(bg=self.color_normal_bg)
-            self.conf_12_1.configure(fg=self.color_normal_fg); self.conf_12_1.configure(bg=self.color_normal_bg)
-            self.conf_12_2.configure(fg=self.color_normal_fg); self.conf_12_2.configure(bg=self.color_normal_bg)
-            self.conf_13_1.configure(fg=self.color_normal_fg); self.conf_13_1.configure(bg=self.color_normal_bg)
-            self.conf_13_2.configure(fg=self.color_normal_fg); self.conf_13_2.configure(bg=self.color_normal_bg)
-            self.conf_14_1.configure(fg=self.color_normal_fg); self.conf_14_1.configure(bg=self.color_normal_bg)
-            self.conf_14_2.configure(fg=self.color_normal_fg); self.conf_14_2.configure(bg=self.color_normal_bg)
-            self.conf_15_1.configure(bg=self.color_normal_bg)
-            self.conf_15_2.configure(fg=self.color_normal_fg); self.conf_15_2.configure(bg=self.color_normal_bg)
-            self.conf_save.configure(fg=self.color_normal_fg); self.conf_save.configure(bg=self.color_normal_bg)
-            self.conf.configure(fg=self.color_normal_fg); self.conf.configure(bg=self.color_normal_bg)
+            self.t_7.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.t_7_1.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.t_7_2.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.t_3_5.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.t_3_6.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+
+            self.websocket_race_status_label.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+
+            self.t_8.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.t_9.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.t_10.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+
+            def makeCheckboxNormal(label, cb):
+                label.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+                cb.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+
+            self.conf_move.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+
+            for (label, cb) in self.config_checkboxes:
+                makeCheckboxNormal(label, cb)
+
+            self.conf_color_label.configure(bg=self.color_normal_bg)
+            self.conf_color_btn.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            makeCheckboxNormal(self.conf_websocket_label, self.conf_websocket_cbtn)
+            self.conf_websocket_host_entry.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.conf_websocket_port_entry.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.conf_save.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.conf.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
 
             self.root.configure(bg=self.color_normal_bg)
             
@@ -1802,14 +1830,12 @@ class Racer():
                 self.map_ranking_var.set("")
     
     def __init__(self):
-        
         global guildhall_name
         global guildhall_laps
         global cup_name
         global upload
         global geometry_racer
         global player_color
-
 
         self.mapOpen = False
         self.move = True
@@ -1840,7 +1866,8 @@ class Racer():
 
         self.thread_queue = queue.Queue()
 
-        self.root.after(100, self.listen_for_result)
+        if not use_websocket:
+            self.root.after(100, self.listen_for_result)
 
         cup_name = StringVar(self.root)
         cup_name.set('CUP')
@@ -1917,6 +1944,11 @@ class Racer():
         def conf_save():
             print("saved and restart")
             global conf
+            global websocket_host
+            global websocket_port
+
+            websocket_host = self.websocket_host.get()
+            websocket_port = self.websocket_port.get()
 
             conf.saveConf()
 
@@ -1942,289 +1974,147 @@ class Racer():
                     else:
                         meter.toggleTrans()
 
-
         self.conf_move = tk.Button(self.root, text='MOVE SPEEDOMETER', command=lambda:toggleAll(),font=("Lucida Console", 10))
-        self.conf_move.place(x=310, y=18, width=160, height=25)
-         
-        #OPTION 1 
-        self.conf_1_0 = IntVar(self.root, hud_slope)
 
-        self.conf_1_1 = tk.Label(self.root, text="""Show slope""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.conf_1_1.place(x=314, y=44 )
+        def createCheckboxLabel(text):
+            return tk.Label(
+                self.root,
+                text=text,
+                justify=tk.LEFT,
+                padx=20,
+                fg=self.fg.get(),
+                bg=self.bg.get(),
+                font=("Lucida Console", 10),
+            )
 
-        self.conf_1_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
-            text = "",
-            variable=self.conf_1_0,
-            borderwidth=0, command=lambda:conf_toggle("hud_slope"))
-        self.conf_1_2.place(x=310, y=44 )
+        self.config_cb_vars = {}
 
-        #OPTION 1 
-        self.conf_2_0 = IntVar(self.root, hud_gauge)
+        def createCheckbox(initValue, varName):
+            self.config_cb_vars[varName] = IntVar(self.root, initValue)
+            return tk.Checkbutton(
+                self.root,
+                variable=self.config_cb_vars[varName],
+                command=lambda: conf_toggle(varName),
+                font=("Lucida Console", 10),
+                text="",
+                borderwidth=0)
 
-        self.conf_2_1 = tk.Label(self.root, text="""Show gauge""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.conf_2_1.place(x=314, y=44 + 1 * 20)
+        checkboxes = [
+            ("Show slope", hud_slope, "hud_slope"),
+            ("Show gauge", hud_gauge, "hud_gauge"),
+            ("Show speed", hud_speed, "hud_speed"),
+            ("Show distance", hud_distance, "hud_distance"),
+            ("Show acceleration", hud_acceleration, "hud_acceleration"),
+            ("Show angles", hud_angles, "hud_angles"),
+            ("Show angle orbs", hud_angles_bubbles, "hud_angles_bubbles"),
+            ("Show drift hold", hud_drift_hold, "hud_drift_hold"),
+            ("Enable livesplit hotkeys", enable_livesplit_hotkey, "enable_livesplit_hotkey"),
+            ("Enable ghost hotkeys", enable_ghost_keys, "enable_ghost_keys"),
+            ("Measure speed in 3D", speed_in_3D, "speed_in_3D"),
+            ("Log to file (need if want to upload)", log, "log"),
+            ("Show airboost helper", hud_angles_airboost, "hud_angles_airboost"),
+            ("Show max speed on gauge", hud_max_speed, "hud_max_speed"),
+            ("Measure speed in 3D", speed_in_3D, "speed_in_3D"),
+        ]
+        self.config_checkboxes = [(createCheckboxLabel(text), createCheckbox(init, varName)) for (text, init, varName) in checkboxes]
 
-        self.conf_2_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
-            text = "",
-            variable=self.conf_2_0,
-            borderwidth=0, command=lambda:conf_toggle("hud_gauge"))
-        self.conf_2_2.place(x=310, y=44 + 1 * 20 )
-        
-        
-        #OPTION 1 
-        self.conf_3_0 = IntVar(self.root, hud_speed)
+        # print(self.config_checkboxes[0][1].var)
 
-        self.conf_3_1 = tk.Label(self.root, text="""Show speed""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.conf_3_1.place(x=314, y=44 + 2 * 20)
+        # COLOR
+        self.conf_color_label = tk.Label(self.root, text="■", justify = tk.LEFT, padx = 0, fg = player_color, bg=self.bg.get(), font=("Lucida Console", 15))
+        self.conf_color_btn = tk.Button(self.root, text='Change color', command=lambda:choose_color() ,font=("Lucida Console", 10))
 
-        self.conf_3_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
-            text = "",
-            variable=self.conf_3_0,
-            borderwidth=0, command=lambda:conf_toggle("hud_speed"))
-        self.conf_3_2.place(x=310, y=44 + 2 * 20)
-        
-        
-        #OPTION 1 
-        self.conf_4_0 = IntVar(self.root, hud_distance)
+        # WEBSOCKET OPTIONS
+        self.use_websocket = IntVar(self.root, use_websocket)
+        self.conf_websocket_label = createCheckboxLabel("Use websocket connection")
 
-        self.conf_4_1 = tk.Label(self.root, text="""Show distance""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.conf_4_1.place(x=314, y=44 + 3 * 20)
+        self.websocket_host = StringVar(self.root, websocket_host)
+        self.conf_websocket_host_entry = tk.Entry(self.root, textvariable=self.websocket_host, disabledbackground="#444444")
+        self.websocket_port = StringVar(self.root, str(websocket_port))
+        self.conf_websocket_port_entry = tk.Entry(self.root, textvariable=self.websocket_port, disabledbackground="#444444")
 
-        self.conf_4_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
-            text = "",
-            variable=self.conf_4_0,
-            borderwidth=0, command=lambda:conf_toggle("hud_distance"))
-        self.conf_4_2.place(x=310, y=44 + 3 * 20)
-        
-        
-        #OPTION 1 
-        self.conf_5_0 = IntVar(self.root, hud_acceleration)
+        def update_websocket_conf(toggle=False):
+            if toggle:
+                conf_toggle("use_websocket")
+            state = tk.NORMAL if self.use_websocket.get() else tk.DISABLED
+            self.conf_websocket_host_entry.configure(state=state)
+            self.conf_websocket_port_entry.configure(state=state)
 
-        self.conf_5_1 = tk.Label(self.root, text="""Show acceleration""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.conf_5_1.place(x=314, y=44 + 4 * 20)
+        self.conf_websocket_cbtn = tk.Checkbutton(
+            self.root,
+            font=("Lucida Console", 10),
+            text="",
+            variable=self.use_websocket,
+            command=lambda: update_websocket_conf(toggle=True),
+            borderwidth=0
+        )
 
-        self.conf_5_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
-            text = "",
-            variable=self.conf_5_0,
-            borderwidth=0, command=lambda:conf_toggle("hud_acceleration"))
-        self.conf_5_2.place(x=310, y=44 + 4 * 20)
-        
-        
-        #OPTION 1 
-        self.conf_6_0 = IntVar(self.root, hud_angles)
+        update_websocket_conf()
 
-        self.conf_6_1 = tk.Label(self.root, text="""Show angles""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.conf_6_1.place(x=314, y=44 + 5 * 20)
-
-        self.conf_6_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
-            text = "",
-            variable=self.conf_6_0,
-            borderwidth=0, command=lambda:conf_toggle("hud_angles"))
-        self.conf_6_2.place(x=310, y=44 + 5 * 20)
-        
-        
-        #OPTION 1 
-        self.conf_7_0 = IntVar(self.root, hud_angles_bubbles)
-
-        self.conf_7_1 = tk.Label(self.root, text="""Show angle orbs""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.conf_7_1.place(x=314, y=44 + 6 * 20)
-
-        self.conf_7_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
-            text = "",
-            variable=self.conf_7_0,
-            borderwidth=0, command=lambda:conf_toggle("hud_angles_bubbles"))
-        self.conf_7_2.place(x=310, y=44 + 6 * 20)
-        
-        #OPTION 1 
-        self.conf_8_0 = IntVar(self.root, hud_drift_hold)
-
-        self.conf_8_1 = tk.Label(self.root, text="""Show drift hold""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.conf_8_1.place(x=314, y=44 + 7 * 20)
-
-        self.conf_8_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
-            text = "",
-            variable=self.conf_8_0,
-            borderwidth=0, command=lambda:conf_toggle("hud_drift_hold"))
-        self.conf_8_2.place(x=310, y=44 + 7 * 20)
-        
-        
-        #OPTION 1 
-        self.conf_9_0 = IntVar(self.root, enable_livesplit_hotkey)
-
-        self.conf_9_1 = tk.Label(self.root, text="""Enable livesplit hotkeys""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.conf_9_1.place(x=314, y=44 + 8 * 20)
-
-        self.conf_9_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
-            text = "",
-            variable=self.conf_9_0,
-            borderwidth=0, command=lambda:conf_toggle("enable_livesplit_hotkey"))
-        self.conf_9_2.place(x=310, y=44 + 8 * 20)
-        
-        
-        #OPTION 1 
-        self.conf_10_0 = IntVar(self.root, enable_ghost_keys)
-
-        self.conf_10_1 = tk.Label(self.root, text="""Enable ghost hotkeys""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.conf_10_1.place(x=314, y=44 + 9 * 20)
-
-        self.conf_10_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
-            text = "",
-            variable=self.conf_10_0,
-            borderwidth=0, command=lambda:conf_toggle("enable_ghost_keys"))
-        self.conf_10_2.place(x=310, y=44 + 9 * 20)
-        
-        
-        #OPTION 1 
-        self.conf_11_0 = IntVar(self.root, speed_in_3D)
-
-        self.conf_11_1 = tk.Label(self.root, text="""Measure speed in 3D""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.conf_11_1.place(x=314, y=44 + 10 * 20)
-
-        self.conf_11_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
-            text = "",
-            variable=self.conf_11_0,
-            borderwidth=0, command=lambda:conf_toggle("speed_in_3D"))
-        self.conf_11_2.place(x=310, y=44 + 10 * 20)
-        
-        
-        #OPTION 1 
-        self.conf_12_0 = IntVar(self.root, log)
-
-        self.conf_12_1 = tk.Label(self.root, text="""Log to file (need if want to upload)""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.conf_12_1.place(x=314, y=44 + 11 * 20)
-
-        self.conf_12_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
-            text = "",
-            variable=self.conf_12_0,
-            borderwidth=0, command=lambda:conf_toggle("log"))
-        self.conf_12_2.place(x=310, y=44 + 11 * 20)
-
-        #OPTION 1 
-        self.conf_13_0 = IntVar(self.root, hud_angles_airboost)
-
-        self.conf_13_1 = tk.Label(self.root, text="""Show airboost helper""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.conf_13_1.place(x=314, y=44 + 12 * 20)
-
-        self.conf_13_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
-            text = "",
-            variable=self.conf_13_0,
-            borderwidth=0, command=lambda:conf_toggle("hud_angles_airboost"))
-        self.conf_13_2.place(x=310, y=44 + 12 * 20)
-
-        #OPTION 1 
-        self.conf_14_0 = IntVar(self.root, hud_max_speed)
-
-        self.conf_14_1 = tk.Label(self.root, text="""Show max speed on gauge""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.conf_14_1.place(x=314, y=44 + 13 * 20)
-
-        self.conf_14_2 = tk.Checkbutton(self.root, font=("Lucida Console", 10),
-            text = "",
-            variable=self.conf_14_0,
-            borderwidth=0, command=lambda:conf_toggle("hud_max_speed"))
-        self.conf_14_2.place(x=310, y=44 + 13 * 20)
-
- 
-
-
-        self.conf_15_1 = tk.Label(self.root, text="■", justify = tk.LEFT, padx = 0, fg = player_color, bg=self.bg.get(), font=("Lucida Console", 15))
-        self.conf_15_1.place(x=311, y=42 + 14 * 20)
-
-        #SAVE OPTIONS
-        self.conf_15_2 = tk.Button(self.root, text='Change color', command=lambda:choose_color() ,font=("Lucida Console", 10))
-        self.conf_15_2.place(x=336, y=44 + 14 * 20, width=120, height=23)
-
-        #SAVE OPTIONS
+        # SAVE OPTIONS
         self.conf_save = tk.Button(self.root, text='SAVE & RESTART', command=lambda:conf_save() ,font=("Lucida Console", 10))
-        self.conf_save.place(x=320, y=44 + 16 * 20, width=120, height=27)
-
 
         def changeConfigVisibility():
             global show_config
 
-            if show_config == 1:
-                #mostrarlo
+            # flip
+            show_config = 0 if show_config else 1
+            updateConfigVisibility()
+
+        def updateConfigVisibility():
+            global show_config
+
+            if show_config:
+                # mostrarlo
                 self.conf_move.place(x=310, y=18, width=160, height=25)
-                self.conf_1_1.place(x=314, y=44 + 0 * 20)
-                self.conf_1_2.place(x=310, y=44 + 0 * 20)
-                self.conf_2_1.place(x=314, y=44 + 1 * 20)
-                self.conf_2_2.place(x=310, y=44 + 1 * 20)
-                self.conf_3_1.place(x=314, y=44 + 2 * 20)
-                self.conf_3_2.place(x=310, y=44 + 2 * 20)
-                self.conf_4_1.place(x=314, y=44 + 3 * 20)
-                self.conf_4_2.place(x=310, y=44 + 3 * 20)
-                self.conf_5_1.place(x=314, y=44 + 4 * 20)
-                self.conf_5_2.place(x=310, y=44 + 4 * 20)
-                self.conf_6_1.place(x=314, y=44 + 5 * 20)
-                self.conf_6_2.place(x=310, y=44 + 5 * 20)
-                self.conf_7_1.place(x=314, y=44 + 6 * 20)
-                self.conf_7_2.place(x=310, y=44 + 6 * 20)
-                self.conf_8_1.place(x=314, y=44 + 7 * 20)
-                self.conf_8_2.place(x=310, y=44 + 7 * 20)
-                self.conf_9_1.place(x=314, y=44 + 8 * 20)
-                self.conf_9_2.place(x=310, y=44 + 8 * 20)
-                self.conf_10_1.place(x=314, y=44 + 9 * 20)
-                self.conf_10_2.place(x=310, y=44 + 9 * 20)
-                self.conf_11_1.place(x=314, y=44 + 10 * 20)
-                self.conf_11_2.place(x=310, y=44 + 10 * 20)
-                self.conf_12_1.place(x=314, y=44 + 11 * 20)
-                self.conf_12_2.place(x=310, y=44 + 11 * 20)
-                self.conf_13_1.place(x=314, y=44 + 12 * 20)
-                self.conf_13_2.place(x=310, y=44 + 12 * 20)
-                self.conf_14_1.place(x=314, y=44 + 13 * 20)
-                self.conf_14_2.place(x=310, y=44 + 13 * 20)
-                self.conf_15_1.place(x=311, y=42 + 14 * 20)
-                self.conf_15_2.place(x=336, y=44 + 14 * 20, width=120, height=23)
-                self.conf_save.place(x=320, y=48 + 15 * 20, width=120, height=27)
 
+                cb_counter = 0
+                for (label, cb) in self.config_checkboxes:
+                    label.place(x=314, y=44 + cb_counter * 20)
+                    cb.place(x=310, y=44 + cb_counter * 20)
+                    cb_counter += 1
 
-                show_config = 0
+                self.conf_color_label.place(x=311, y=42 + cb_counter * 20)
+                self.conf_color_btn.place(x=336, y=44 + cb_counter * 20, width=120, height=23)
+                cb_counter += 1
 
+                self.conf_websocket_label.place(x=314, y=44 + cb_counter * 20)
+                self.conf_websocket_cbtn.place(x=310, y=44 + cb_counter * 20)
+                cb_counter += 1
 
+                host_entry_width = 150
+                self.conf_websocket_host_entry.place(x=330, y=44 + cb_counter * 20, height=28, width=host_entry_width)
+                self.conf_websocket_port_entry.place(x=330 + host_entry_width, y=44 + cb_counter * 20, height=28, width=40)
+                cb_counter += 1
+
+                self.conf_save.place(x=320, y=54 + cb_counter * 20, width=120, height=27)
+                cb_counter += 1
             else:
-                #ocultarlo
-                self.conf_1_1.place_forget()
-                self.conf_1_2.place_forget()
-                self.conf_2_1.place_forget()
-                self.conf_2_2.place_forget()
-                self.conf_3_1.place_forget()
-                self.conf_3_2.place_forget()
-                self.conf_4_1.place_forget()
-                self.conf_4_2.place_forget()
-                self.conf_5_1.place_forget()
-                self.conf_5_2.place_forget()
-                self.conf_6_1.place_forget()
-                self.conf_6_2.place_forget()
-                self.conf_7_1.place_forget()
-                self.conf_7_2.place_forget()
-                self.conf_8_1.place_forget()
-                self.conf_8_2.place_forget()
-                self.conf_9_1.place_forget()
-                self.conf_9_2.place_forget()
-                self.conf_10_1.place_forget()
-                self.conf_10_2.place_forget()
-                self.conf_11_1.place_forget()
-                self.conf_11_2.place_forget()
-                self.conf_12_1.place_forget()
-                self.conf_12_2.place_forget()
-                self.conf_13_1.place_forget()
-                self.conf_13_2.place_forget()
-                self.conf_14_1.place_forget()
-                self.conf_14_2.place_forget()
-                self.conf_15_1.place_forget()
-                self.conf_15_2.place_forget()
+                # ocultarlo
                 self.conf_move.place_forget()
-                self.conf_save.place_forget()
 
-                show_config = 1
+                for (label, cb) in self.config_checkboxes:
+                    label.place_forget()
+                    cb.place_forget()
+
+                self.conf_color_label.place_forget()
+                self.conf_color_btn.place_forget()
+
+                self.conf_websocket_label.place_forget()
+                self.conf_websocket_cbtn.place_forget()
+
+                self.conf_websocket_host_entry.place_forget()
+                self.conf_websocket_port_entry.place_forget()
+
+                self.conf_save.place_forget()
 
         self.conf = tk.Button(self.root, text='CONFIG', command=lambda:changeConfigVisibility(), font=("Lucida Console", '7'))
         self.conf.place(x=259, y=44, width=45, height=15)
 
-
         self.t_3_6 = tk.Button(self.root, text='RESET', command=lambda:self.reset(),font=("Lucida Console", 9))
         self.t_3_6.place(x=259, y=60, width=45, height=36)
 
-        changeConfigVisibility()
+        updateConfigVisibility()
 
         self.status = StringVar(self.root)
         self.status.set("JOIN")
@@ -2251,7 +2141,7 @@ class Racer():
         
         self.t_5 = tk.Entry(self.root,textvariable=self.session_id ,show="*")
         self.t_5.place(x=20, y=120, height=28)
-        self.t_6 = tk.Button(self.root, textvariable=self.status, command=self.joinRace,font=("Lucida Console", 10))
+        self.t_6 = tk.Button(self.root, textvariable=self.status, command=lambda:self.joinRace(),font=("Lucida Console", 10))
         self.t_6.place(x=120, y=120, width=80)
         #self.t_6_1 = tk.Button(self.root, text="MAP", command=self.open_multiplayer_map,font=("Lucida Console", 10))
         #self.t_6_1.place(x=120, y=148, width=80)
@@ -2263,12 +2153,15 @@ class Racer():
         self.t_7_1.place(x=200, y=176, width=100)
         self.t_7_2 = tk.Button(self.root, text='READY', command=lambda:self.ready(),font=("Lucida Console", 10))
         self.t_7_2.place(x=200, y=148, width=100)
+
+        self.websocket_race_status = StringVar(self.root, "Not connected")
+        self.websocket_race_status_label = tk.Label(self.root, textvariable=self.websocket_race_status,
+                                                        justify=tk.LEFT, fg=self.fg.get(), bg=self.bg.get(),
+                                                        font=("Lucida Console", 10), wraplength=165)
+
         self.t_8 = tk.Label(self.root, text="""------""", justify = tk.CENTER, padx = 20,fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.t_8.place(x=0, y=150)
         self.t_9 = tk.Label(self.root, textvariable=self.race_status, justify = tk.CENTER, padx = 20,fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.t_9.place(x=0, y=175)
         self.t_10 = tk.Label(self.root, textvariable=self.ranking, justify = tk.LEFT, padx = 20,fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.t_10.place(x=0, y=210)
 
         #ranking label
         self.map_ranking_var = StringVar(self.root)
@@ -2287,14 +2180,17 @@ class Racer():
                 self.t_7.place(x=200, y=120, width=100, height=27)
                 self.t_7_1.place(x=200, y=176, width=100, height=27)
                 self.t_7_2.place(x=200, y=148, width=100, height=27)
-                self.t_8.place(x=0, y=150)
-                self.t_9.place(x=0, y=175)
-                self.t_10.place(x=0, y=210)
+
+                if use_websocket:
+                    self.websocket_race_status_label.place(x=20, y=148)
+
+                if not use_websocket:
+                    self.t_8.place(x=0, y=150)
+                    self.t_9.place(x=0, y=175)
+                    self.t_10.place(x=0, y=210)
 
                 #ranking hide
                 self.map_ranking.place_forget()
-
-
             else:
                 #ocultarlo
                 self.t_6.place_forget()
@@ -2303,15 +2199,15 @@ class Racer():
                 self.t_7.place_forget()
                 self.t_7_1.place_forget()
                 self.t_7_2.place_forget()
+
+                self.websocket_race_status_label.place_forget()
+
                 self.t_8.place_forget()
                 self.t_9.place_forget()
                 self.t_10.place_forget()
 
                 #ranking show
                 self.map_ranking.place(x=20, y=130)
-
-
-
 
         self.multiplayer = IntVar(value=0)
         upload = IntVar(value=0)
@@ -2347,7 +2243,7 @@ class Racer():
             self.t_4_6.configure(state=DISABLED)
 
         self.toggleTrans()
-
+        self.websocket_countdown_watcher()
         self.setOnTopfullscreen()
 
     def listen_for_result(self):
@@ -2420,7 +2316,6 @@ class Racer():
             self.root.after(100, self.listen_for_result)
 
 class Countdown():
-
     def setOnTopfullscreen(self):
         self.root.attributes('-topmost', 1)
         self.root.after(500, self.setOnTopfullscreen)
@@ -2456,21 +2351,22 @@ class Countdown():
         
         self.localcountdown = tk.StringVar(self.root,"")
 
-        self.time = tk.Label(self.root, textvariable=self.localcountdown, justify = tk.CENTER, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 60, "bold"))
-        self.time.place(x=0, y=0)
+        self.time = tk.Label(self.root, textvariable=self.localcountdown, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 60, "bold"))
+        self.time.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
 
         self.toggleTrans()
-        self.checkCountdowntxt()
+        if not use_websocket:
+            self.checkCountdowntxt()
         self.setOnTopfullscreen()
 
     def toggleTrans(self):
         if (self.move):
             self.root.overrideredirect(1)
-            self.time.configure(fg=self.color_trans_fg); self.time.configure(bg=self.color_trans_bg)
+            self.time.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
             self.root.configure(bg=self.color_trans_bg)
         else:
             self.root.overrideredirect(0)
-            self.time.configure(fg=self.color_trans_fg); self.time.configure(bg=self.color_trans_bg)
+            self.time.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
             self.root.configure(bg=self.color_normal_bg)
             
         self.move = not self.move
@@ -2550,13 +2446,13 @@ class Message():
     def toggleTrans(self):
         if (self.move):
             self.root.overrideredirect(1)
-            self.time.configure(fg=self.color_trans_fg); self.time.configure(bg=self.color_trans_bg)
-            self.btn.configure(fg=self.color_trans_fg); self.btn.configure(bg="#222")
+            self.time.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
+            self.btn.configure(fg=self.color_trans_fg, bg="#222")
             self.root.configure(bg=self.color_trans_bg)
         else:
             self.root.overrideredirect(0)
-            self.time.configure(fg=self.color_trans_fg); self.time.configure(bg=self.color_trans_bg)
-            self.btn.configure(fg=self.color_normal_fg); self.btn.configure(bg=self.color_normal_bg)
+            self.time.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
+            self.btn.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
             self.root.configure(bg=self.color_normal_bg)
             
         self.move = not self.move

@@ -11,3 +11,4 @@ pyopengl
 requests
 plotly
 websocket
+websocket-client

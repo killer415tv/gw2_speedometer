@@ -118,7 +118,7 @@ client = ""
 mapId = 0
 lastMapId = 0
 
-use_websocket = 0
+use_websocket = 1
 websocket_host = "beetlerank.com"
 websocket_port = 1234
 
@@ -211,6 +211,7 @@ def loadfont(fontpath: str, private=True, enumerable=False):
     return bool(numFontsAdded)
 
 loadfont(str(Path(sys.argv[0]).parent / "font.ttf"))
+loadfont(str(Path(sys.argv[0]).parent / "/fonts/Montserrat-BoldItalic.ttf"))
 
 class Configuration():
     def __init__(self, master=None, **kw):
@@ -393,6 +394,12 @@ class ThreadWithReturnValue(Thread):
 
 class Meter():
     
+    def angle_between360(self, v1, v2):
+        dot = v1.dot(v2)
+        det = v1[0]*v2[1] - v1[1]*v2[0]
+        deg = np.rad2deg(np.arctan2(-det, -dot)) + 180
+        return str(round(deg, 2))
+
     def uploadLog(self,guildhall,old_filename,ml):
         headers = {
             'Origin': 'null',
@@ -416,8 +423,9 @@ class Meter():
     def on_press(self,key):
         global filename_timer
         global drift_key
+
         try:
-            if str(key).replace("'","") == drift_key:
+            if str(key).replace("'","") == str(drift_key).replace("'",""):
                 if self.drifting == False:
                     self.drift_time = time.perf_counter() 
                 self.drifting = True
@@ -429,7 +437,7 @@ class Meter():
     def on_release(self,key):
         global drift_key
         try:
-            if str(key).replace("'","") == drift_key:
+            if str(key).replace("'","") == str(drift_key).replace("'",""):
                 self.drift_time = time.perf_counter()
                 self.drifting = False
            
@@ -481,9 +489,9 @@ class Meter():
         if hud_angles_airboost:
             self.airdrift_angle_tk = tk.IntVar(self.root, 0.0)
             
-            self.outer_airdrift_box = self.canvas.create_rectangle(20 + 356, 30,30 + 356, 100, outline="#666666", width="1", tags="airdrift_meter_border")
-            self.inner_airdrift_box = self.canvas.create_rectangle(23 + 356, 33,27 + 356, 97, outline="#666666", fill='#666666', width="5", tags="airdrift_meter")
-            self.airdrift_label = tk.Label(self.root, textvariable = self.airdrift_angle_tk, fg = "white", bg="#666666", font=("Digital-7 Mono", 9)).place(x = 17 + 356, y = 102)
+            self.outer_airdrift_box = self.canvas.create_rectangle(20 + 306, 80,30 + 306, 150, outline="#666666", width="1", tags="airdrift_meter_border")
+            self.inner_airdrift_box = self.canvas.create_rectangle(23 + 306, 83,27 + 306, 147, outline="#666666", fill='#666666', width="5", tags="airdrift_meter")
+            self.airdrift_label = tk.Label(self.root, textvariable = self.airdrift_angle_tk, fg = "white", bg="#666666", font=("Digital-7 Mono", 9)).place(x = 17 + 306, y = 152)
 
         if hud_acceleration:
             self.accelvar = tk.StringVar(self.root,0)
@@ -518,50 +526,55 @@ class Meter():
                 on_release=self.on_release)
             listener.start()
 
-            self.outer_drifting_box = self.canvas.create_rectangle(20,30,30,100, outline="white", width="1", tags="drift_meter_border")
-            self.inner_drifting_box = self.canvas.create_rectangle(23,33,27,97, outline="#ff5436", fill='#ff5436', width="5", tags="drift_meter")
-            self.drifting_label = tk.Label(self.root, textvariable = self.drift_time_tk, fg = "white", bg="#666666", font=("Digital-7 Mono", 9)).place(x = 12, y = 102)
+            self.outer_drifting_box = self.canvas.create_rectangle(20+45,80,30+45,150, outline="white", width="1", tags="drift_meter_border")
+            self.inner_drifting_box = self.canvas.create_rectangle(23+45,83,27+45,147, outline="#ff5436", fill='#ff5436', width="5", tags="drift_meter")
+            self.drifting_label = tk.Label(self.root, textvariable = self.drift_time_tk, fg = "white", bg="#666666", font=("Digital-7 Mono", 9)).place(x = 58, y = 152)
 
         if hud_angles:
-            self.angletext = tk.Label(self.root, text="Cam   Beetle", fg = "white", bg="#666666", font=("Lucida Console", 7)).place(x = 146, y = 46)
-            self.anglenum = tk.Label(self.root, textvariable = self.anglevar, fg = "white", bg="#666666", font=("Digital-7 Mono", 8, "bold")).place(x = 145, y = 57)
+            self.angletext = tk.Label(self.root, text="Cam    Beetle", fg = "white", bg="#666666", font=("Lucida Console", 7)).place(x = 166, y = 42)
+            self.anglenum = tk.Label(self.root, textvariable = self.anglevar, fg = "white", bg="#666666", font=("Digital-7 Mono", 8, "bold")).place(x = 165, y = 54)
         
         if hud_acceleration:
-            self.acceltext = tk.Label(self.root, text="Accel.", fg = "white", bg="#666666", font=("Lucida Console", 7)).place(x = 231, y = 46)
-            self.accelnum = tk.Label(self.root, textvariable = self.accelvar, fg = "white", bg="#666666", font=("Digital-7 Mono", 8, "bold")).place(x = 230, y = 57)
+            self.acceltext = tk.Label(self.root, text="Accel.", fg = "white", bg="#666666", font=("Lucida Console", 7)).place(x = 111, y = 94)
+            self.accelnum = tk.Label(self.root, textvariable = self.accelvar, fg = "white", bg="#666666", font=("Digital-7 Mono", 8, "bold")).place(x = 111, y = 105)
 
         if hud_slope:
-            self.acceltext = tk.Label(self.root, text="Slope", fg = "white", bg="#666666", font=("Lucida Console", 7)).place(x = 251, y = 82)
-            self.accelnum = tk.Label(self.root, textvariable = self.slopevar, fg = "white", bg="#666666", font=("Digital-7 Mono", 8, "bold")).place(x = 250, y = 93)
+            self.acceltext = tk.Label(self.root, text="Slope", fg = "white", bg="#666666", font=("Lucida Console", 7)).place(x = 260, y = 94)
+            self.accelnum = tk.Label(self.root, textvariable = self.slopevar, fg = "white", bg="#666666", font=("Digital-7 Mono", 8, "bold")).place(x = 260, y = 105)
 
         
         if hud_speed:
-            self.numero = tk.Label(self.root, textvariable = self.var100, fg = "white", bg="#666666", font=("Digital-7 Mono", 50)).place(relx = 1, x = -412, y = 73, anchor = 'ne')
+            #self.numero = tk.Label(self.root, textvariable = self.var100, fg = "white", bg="#666666", font=("Montserrat", 45, "")).place(relx = 1, x = -412, y = 73, anchor = 'ne')
+            self.numero = tk.Label(self.root, textvariable = self.var100, fg = "white", bg="#666666", font=("Montserrat", 49, "")).place(anchor="center", x = 200, y = 115)
         if hud_gauge:
-            self.canvas.create_arc(2*10, 2*15, 2*winw-10, 2*winw-10, extent=108, start=36,style='arc', outline="#666666", width="35", tags="arc")
-            self.canvas.create_arc(2*10, 2*15, 2*winw-10, 2*winw-10, extent=108, start=36,style='arc', outline="white", width="16", tags="arcbg")
-            self.canvas.create_arc(2*10, 2*15, 2*winw-10, 2*winw-10, extent=108, start=36,style='arc', outline="#666666", width="14", tags="arcbg")
+            self.canvas.create_arc( 100,20,  300,220, extent=359, start=0,style='arc', outline="#666666", width="28", tags="arc")
+            self.canvas.create_arc( 100,20,  300,220, extent=359, start=0,style='arc', outline="#333", width="16", tags="arcbg")
+            self.canvas.create_arc( 100,20,  300,220, extent=359, start=0,style='arc', outline="#666666", width="14", tags="arcbg")
 
             #trans
-            self.canvas.create_arc(2*10, 2*15, 2*winw-10, 2*winw-10, extent=44, start=101,style='arc', outline="#666666", width="10", tags="arc1")
-            #azul
-            self.canvas.create_arc(2*10, 2*15, 2*winw-10, 2*winw-10, extent=12, start=90,style='arc', outline="#7897ff", width="10", tags="arc2")
-            #morado
-            self.canvas.create_arc(2*10, 2*15, 2*winw-10, 2*winw-10, extent=13, start=77,style='arc', outline="#c970cc", width="10", tags="arc3")
-            #amarillo
-            self.canvas.create_arc(2*10, 2*15, 2*winw-10, 2*winw-10, extent=12, start=66,style='arc', outline="#ff8a36", width="10", tags="arc4")
-            #rojo
-            self.canvas.create_arc(2*10, 2*15, 2*winw-10, 2*winw-10, extent=31, start=36,style='arc', outline="#ff5436", width="10", tags="arc5")
+            #self.canvas.create_arc(100,20,  300,220, extent=180, start=0,style='arc', outline="#666666", width="10", tags="arc1")
+            ##azul
+            #self.canvas.create_arc(100,20,  300,220, extent=10, start=260,style='arc', outline="#7897ff", width="10", tags="arc2")
+            ##morado
+            #self.canvas.create_arc(100,20,  300,220, extent=30, start=230,style='arc', outline="#c970cc", width="10", tags="arc3")
+            ##amarillo
+            #self.canvas.create_arc(100,20,  300,220, extent=50, start=180,style='arc', outline="#ff8a36", width="10", tags="arc4")
+            ##rojo
+            #self.canvas.create_arc(100,20,  300,220, extent=90, start=90,style='arc', outline="#ff5436", width="10", tags="arc5")
+
+            #speed
+            self.canvas.create_arc(100,20,  300,220, extent=0, start=90,style='arc', outline="#bb0", width="1", tags="maxspeedarc")
+            self.canvas.create_arc(100,20,  300,220, extent=0, start=90,style='arc', outline="#ff0", width="5", tags="speedarc")
 
             if hud_max_speed:
-                self.max_meter_meter = self.canvas.create_line(winw, winw, 20, winw,fill='lime',width=4)
+                #self.max_meter_meter = self.canvas.create_line(winw, winw, 20, winw,fill='lime',width=4)
                 self.max_speed.set(7250)
-                self.updateMeterLine(0.5, self.max_meter_meter)
+                self.updateMeterLine(0.5, "maxspeedarc")
                 self.max_speed.trace_add('write', self.updateMeterMaxSpeed)
 
-            self.meter = self.canvas.create_line(winw, winw, 20, winw,fill='white',width=4)
+            #self.meter = self.canvas.create_line(200, 120, 200, 20,fill='white',width=4)
             self.angle = 0.2
-            self.updateMeterLine(self.angle, self.meter)   
+            self.updateMeterLine(self.angle, "speedarc")   
         if hud_speed or hud_gauge:
             self.var.trace_add('write', self.updateMeter)  # if this line raises an error, change it to the old way of adding a trace: self.var.trace('w', self.updateMeter)
 
@@ -569,15 +582,15 @@ class Meter():
 
         #if hud_speed:
         self.vartime = tk.StringVar(self.root, "")
-        self.timenum_label = tk.Label(self.root, textvariable = self.vartime, fg = "#eee", bg="#666666", font=("Digital-7 Mono", 20)).place(x = 144, y = 145)
+        self.timenum_label = tk.Label(self.root, textvariable = self.vartime, fg = "#eee", bg="#666666", font=("Digital-7 Mono", 20)).place(x = 144, y = 155)
         self.distance = tk.StringVar(self.root, "")
-        self.distance_label = tk.Label(self.root, textvariable = self.distance, fg = "#eee", bg="#666666", font=("Digital-7 Mono", 15)).place(x = 144, y = 170)
+        self.distance_label = tk.Label(self.root, textvariable = self.distance, fg = "#eee", bg="#666666", font=("Digital-7 Mono", 15)).place(anchor="center",x = 200, y = 200)
         self.steps_txt = tk.StringVar(self.root, "")
-        self.steps0 = tk.Label(self.root, textvariable = self.steps_txt, fg = "#fff", bg="#666666", font=("Lucida Console", 9, "bold")).place(anchor="center", x = 204, y = 202)
+        self.steps0 = tk.Label(self.root, textvariable = self.steps_txt, fg = "#fff", bg="#666666", font=("Lucida Console", 9, "bold")).place(anchor="center", x = 200, y = 242)
         self.step1_txt = tk.StringVar(self.root, "")
-        self.steps1 = tk.Label(self.root, textvariable = self.step1_txt, fg = "#eeeeee", bg="#666666", font=("Digital-7 Mono", 10)).place(anchor="center",x = 200, y = 143)
+        self.steps1 = tk.Label(self.root, textvariable = self.step1_txt, fg = "#eeeeee", bg="#666666", font=("Digital-7 Mono", 10)).place(anchor="center",x = 200, y = 153)
 
-        self.canvas.create_circle(204, 202, 171, fill="#666", outline="#666666", width=4)
+        self.canvas.create_circle(200, 120, 96, fill="#666666", outline="#666666", width=2)
 
         self.canvas.pack(side='top', fill='both', expand='yes')
 
@@ -594,29 +607,44 @@ class Meter():
             self.root.overrideredirect(0)
         self.move = not self.move
 
-    def updateMeterLine(self, angle, line):
+    def updateMeterLine(self, speed, line):
         """Draw a meter line"""
-        
-        x = winw - 190 * cos(angle * pi)
-        y = winw - 190 * sin(angle * pi)
-        self.canvas.coords(line, winw, winw, x, y)
+
+        i = self.canvas.find_withtag(line)
+
+        #convert speeed to angle
+
+        angle = speed * 359 / 100
+
+        self.canvas.itemconfig(i, extent=angle)
+        color = "#aaa"      
+        if line == "speedarc": 
+            if speed < -40:
+                color = "#7897ff" #"#2294a8"
+            if speed < -50:
+                color = "#c970cc" #"#c970cc"
+            if speed < -60:
+                color = "#ff8a36" #"#edad18"
+            if speed < -72:
+                color = "#ff5436"
+
+        self.canvas.itemconfig(i, outline=color)
+
+        #x = 200 * cos(angle * pi)
+        #y = 120 * sin(angle * pi)
+        #self.canvas.coords(line, winw, winw, x, y)
 
     def updateMeter(self, name1, name2, op):
         global hud_gauge
-        """Convert variable to angle on trace"""
-        mini = 0
-        maxi = 100
-        pos = (self.var.get() - mini) / (maxi - mini)
-        self.angle = pos * 0.6 + 0.2
+
+        #print(self.var.get(), self.angle)
         if hud_gauge:
-            self.updateMeterLine(self.angle, self.meter)
+            self.updateMeterLine(-self.var.get(), "speedarc")
 
     def updateMeterMaxSpeed(self, name1, name2, op):
         """Convert variable to angle on trace"""
-        mini = 0
-        maxi = 100
-        pos = (self.max_speed.get() - mini) / (maxi - mini)
-        self.updateMeterLine(pos * 0.6 + 0.2, self.max_meter_meter)
+
+        self.updateMeterLine(-self.max_speed.get(), "maxspeedarc")
 
     def calculateAcceleration(self):
         global velocity
@@ -724,7 +752,7 @@ class Meter():
                 seconds = round((time.perf_counter() - self.drift_time) * 100)/100
                 self.drift_time_tk.set(round((time.perf_counter() - self.drift_time) * 10)/10)
                 pixels = min(64,round(seconds * 64 / 1.2))
-                self.canvas.coords(i, 23, 97-pixels , 27, 97)
+                self.canvas.coords(i, 23+45, 147-pixels , 27+45, 147)
                 self.canvas.itemconfig(b, outline="white")
                 
                 if (seconds > 1.0):
@@ -738,7 +766,7 @@ class Meter():
                     self.canvas.itemconfig(i, fill="#de1f18")
                     self.canvas.itemconfig(b, outline="#de1f18")
             else:
-                self.canvas.coords(i, 23, 96 , 27, 97)
+                self.canvas.coords(i, 23+45, 147 , 27+45, 147)
                 self.canvas.itemconfig(i, outline="white")
                 self.canvas.itemconfig(i, fill="white")
                 self.canvas.itemconfig(b, outline="#666")
@@ -1192,7 +1220,7 @@ class Meter():
                             beetleangle = abs(int(angle_between_res2))
                             self.airdrift_angle_tk.set(beetleangle)
                             pixels = min(64,round(beetleangle * 64 / magic_angle))
-                            self.canvas.coords(i, 23 + 356, 97-pixels , 27 + 356, 97)
+                            self.canvas.coords(i, 23 + 306, 147-pixels , 27 + 306, 147)
                             self.canvas.itemconfig(i, outline="#7897ff")
                             self.canvas.itemconfig(i, fill="#7897ff")
                             self.canvas.itemconfig(b, outline="#666666")
@@ -1293,7 +1321,7 @@ class Meter():
                 if velocity > 6000:
                     color = "#666666" #"#edad18"
                 if velocity > 7250:
-                    color = "#de1f18"
+                    color = "#666666" #"#de1f18"
 
                 if velocity > 0:
                     self.lastNonZero = time.time()
@@ -1338,9 +1366,10 @@ class Meter():
                             "x": ml.data.fAvatarPosition[0],
                             "y": ml.data.fAvatarPosition[2],
                             "z": ml.data.fAvatarPosition[1],
-                            "angle": angle_between360(avatar_direction, south),
+                            "angle": self.angle_between360(avatar_direction, south),
                             "user": racer.username.get(),
-                            "timestamp": time.time()
+                            "timestamp": time.time(),
+                            "color": player_color
                         }
                         try:
                             websocket_client.send(json.dumps(event))
@@ -1878,7 +1907,7 @@ class Racer():
         guildhall_laps = StringVar(self.root)
         guildhall_laps.set("1 lap")
 
-        self.t_1 = tk.Label(self.root, text="""Race Assistant v1.12.28""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
+        self.t_1 = tk.Label(self.root, text="""Race Assistant v2.06.28""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
         self.t_1.place(x=0, y=10)
         self.t_2 = tk.Label(self.root, text="""Choose map to race""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_2.place(x=0, y=40)
@@ -1938,7 +1967,7 @@ class Racer():
             # variable to store hexadecimal code of color
             player_color = colorchooser.askcolor(title ="Choose color")[1]
             if (player_color):
-                self.conf_15_1.configure(fg=player_color)
+                self.conf_color_label.configure(fg=player_color)
                 conf_save()
 
         def conf_save():
@@ -2000,21 +2029,20 @@ class Racer():
                 borderwidth=0)
 
         checkboxes = [
-            ("Show slope", hud_slope, "hud_slope"),
-            ("Show gauge", hud_gauge, "hud_gauge"),
             ("Show speed", hud_speed, "hud_speed"),
+            ("Show gauge", hud_gauge, "hud_gauge"),
+            ("Show slope", hud_slope, "hud_slope"),
             ("Show distance", hud_distance, "hud_distance"),
             ("Show acceleration", hud_acceleration, "hud_acceleration"),
             ("Show angles", hud_angles, "hud_angles"),
             ("Show angle orbs", hud_angles_bubbles, "hud_angles_bubbles"),
             ("Show drift hold", hud_drift_hold, "hud_drift_hold"),
-            ("Enable livesplit hotkeys", enable_livesplit_hotkey, "enable_livesplit_hotkey"),
+            ("Show airboost helper", hud_angles_airboost, "hud_angles_airboost"),
+            #("Enable livesplit hotkeys", enable_livesplit_hotkey, "enable_livesplit_hotkey"),
             ("Enable ghost hotkeys", enable_ghost_keys, "enable_ghost_keys"),
             ("Measure speed in 3D", speed_in_3D, "speed_in_3D"),
             ("Log to file (need if want to upload)", log, "log"),
-            ("Show airboost helper", hud_angles_airboost, "hud_angles_airboost"),
             ("Show max speed on gauge", hud_max_speed, "hud_max_speed"),
-            ("Measure speed in 3D", speed_in_3D, "speed_in_3D"),
         ]
         self.config_checkboxes = [(createCheckboxLabel(text), createCheckbox(init, varName)) for (text, init, varName) in checkboxes]
 
@@ -2078,14 +2106,14 @@ class Racer():
                 self.conf_color_btn.place(x=336, y=44 + cb_counter * 20, width=120, height=23)
                 cb_counter += 1
 
-                self.conf_websocket_label.place(x=314, y=44 + cb_counter * 20)
-                self.conf_websocket_cbtn.place(x=310, y=44 + cb_counter * 20)
-                cb_counter += 1
+                #self.conf_websocket_label.place(x=314, y=44 + cb_counter * 20)
+                #self.conf_websocket_cbtn.place(x=310, y=44 + cb_counter * 20)
+                #cb_counter += 1
 
-                host_entry_width = 150
-                self.conf_websocket_host_entry.place(x=330, y=44 + cb_counter * 20, height=28, width=host_entry_width)
-                self.conf_websocket_port_entry.place(x=330 + host_entry_width, y=44 + cb_counter * 20, height=28, width=40)
-                cb_counter += 1
+                #host_entry_width = 150
+                #self.conf_websocket_host_entry.place(x=330, y=44 + cb_counter * 20, height=28, width=host_entry_width)
+                #self.conf_websocket_port_entry.place(x=330 + host_entry_width, y=44 + cb_counter * 20, height=28, width=40)
+                #cb_counter += 1
 
                 self.conf_save.place(x=320, y=54 + cb_counter * 20, width=120, height=27)
                 cb_counter += 1

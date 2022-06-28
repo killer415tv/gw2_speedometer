@@ -277,7 +277,7 @@ class Ghost3d(object):
                         endpoint = [checkpoints_list.loc[checkpoints_list['STEPNAME'] == 'end'].X.values,checkpoints_list.loc[checkpoints_list['STEPNAME'] == 'end'].Y.values,checkpoints_list.loc[checkpoints_list['STEPNAME'] == 'end'].Z.values]
 
                         try:
-                            if distance.euclidean(endpoint, last_elem_array) < 20:
+                            if distance.euclidean(endpoint, last_elem_array) < 50:
                                 #candidato a válido
                                 time = list(data.values[-1])[6]
                                 if time < min_time:

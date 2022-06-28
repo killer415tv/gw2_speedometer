@@ -226,7 +226,7 @@ class Ghost3d(object):
                                     checkpoints_list.loc[checkpoints_list['STEPNAME'] == 'end'].Z.values]
 
                         try:
-                            if distance.euclidean(endpoint, last_elem_array) < 20:
+                            if distance.euclidean(endpoint, last_elem_array) < 50:
                                 # candidato a válido
                                 time = list(data.values[-1])[6]
                                 if time < min_time:
@@ -279,6 +279,7 @@ class Ghost3d(object):
                 user = data.get('user')
                 if user not in self.current_users:
                     self.current_users[user] = {}
+                self.current_users[user]["color"] = data.get('color')
                 self.current_users[user]["position"] = (data.get('x'), data.get('y'))
                 self.current_users[user]["timestamp"] = time.time()
                 if self.TEST_DELAY:

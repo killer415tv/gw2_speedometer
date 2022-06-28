@@ -906,6 +906,7 @@ class Meter():
                             if show_checkpoints_window and racer.session_id.get() != "":
                                 #mqtt se manda el tiempo como inicio
                                 racer.sendMQTT({"option": "s", "lap": lap, "time" : 0, "user": racer.username.get()})
+                                #racer.sendWebsocket({"option": "s", "lap": lap, "time" : 0, "user": racer.username.get()})
                         else:
                             lap_timer = _time
                             steptime_lap = _time - lap_timer
@@ -926,6 +927,7 @@ class Meter():
                             if show_checkpoints_window and racer.session_id.get() != "":
                                 #mqtt se manda el tiempo como inicio
                                 racer.sendMQTT({"option": "s", "lap": lap, "step": 0, "time" : steptime, "user": racer.username.get()})
+                                #racer.sendWebsocket({"option": "s", "lap": lap, "step": 0, "time" : steptime, "user": racer.username.get()})
 
                         
 
@@ -991,6 +993,7 @@ class Meter():
                                 if show_checkpoints_window and racer.session_id.get() != "":
                                     #mqtt se manda el tiempo como inicio
                                     racer.sendMQTT({"option": "f", "lap":lap, "time": steptime, "step": 999, "user": racer.username.get()})
+                                    #racer.sendWebsocket({"option": "f", "lap":lap, "time": steptime, "step": 999, "user": racer.username.get()})
                                 
                                 lap = 1
                                 
@@ -1007,6 +1010,7 @@ class Meter():
                                 if show_checkpoints_window and racer.session_id.get() != "":
                                     #mqtt se manda el tiempo como inicio
                                     racer.sendMQTT({"option": "f", "lap": lap, "step": 998, "time" : steptime, "user": racer.username.get()})
+                                    #racer.sendWebsocket({"option": "f", "lap": lap, "step": 998, "time" : steptime, "user": racer.username.get()})
                                 
                                 lap = lap + 1
 
@@ -1052,6 +1056,7 @@ class Meter():
                         if show_checkpoints_window and racer.session_id.get() != "":
                             #mqtt se manda el tiempo como inicio
                             racer.sendMQTT({"option": "c", "step": step, "lap": lap, "time": steptime, "user": racer.username.get()})
+                            #racer.sendWebsocket({"option": "c", "step": step, "lap": lap, "time": steptime, "user": racer.username.get()})
 
         
         """Fade over time"""
@@ -1353,9 +1358,16 @@ class Meter():
                 if not (ml.data.fAvatarPosition[0] == 0 and ml.data.fAvatarPosition[1] == 0 and ml.data.fAvatarPosition[2] == 0):
                     if client != "":
                         racer.sendMQTT(
-                            {"option": "position", "x": ml.data.fAvatarPosition[0], "y": ml.data.fAvatarPosition[1],
-                             "z": ml.data.fAvatarPosition[2], "user": racer.username.get(), "map": guildhall_name.get(),
-                             "color": player_color})
+                            {
+                                "option": "position", 
+                                "x": ml.data.fAvatarPosition[0], 
+                                "y": ml.data.fAvatarPosition[1],
+                                "z": ml.data.fAvatarPosition[2], 
+                                "user": racer.username.get(), 
+                                "map": guildhall_name.get(),
+                                "color": player_color
+                            }
+                        )
 
                     if websocket_client:
                         south = np.array([0, -1])
@@ -1363,6 +1375,8 @@ class Meter():
 
                         event = {
                             "type": "position",
+                            "option": "position",
+                            "map": guildhall_name.get(),
                             "x": ml.data.fAvatarPosition[0],
                             "y": ml.data.fAvatarPosition[2],
                             "z": ml.data.fAvatarPosition[1],
@@ -1387,8 +1401,10 @@ class Racer():
             self.root.attributes('-topmost', 1)
         self.root.after(5000, self.setOnTopfullscreen)
 
-    def on_message_MQTT(self, client, userdata, message):
+    def on_message_websocket(self, client, userdata, message):
+        pass
 
+    def on_message_MQTT(self, client, userdata, message):
         global countdowntxt
 
         #print("message received " ,json.loads(str(message.payload.decode("utf-8"))))
@@ -1483,6 +1499,16 @@ class Racer():
         if client != "":
             client.publish(self.prefix_topic + self.session_id.get(), json.dumps(data))
 
+    def sendWebsocket(self, data):
+        global websocket_client
+
+        print(websocket_client,data)
+        try:
+            if websocket_client != "":
+                websocket_client.send(json.dumps(data))
+        except WebSocketConnectionClosedException:
+            print("error")
+
     def newRaceThread(self):
         self.root.focus_set()
         self.countdown = 4
@@ -1495,6 +1521,7 @@ class Racer():
         global countdowntxt
         global lap
         self.sendMQTT({"option": "c", "step": 1000, "time": 0 ,"lap": 1, "user": self.username.get()})
+        #self.sendWebsocket({"option": "c", "step": 1000, "time": 0 ,"lap": 1, "user": self.username.get()})
         lap = 1
         countdowntxt = ""
 
@@ -1503,6 +1530,7 @@ class Racer():
         global lap
         global countdowntxt
         self.sendMQTT({"option": "c", "step": 1001, "time": 0 ,"lap": 1, "user": self.username.get()})
+        #self.sendWebsocket({"option": "c", "step": 1001, "time": 0 ,"lap": 1, "user": self.username.get()})
         lap = 1
         countdowntxt = ""
         #test message
@@ -1512,9 +1540,11 @@ class Racer():
         self.countdown = self.countdown - 1
         if self.countdown == 0:
             self.sendMQTT({"option": "321GO-GO"})
+            #self.sendWebsocket({"option": "321GO-GO"})
         
         if self.countdown > 0:
             self.sendMQTT({"option": "321GO-"+str(self.countdown)})
+            #self.sendWebsocket({"option": "321GO-"+str(self.countdown)})
             self.root.after(1000, self.newRace)
         
     def ignore_message(self, client, userdata, message):
@@ -1567,81 +1597,81 @@ class Racer():
         global client
         self.root.focus_set()
 
-        if not use_websocket:
-            #ignore old channel
-            if client != "":
-                client.on_message=self.ignore_message
+        #if not use_websocket:
+        #ignore old channel
+        if client != "":
+            client.on_message=self.ignore_message
 
-            self.status.set("JOINED!")
-            self.race_status.set("Waiting to start...")
-            #print(self.username.get() + " JOINED RACE: " + self.session_id.get())
-            #subscribición al topico
-            broker_address="www.beetlerank.com"
-            #broker_address="iot.eclipse.org"
-            #print("creating new instance")
-            client = mqtt.Client(client_id=self.username.get() + str(random.random())) #create new instance
-            #client.tls_set("./chain.pem")
-            #client.tls_insecure_set(True)
-            client.on_message=self.on_message_MQTT #attach function to callback
-            #print("connecting to broker")
-            client.connect(broker_address) #connect to broker
-            client.loop_start() #start the loop
-            #print("Subscribing to topic",self.prefix_topic + str(self.session_id.get()))
-            client.subscribe(self.prefix_topic + str(self.session_id.get()))
+        self.status.set("JOINED!")
+        self.race_status.set("Waiting to start...")
+        #print(self.username.get() + " JOINED RACE: " + self.session_id.get())
+        #subscribición al topico
+        broker_address="www.beetlerank.com"
+        #broker_address="iot.eclipse.org"
+        #print("creating new instance")
+        client = mqtt.Client(client_id=self.username.get() + str(random.random())) #create new instance
+        #client.tls_set("./chain.pem")
+        #client.tls_insecure_set(True)
+        client.on_message=self.on_message_MQTT #attach function to callback
+        #print("connecting to broker")
+        client.connect(broker_address) #connect to broker
+        client.loop_start() #start the loop
+        #print("Subscribing to topic",self.prefix_topic + str(self.session_id.get()))
+        client.subscribe(self.prefix_topic + str(self.session_id.get()))
 
-            #self.thread_queue.put('Waiting for start.')
-        else:
-            global websocket_client
-            global websocket_client_thread
-            global websocket_host
-            global websocket_port
+        #self.thread_queue.put('Waiting for start.')
+        #else:
+        global websocket_client
+        global websocket_client_thread
+        global websocket_host
+        global websocket_port
 
-            if websocket_client is not None:
-                websocket_client.close()
-                websocket_client = None
-                websocket_client_thread.join()
+        if websocket_client is not None:
+            websocket_client.close()
+            websocket_client = None
+            websocket_client_thread.join()
 
-            def on_message(ws, message):
-                data = json.loads(message)
+        def on_message(ws, message):
+            data = json.loads(message)
 
-                global websocket_countdown_ends_on
-                global websocket_countdown_received
-                if data.get("type") == "countdown_start":
-                    websocket_countdown_ends_on = data.get("ends_on")
-                    websocket_countdown_received = True
+            global websocket_countdown_ends_on
+            global websocket_countdown_received
+            if data.get("type") == "countdown_start":
+                websocket_countdown_ends_on = data.get("ends_on")
+                websocket_countdown_received = True
 
-            websocket_host = self.conf_websocket_host_entry.get()
-            websocket_port = self.conf_websocket_port_entry.get()
+        websocket_host = self.conf_websocket_host_entry.get()
+        websocket_port = self.conf_websocket_port_entry.get()
 
-            websocket_client = websocket.WebSocketApp(f"ws://{websocket_host}:{websocket_port}",
-                                                      on_message=on_message)
+        websocket_client = websocket.WebSocketApp(f"ws://{websocket_host}:{websocket_port}",
+                                                    on_message=on_message)
 
-            websocket_client_thread = Thread(target=websocket_client.run_forever)
-            websocket_client_thread.daemon = True
-            websocket_client_thread.start()
+        websocket_client_thread = Thread(target=websocket_client.run_forever)
+        websocket_client_thread.daemon = True
+        websocket_client_thread.start()
 
-            if not websocket_client.sock:
-                print("Failed to connect to websocket server")
-                self.websocket_race_status.set("Error")
-                return
+        if not websocket_client.sock:
+            print("Failed to connect to websocket server")
+            self.websocket_race_status.set("Error")
+            return
 
-            conn_timeout = 5
-            while websocket_client.sock and not websocket_client.sock.connected and conn_timeout:
-                time.sleep(1)
-                conn_timeout -= 1
+        conn_timeout = 5
+        while websocket_client.sock and not websocket_client.sock.connected and conn_timeout:
+            time.sleep(1)
+            conn_timeout -= 1
 
-            if not websocket_client.sock or not websocket_client.sock.connected:
-                print("Failed to connect to websocket server")
-                self.websocket_race_status.set("Error")
-                return
+        if not websocket_client.sock or not websocket_client.sock.connected:
+            print("Failed to connect to websocket server")
+            self.websocket_race_status.set("Error")
+            return
 
-            init_packet = {
-                "type": "init",
-                "client": "speedometer",
-                "room": self.session_id.get()
-            }
-            websocket_client.send(json.dumps(init_packet))
-            self.websocket_race_status.set("Connected")
+        init_packet = {
+            "type": "init",
+            "client": "speedometer",
+            "room": self.session_id.get()
+        }
+        websocket_client.send(json.dumps(init_packet))
+        self.websocket_race_status.set("Connected")
 
     def reset(self):
 
@@ -1708,7 +1738,7 @@ class Racer():
 
             self.websocket_race_status_label.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
 
-            self.t_8.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
+            #self.t_8.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
             self.t_9.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
             self.t_10.configure(fg=self.color_trans_fg, bg=self.color_trans_bg)
 
@@ -1752,7 +1782,7 @@ class Racer():
 
             self.websocket_race_status_label.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
 
-            self.t_8.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            #self.t_8.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
             self.t_9.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
             self.t_10.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
 
@@ -1895,8 +1925,8 @@ class Racer():
 
         self.thread_queue = queue.Queue()
 
-        if not use_websocket:
-            self.root.after(100, self.listen_for_result)
+        #if not use_websocket:
+        self.root.after(100, self.listen_for_result)
 
         cup_name = StringVar(self.root)
         cup_name.set('CUP')
@@ -2187,7 +2217,7 @@ class Racer():
                                                         justify=tk.LEFT, fg=self.fg.get(), bg=self.bg.get(),
                                                         font=("Lucida Console", 10), wraplength=165)
 
-        self.t_8 = tk.Label(self.root, text="""------""", justify = tk.CENTER, padx = 20,fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
+        #self.t_8 = tk.Label(self.root, text="""------""", justify = tk.CENTER, padx = 20,fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_9 = tk.Label(self.root, textvariable=self.race_status, justify = tk.CENTER, padx = 20,fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_10 = tk.Label(self.root, textvariable=self.ranking, justify = tk.LEFT, padx = 20,fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
 
@@ -2209,13 +2239,13 @@ class Racer():
                 self.t_7_1.place(x=200, y=176, width=100, height=27)
                 self.t_7_2.place(x=200, y=148, width=100, height=27)
 
-                if use_websocket:
-                    self.websocket_race_status_label.place(x=20, y=148)
+               # if use_websocket:
+                self.websocket_race_status_label.place(x=20, y=148)
 
-                if not use_websocket:
-                    self.t_8.place(x=0, y=150)
-                    self.t_9.place(x=0, y=175)
-                    self.t_10.place(x=0, y=210)
+                #if not use_websocket:
+                #self.t_8.place(x=0, y=150)
+                self.t_9.place(x=0, y=175)
+                self.t_10.place(x=0, y=210)
 
                 #ranking hide
                 self.map_ranking.place_forget()
@@ -2230,7 +2260,7 @@ class Racer():
 
                 self.websocket_race_status_label.place_forget()
 
-                self.t_8.place_forget()
+                #self.t_8.place_forget()
                 self.t_9.place_forget()
                 self.t_10.place_forget()
 

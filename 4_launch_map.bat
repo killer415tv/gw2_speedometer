@@ -11,11 +11,11 @@ IF ERRORLEVEL 2 GOTO Offline
 IF ERRORLEVEL 1 GOTO Online
 
 :Offline
-python map_realtime.py
+python "%~dp0map_realtime.py"
 pause
 GOTO End
 
 :Online
-python map_realtime_multiplayer.py
+python "%~dp0map_realtime_multiplayer.py"
 pause
 GOTO End

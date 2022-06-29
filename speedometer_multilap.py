@@ -211,7 +211,7 @@ def loadfont(fontpath: str, private=True, enumerable=False):
     return bool(numFontsAdded)
 
 loadfont(str(Path(sys.argv[0]).parent / "font.ttf"))
-loadfont(str(Path(sys.argv[0]).parent / "/fonts/Montserrat-BoldItalic.ttf"))
+loadfont(str(Path(sys.argv[0]).parent / "fonts/Montserrat-Regular.ttf"))
 
 class Configuration():
     def __init__(self, master=None, **kw):
@@ -545,7 +545,7 @@ class Meter():
         
         if hud_speed:
             #self.numero = tk.Label(self.root, textvariable = self.var100, fg = "white", bg="#666666", font=("Montserrat", 45, "")).place(relx = 1, x = -412, y = 73, anchor = 'ne')
-            self.numero = tk.Label(self.root, textvariable = self.var100, fg = "white", bg="#666666", font=("Montserrat", 49, "")).place(anchor="center", x = 200, y = 115)
+            self.numero = tk.Label(self.root, textvariable = self.var100, fg = "white", bg="#666666", font=("Montserrat Regular", 49, "")).place(anchor="center", x = 200, y = 115)
         if hud_gauge:
             self.canvas.create_arc( 100,20,  300,220, extent=359, start=0,style='arc', outline="#666666", width="28", tags="arc")
             self.canvas.create_arc( 100,20,  300,220, extent=359, start=0,style='arc', outline="#333", width="16", tags="arcbg")

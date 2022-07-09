@@ -1570,7 +1570,7 @@ class Racer():
 
     def set_countdown_text(self, text, final=False):
         if countdownWidget:
-            countdownWidget.localcountdown.set(text)
+            #countdownWidget.localcountdown.set(text)
             if final:
                 self.root.after(2500, lambda: countdownWidget.localcountdown.set(""))
 
@@ -1583,6 +1583,7 @@ class Racer():
 
         seconds_remaining = websocket_countdown_ends_on / 1000 - time.time()
         if seconds_remaining > 1:
+
             self.set_countdown_text(math.ceil(seconds_remaining))
             delay = math.floor((seconds_remaining - math.floor(seconds_remaining)) * 1000) if first else 1000
             self.root.after(delay, self.update_countdown_label)
@@ -2301,7 +2302,7 @@ class Racer():
             self.t_4_6.configure(state=DISABLED)
 
         self.toggleTrans()
-        self.websocket_countdown_watcher()
+        #self.websocket_countdown_watcher()
         self.setOnTopfullscreen()
 
     def listen_for_result(self):
@@ -2413,8 +2414,7 @@ class Countdown():
         self.time.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
 
         self.toggleTrans()
-        if not use_websocket:
-            self.checkCountdowntxt()
+        self.checkCountdowntxt()
         self.setOnTopfullscreen()
 
     def toggleTrans(self):
@@ -2499,7 +2499,7 @@ class Message():
         self.hide()
         self.setOnTopfullscreen()
         self.tictac()
-        #self.checkCountdowntxt()  y
+        #self.checkCountdowntxt() 
 
     def toggleTrans(self):
         if (self.move):

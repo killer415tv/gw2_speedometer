@@ -69,7 +69,7 @@ timer = 0
 guildhall_name = ""
 cup_name = ""
 checkpoint = 0
-filename_timer = 99999
+secondstonextcheckpoint = 100
 ghost_number = 1
 forceFile = False
 
@@ -94,6 +94,8 @@ posy = 0
 posz = 0
 
 points = False
+difficultyFactor = 10
+gameovertime = 0
 
 
 class Link(ctypes.Structure):
@@ -197,28 +199,22 @@ class Ghost3d(object):
 
 
     def on_press(self,key):
-        global filename_timer
+        global secondstonextcheckpoint
         global calculated
+        global starttime
+        global difficultyFactor
+        global gameovertime
+        global gamestart
         try:
 
             if key.char == "t":
                 calculated = False
-                print("-------------------CHANGE POINT----------------------------")
-
-            if key.char == "y":
-                self.file_ready = False
-
-                if self.ballscp != {}:
-                    ballscp = self.ballscp.values()
-                    value_iterator = iter(ballscp)
-                    for element in ballscp:
-                        self.w.removeItem(element)
-                time.sleep(1)
-                self.searchGhost()
-                self.ballscp = {}
-                self.last_ballscp_positions = {}
-                self.file_ready = True
-                filename_timer = 99999
+                difficultyFactor = 10
+                gameovertime = 0
+                gamestart = time.perf_counter()
+                starttime = time.perf_counter()
+                print("------------------- START NEW GAME  -------------------------")
+                
         except AttributeError:
             None
         
@@ -299,6 +295,11 @@ class Ghost3d(object):
         global fAvatarPosition
         global guildhall_name
         global timer
+        global starttime
+        global gamestart
+
+        starttime = time.perf_counter() 
+        gamestart = time.perf_counter() 
 
         self.file_ready = False
 
@@ -321,14 +322,14 @@ class Ghost3d(object):
         layout.setAlignment(QtCore.Qt.AlignCenter)
         self.wtime.setLayout(layout)
 
-        #self.label = QtGui.QLabel(str(timer))
-        #self.label.setFont(QtGui.QFont('Lucida Console', 20))
-        #self.label.setStyleSheet("background: rgba(255, 0, 0, 0);");
+        self.label = QtGui.QLabel(str(timer) + " seconds to reach next checkpoint")
+        self.label.setFont(QtGui.QFont('Lucida Console', 20))
+        self.label.setStyleSheet("background: rgba(255, 255, 255, 1);");
         
         #my_font = QFont("Times New Roman", 12)
         #my_button.setFont(my_font)
 
-        #self.wtime.layout().addWidget(self.label)
+        self.wtime.layout().addWidget(self.label)
 
 
         windowWidth = self.root.winfo_screenwidth()
@@ -402,7 +403,7 @@ class Ghost3d(object):
         global lastfAvatarPosition
         global timer
         global ghost_number
-        global filename_timer
+        global secondstonextcheckpoint
 
         global fov_var
         global elevation_var
@@ -524,7 +525,7 @@ class Ghost3d(object):
         global calculated
         global timer
         global ghost_number
-        global filename_timer
+        global secondstonextcheckpoint
         global splitTime
         global fAvatarPosition
         global checkpoint
@@ -551,219 +552,254 @@ class Ghost3d(object):
 
         global points
 
-        #get distance between user and target
+        global secondsleft
+        global starttime
+        global gameovertime
+        global difficultyFactor
+        global gamestart
 
-        distToTarget = distance.euclidean([posx,posy,posz], [userposx,userposy,userposz])
+        secondsleft = secondstonextcheckpoint - (time.perf_counter() - starttime)
 
-        if distToTarget < 10:
-            calculated = False
+        if secondsleft < 0:
+            if gameovertime == 0:
+                gameovertime = time.perf_counter()
+            self.label.setText("GAME OVER | Survived " + str(round(gameovertime - gamestart)) +  " seconds and Level "+ str(difficultyFactor-10)+" , press T to START")
 
+        else:
+            #get distance between user and target
 
-        file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "checkpoint.txt")
-        filedata = file.read()
-        if filedata == '': 
-            return 
-
-        checkpoint = int(filedata)
-
-        if self.ballscp != {}:
-            ballscp = self.ballscp.values()
-            value_iterator = iter(ballscp)
-            for element in ballscp:
-                try:
-                    self.w.removeItem(element)
-                except:
-                    print("")
-        
-        self.ballscp = {}
-        self.last_ballscp_positions = {}
-
-        #self.label.setText('<font color=\"white\">' + str(checkpoint) + '</font>')
-
-        #for x in self.all_files[-ghost_number:]:
-        if hasattr(self, 'df') and self.file_ready == True :
+            distToTarget = distance.euclidean([posx,posy,posz], [userposx,userposy,userposz])
             
-            data = self.df[self.df['file_name'] == self.best_file]
+            self.label.setText("LVL " + str(difficultyFactor - 10) + " | " + str(round(distToTarget)) + "m. | " + str(round(secondsleft)) + " seconds left")
 
-            if len(data) > 0:
-                if calculated == False:
-                    calculated = True
-                    points = list(self.df.sample().values)
-                
-                for p in points:
-
-                    if len(p) == 6:
-                        step = p[0]
-                        stepname = p[1]
-                        posx = p[2]
-                        posy = p[3]
-                        posz = p[4]
-                        radius = 5 #default size for reset
-                    else:
-                        step = p[0]
-                        stepname = p[1]
-                        posx = p[2]
-                        posy = p[3]
-                        posz = p[4]
-                        radius = p[5] * 0.666
-                        angle = p[6]
-
-                    if (len(p) == 7):
-                        angle = -1
-                    
-
-
-                    step_index = str(step)
-                
-                    speedcolor = yellowColor
-                    #radius = 5
-                    #print(vel, speedcolor)
-                    
-                    self.md = gl.MeshData.cylinder(rows=1, cols=40, radius=[radius,radius], length=1.4)
-                    if not step_index in self.ballscp:
-                        self.ballscp[step_index] = gl.GLMeshItem(meshdata=self.md, drawEdges=False, smooth=True, drawFaces=True, glOptions='additive', shader='balloon', color=(QtGui.QColor(speedcolor[0], speedcolor[1], speedcolor[2])))
-                        self.ballscp[step_index].scale(1.5, 1.5, 1.5)
-                        self.w.addItem(self.ballscp[step_index])
-
-                    if self.last_ballscp_positions.get(step_index):
-                        last_pos = self.last_ballscp_positions.get(step_index)
-                    else: 
-                        last_pos = [0,0,0]
-
-                    transx = float(posx) - float(last_pos[0])
-                    transy = float(posz) - float(last_pos[1])
-                    transz = float(posy) - float(last_pos[2])
-
-                    #self.ballscp[step_index].resetTransform()
-                    #self.ballscp[step_index].rotate(1,0,0,1,True)
-                    if ('angle' in locals() and angle and angle != -1):
-                        self.ballscp[step_index].rotate(90,0,1,0,True)
-                        self.ballscp[step_index].rotate(90-int(float(angle)),1,0,0,True)
-                    self.ballscp[step_index].translate(transx,transy,transz)
-                    self.ballscp[step_index].setColor(QtGui.QColor(speedcolor[0], speedcolor[1], speedcolor[2]))
-
-                    self.last_ballscp_positions[step_index] = [posx,posz,posy]
+            if distToTarget < 10:
+                difficultyFactor = difficultyFactor + 1
+                calculated = False
             
+            file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "checkpoint.txt")
+            filedata = file.read()
+            if filedata == '': 
+                return 
+
+            checkpoint = int(filedata)
+
+            if self.ballscp != {}:
+                ballscp = self.ballscp.values()
+                value_iterator = iter(ballscp)
+                for element in ballscp:
+                    try:
+                        self.w.removeItem(element)
+                    except:
+                        print("")
+            
+            self.ballscp = {}
+            self.last_ballscp_positions = {}
+
+            #self.label.setText('<font color=\"white\">' + str(checkpoint) + '</font>')
+
+            #for x in self.all_files[-ghost_number:]:
+            if hasattr(self, 'df') and self.file_ready == True :
+                
+                data = self.df[self.df['file_name'] == self.best_file]
+
+                if len(data) > 0:
+                    if calculated == False:
+
+                        starttime = time.perf_counter()
+                        calculated = True
+                        points = list(self.df.sample().values)
+
+                        for p in points:
+
+                            if len(p) == 6:
+                                posx = p[2]
+                                posy = p[3]
+                                posz = p[4]
+                            else:
+                                posx = p[2]
+                                posy = p[3]
+                                posz = p[4]
+
+                        distToTarget = distance.euclidean([posx,posy,posz], [userposx,userposy,userposz])
+                        print("siguiente checkpoint a ",distToTarget)
+
+                        secondstonextcheckpoint = round(distToTarget / difficultyFactor)
+                        if secondstonextcheckpoint < 5: 
+                            secondstonextcheckpoint = 5
 
 
-        #------------------------
+                    for p in points:
+
+                        if len(p) == 6:
+                            step = p[0]
+                            stepname = p[1]
+                            posx = p[2]
+                            posy = p[3]
+                            posz = p[4]
+                            radius = 5 #default size for reset
+                        else:
+                            step = p[0]
+                            stepname = p[1]
+                            posx = p[2]
+                            posy = p[3]
+                            posz = p[4]
+                            radius = p[5] * 0.666
+                            angle = p[6]
+
+                        if (len(p) == 7):
+                            angle = -1
+                        
+                        step_index = str(step)
+                    
+                        speedcolor = yellowColor
+                        #radius = 5
+                        #print(vel, speedcolor)
+                        
+                        self.md = gl.MeshData.cylinder(rows=1, cols=40, radius=[radius,radius], length=1.4)
+                        if not step_index in self.ballscp:
+                            self.ballscp[step_index] = gl.GLMeshItem(meshdata=self.md, drawEdges=False, smooth=True, drawFaces=True, glOptions='additive', shader='balloon', color=(QtGui.QColor(speedcolor[0], speedcolor[1], speedcolor[2])))
+                            self.ballscp[step_index].scale(1.5, 1.5, 1.5)
+                            self.w.addItem(self.ballscp[step_index])
+
+                        if self.last_ballscp_positions.get(step_index):
+                            last_pos = self.last_ballscp_positions.get(step_index)
+                        else: 
+                            last_pos = [0,0,0]
+
+                        transx = float(posx) - float(last_pos[0])
+                        transy = float(posz) - float(last_pos[1])
+                        transz = float(posy) - float(last_pos[2])
+
+                        #self.ballscp[step_index].resetTransform()
+                        #self.ballscp[step_index].rotate(1,0,0,1,True)
+                        if ('angle' in locals() and angle and angle != -1):
+                            self.ballscp[step_index].rotate(90,0,1,0,True)
+                            self.ballscp[step_index].rotate(90-int(float(angle)),1,0,0,True)
+                        self.ballscp[step_index].translate(transx,transy,transz)
+                        self.ballscp[step_index].setColor(QtGui.QColor(speedcolor[0], speedcolor[1], speedcolor[2]))
+
+                        self.last_ballscp_positions[step_index] = [posx,posz,posy]
+                
+
+
+            #------------------------
 
 
 
-        area_index = 1 #area
-        beetle_index = 2 
-        camera_index = 3
-        speed_index = 4
-        target_index = 5
+            area_index = 1 #area
+            beetle_index = 2 
+            camera_index = 3
+            speed_index = 4
+            target_index = 5
 
-        graycolor = [255,100,0,255]
-        cameracolor = [111,111,111,255]
-        targetcolor = [255, 182, 24, 255]
-        beetlecolor = [100, 255, 100, 255]
-        speedcolor = [222, 222, 222, 255]
+            graycolor = [255,100,0,255]
+            cameracolor = [111,111,111,255]
+            targetcolor = [255, 182, 24, 255]
+            beetlecolor = [100, 255, 100, 255]
+            speedcolor = [222, 222, 222, 255]
 
-        #self.viewAngleTick(90,5)
-        #self.viewAngleTick(-90,6)
-        #self.viewAngleTick(45,7)
-        #self.viewAngleTick(-45,8)
-        #self.viewAngleTick(0,9)
+            #self.viewAngleTick(90,5)
+            #self.viewAngleTick(-90,6)
+            #self.viewAngleTick(45,7)
+            #self.viewAngleTick(-45,8)
+            #self.viewAngleTick(0,9)
 
-        # target
-        self.md = gl.MeshData.cylinder(rows=1, cols=40, radius=[0.29,0], length=10)
+            # target
+            self.md = gl.MeshData.cylinder(rows=1, cols=40, radius=[0.29,0], length=10)
 
-        if not target_index in self.balls:
-            self.balls[target_index] = gl.GLMeshItem(meshdata=self.md, drawEdges=False, smooth=True, drawFaces=True, shader='balloon', color=(QtGui.QColor(targetcolor[0], targetcolor[1], targetcolor[2])))
-            self.balls[target_index].scale(1.5, 1.5, 1.5)
-            self.w.addItem(self.balls[target_index])
+            if not target_index in self.balls:
+                self.balls[target_index] = gl.GLMeshItem(meshdata=self.md, drawEdges=False, smooth=True, drawFaces=True, shader='balloon', color=(QtGui.QColor(targetcolor[0], targetcolor[1], targetcolor[2])))
+                self.balls[target_index].scale(1.5, 1.5, 1.5)
+                self.w.addItem(self.balls[target_index])
 
-        self.balls[target_index].resetTransform()
+            self.balls[target_index].resetTransform()
 
-        self.balls[target_index].rotate(90,0,1,0,True)
-        self.balls[target_index].rotate(90-int(float(angle_target)),1,0,0,True)
+            self.balls[target_index].rotate(90,0,1,0,True)
+            self.balls[target_index].rotate(90-int(float(angle_target)),1,0,0,True)
 
-        self.balls[target_index].translate(userposx,userposz,userposy)
-        self.balls[target_index].setColor(QtGui.QColor(targetcolor[0], targetcolor[1], targetcolor[2]))
+            self.balls[target_index].translate(userposx,userposz,userposy)
+            self.balls[target_index].setColor(QtGui.QColor(targetcolor[0], targetcolor[1], targetcolor[2]))
 
-        # speed
-        """
-        self.md = gl.MeshData.cylinder(rows=1, cols=40, radius=[0.29,0], length=10)
+            # speed
+            """
+            self.md = gl.MeshData.cylinder(rows=1, cols=40, radius=[0.29,0], length=10)
 
-        if not camera_index in self.balls:
-            self.balls[camera_index] = gl.GLMeshItem(meshdata=self.md, drawEdges=False, smooth=True, drawFaces=True, shader='balloon', color=(QtGui.QColor(cameracolor[0], cameracolor[1], cameracolor[2])))
-            self.balls[camera_index].scale(1.5, 1.5, 1.5)
-            self.w.addItem(self.balls[camera_index])
+            if not camera_index in self.balls:
+                self.balls[camera_index] = gl.GLMeshItem(meshdata=self.md, drawEdges=False, smooth=True, drawFaces=True, shader='balloon', color=(QtGui.QColor(cameracolor[0], cameracolor[1], cameracolor[2])))
+                self.balls[camera_index].scale(1.5, 1.5, 1.5)
+                self.w.addItem(self.balls[camera_index])
 
-        self.balls[camera_index].resetTransform()
+            self.balls[camera_index].resetTransform()
 
-        self.balls[camera_index].rotate(90,0,1,0,True)
-        self.balls[camera_index].rotate(90-int(float(angle_speed)),1,0,0,True)
+            self.balls[camera_index].rotate(90,0,1,0,True)
+            self.balls[camera_index].rotate(90-int(float(angle_speed)),1,0,0,True)
 
-        self.balls[camera_index].translate(userposx,userposz,userposy)
-        self.balls[camera_index].setColor(QtGui.QColor(cameracolor[0], cameracolor[1], cameracolor[2]))
+            self.balls[camera_index].translate(userposx,userposz,userposy)
+            self.balls[camera_index].setColor(QtGui.QColor(cameracolor[0], cameracolor[1], cameracolor[2]))
 
-        # camera
-        self.md = gl.MeshData.cylinder(rows=1, cols=40, radius=[0.29,0], length=10)
+            # camera
+            self.md = gl.MeshData.cylinder(rows=1, cols=40, radius=[0.29,0], length=10)
 
-        if not speed_index in self.balls:
-            self.balls[speed_index] = gl.GLMeshItem(meshdata=self.md, drawEdges=False, smooth=True, drawFaces=True, shader='balloon', color=(QtGui.QColor(speedcolor[0], speedcolor[1], speedcolor[2])))
-            self.balls[speed_index].scale(1.5, 1.5, 1.5)
-            self.w.addItem(self.balls[speed_index])
+            if not speed_index in self.balls:
+                self.balls[speed_index] = gl.GLMeshItem(meshdata=self.md, drawEdges=False, smooth=True, drawFaces=True, shader='balloon', color=(QtGui.QColor(speedcolor[0], speedcolor[1], speedcolor[2])))
+                self.balls[speed_index].scale(1.5, 1.5, 1.5)
+                self.w.addItem(self.balls[speed_index])
 
-        self.balls[speed_index].resetTransform()
+            self.balls[speed_index].resetTransform()
 
-        self.balls[speed_index].rotate(90,0,1,0,True)
-        self.balls[speed_index].rotate(90-int(float(angle_speed + angle_camera)),1,0,0,True)
+            self.balls[speed_index].rotate(90,0,1,0,True)
+            self.balls[speed_index].rotate(90-int(float(angle_speed + angle_camera)),1,0,0,True)
 
-        self.balls[speed_index].translate(userposx,userposz,userposy)
-        self.balls[speed_index].setColor(QtGui.QColor(speedcolor[0], speedcolor[1], speedcolor[2]))
+            self.balls[speed_index].translate(userposx,userposz,userposy)
+            self.balls[speed_index].setColor(QtGui.QColor(speedcolor[0], speedcolor[1], speedcolor[2]))
 
-        # beetle
+            # beetle
 
-        beetleRED = 0
-        beetleGREEN = 0
-        beetleBLUE = 0
-
-        angle_beetle_abs = abs(angle_beetle)
-
-
-        # 0     255,0,0
-        if angle_beetle_abs > 0 and angle_beetle_abs <=30:
-            beetleRED = 255
-            beetleGREEN = abs(angle_beetle_abs * 255 / 30)
-        # 30    255,255,0
-        if angle_beetle_abs > 30 and angle_beetle_abs <=45:
-            beetleGREEN = 255
-            beetleRED = abs(((angle_beetle_abs - 30) * 255 / 15 ) - 255)
-        # 45    0,255,0
-        if angle_beetle_abs > 45 and angle_beetle_abs <=60:
-            beetleGREEN = 255
-            beetleRED = abs(((angle_beetle_abs - 45) * 255 / 15 ))
-        # 60    255,255,0
-        if angle_beetle_abs > 60 and angle_beetle_abs <= 90:
-            beetleRED = 255
-            beetleGREEN = abs(((angle_beetle_abs - 60) * 255 / 30) - 255)
-        # 90    255,0,0
-        if angle_beetle_abs > 90:
-            beetleRED = 255
+            beetleRED = 0
             beetleGREEN = 0
+            beetleBLUE = 0
 
-        beetle_final_angle = int(float((angle_speed + angle_camera) - angle_beetle))
+            angle_beetle_abs = abs(angle_beetle)
 
-        self.md = gl.MeshData.cylinder(rows=1, cols=40, radius=[0.3,0], length=10)
 
-        if not beetle_index in self.balls:
-            self.balls[beetle_index] = gl.GLMeshItem(meshdata=self.md, drawEdges=False, smooth=True, drawFaces=True, shader='balloon', color=(QtGui.QColor(beetleRED, beetleGREEN, beetleBLUE)))
-            self.balls[beetle_index].scale(1.5, 1.5, 1.5)
-            self.w.addItem(self.balls[beetle_index])
+            # 0     255,0,0
+            if angle_beetle_abs > 0 and angle_beetle_abs <=30:
+                beetleRED = 255
+                beetleGREEN = abs(angle_beetle_abs * 255 / 30)
+            # 30    255,255,0
+            if angle_beetle_abs > 30 and angle_beetle_abs <=45:
+                beetleGREEN = 255
+                beetleRED = abs(((angle_beetle_abs - 30) * 255 / 15 ) - 255)
+            # 45    0,255,0
+            if angle_beetle_abs > 45 and angle_beetle_abs <=60:
+                beetleGREEN = 255
+                beetleRED = abs(((angle_beetle_abs - 45) * 255 / 15 ))
+            # 60    255,255,0
+            if angle_beetle_abs > 60 and angle_beetle_abs <= 90:
+                beetleRED = 255
+                beetleGREEN = abs(((angle_beetle_abs - 60) * 255 / 30) - 255)
+            # 90    255,0,0
+            if angle_beetle_abs > 90:
+                beetleRED = 255
+                beetleGREEN = 0
 
-        self.balls[beetle_index].resetTransform()
+            beetle_final_angle = int(float((angle_speed + angle_camera) - angle_beetle))
 
-        self.balls[beetle_index].rotate(90,0,1,0,True)
-        self.balls[beetle_index].rotate(90-beetle_final_angle,1,0,0,True)
+            self.md = gl.MeshData.cylinder(rows=1, cols=40, radius=[0.3,0], length=10)
 
-        self.balls[beetle_index].translate(userposx,userposz,userposy)
-        self.balls[beetle_index].setColor(QtGui.QColor(beetleRED, beetleGREEN, beetleBLUE))
-        """
+            if not beetle_index in self.balls:
+                self.balls[beetle_index] = gl.GLMeshItem(meshdata=self.md, drawEdges=False, smooth=True, drawFaces=True, shader='balloon', color=(QtGui.QColor(beetleRED, beetleGREEN, beetleBLUE)))
+                self.balls[beetle_index].scale(1.5, 1.5, 1.5)
+                self.w.addItem(self.balls[beetle_index])
+
+            self.balls[beetle_index].resetTransform()
+
+            self.balls[beetle_index].rotate(90,0,1,0,True)
+            self.balls[beetle_index].rotate(90-beetle_final_angle,1,0,0,True)
+
+            self.balls[beetle_index].translate(userposx,userposz,userposy)
+            self.balls[beetle_index].setColor(QtGui.QColor(beetleRED, beetleGREEN, beetleBLUE))
+            """
 
 
 
@@ -779,13 +815,13 @@ class Ghost3d(object):
         """
         calls the update method to run in a loop
         """
-        timer = QtCore.QTimer()
-        timer.timeout.connect(self.updateCam)
-        timer.start(0.5)
+        timer3 = QtCore.QTimer()
+        timer3.timeout.connect(self.updateCam)
+        timer3.start(0.5)
 
         timer2 = QtCore.QTimer()
         timer2.timeout.connect(self.update)
-        timer2.start(1)
+        timer2.start(5)
 
         self.start()
 

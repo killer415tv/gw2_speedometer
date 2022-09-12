@@ -847,7 +847,7 @@ class Meter():
             total_laps = int(guildhall_laps.get()[:1])
 
             #only valid steps are the next one, or the first one
-            if step == next_step or step == 0:
+            if step == next_step:
 
                 step0 = coords
                 arraystep0 = (ctypes.c_float * len(step0))(*step0)
@@ -893,8 +893,6 @@ class Meter():
                             if not (Path(sys.argv[0]).parent / "logs").exists():
                                 (Path(sys.argv[0]).parent / "logs").mkdir()
 
-
-
                             filename = guildhall_name.get() + "_log_" + str(_time) + ".csv"
                             if log:
                                 #print("----------------------------------")
@@ -928,8 +926,6 @@ class Meter():
                                 #mqtt se manda el tiempo como inicio
                                 racer.sendMQTT({"option": "s", "lap": lap, "step": 0, "time" : steptime, "user": racer.username.get()})
                                 #racer.sendWebsocket({"option": "s", "lap": lap, "step": 0, "time" : steptime, "user": racer.username.get()})
-
-                        
 
                     if stepName == "end":
                         next_step = 0
@@ -1938,7 +1934,7 @@ class Racer():
         guildhall_laps = StringVar(self.root)
         guildhall_laps.set("1 lap")
 
-        self.t_1 = tk.Label(self.root, text="""Race Assistant v2.06.28""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
+        self.t_1 = tk.Label(self.root, text="""Race Assistant v2.09.12""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
         self.t_1.place(x=0, y=10)
         self.t_2 = tk.Label(self.root, text="""Choose map to race""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_2.place(x=0, y=40)

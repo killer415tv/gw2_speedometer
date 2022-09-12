@@ -1687,6 +1687,7 @@ class Racer():
 
         global lap
         global meter
+        global next_step
 
         global game_focus
 
@@ -1710,6 +1711,7 @@ class Racer():
         meter.distance.set("")
 
         lap = 1
+        next_step = 0
         total_distance = 0
 
     def toggleTrans(self):

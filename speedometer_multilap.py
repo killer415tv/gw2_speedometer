@@ -842,6 +842,7 @@ class Meter():
                     tmhud.write("")
                     self.distance.set("")
                     lap = 1
+                    next_step = 0
             
 
             total_laps = int(guildhall_laps.get()[:1])

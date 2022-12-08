@@ -207,7 +207,7 @@ class Ghost3d(object):
         global gamestart
         try:
 
-            if key.char == "t":
+            if key.char.lower() == "t":
                 calculated = False
                 difficultyFactor = 10
                 gameovertime = 0
@@ -220,7 +220,7 @@ class Ghost3d(object):
         
     def on_release(self,key):
         try:
-            if key.char == "y":
+            if key.char.lower() == "y":
                 print('RELOAD CHECKPOINTS')
         except AttributeError:
             None

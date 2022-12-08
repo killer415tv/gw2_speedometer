@@ -369,7 +369,7 @@ class Ghost3d(object):
                 filename_timer = 99999
 
 
-            if key.char == "t":
+            if key.char.lower() == "t":
                 self.file_ready = False
 
                 if self.balls != {}:

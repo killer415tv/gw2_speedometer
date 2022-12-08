@@ -265,10 +265,10 @@ class Ghost3d():
         #if game_focus == '0':
         #    return
         try:
-            if key.char == "t":
+            if key.char.lower() == "t":
                 print('START GHOST')
                 filename_timer = time.perf_counter()
-            if key.char == "y":
+            if key.char.lower() == "y":
                 map_change = self.read_guildhall()
                 stop = True
                 map_angle = 0
@@ -290,7 +290,7 @@ class Ghost3d():
 
                 filename_timer = 99999
                 stop = False
-            if key.char == "u":
+            if key.char.lower() == "u":
                 stop = True
                 map_angle = 0
                 self.last_map_angle = 0
@@ -323,11 +323,11 @@ class Ghost3d():
         
     def on_release(self,key):
         try:
-            if key.char == "t":
+            if key.char.lower() == "t":
                 return
-            if key.char == "y":
+            if key.char.lower() == "y":
                 return
-            if key.char == "u":
+            if key.char.lower() == "u":
                 return
         except AttributeError:
             None

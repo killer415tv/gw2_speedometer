@@ -183,7 +183,7 @@ class Ghost3d(object):
     def on_press(self,key):
         global filename_timer
         try:
-            if key.char == "y":
+            if key.char.lower() == "y":
                 self.file_ready = False
 
                 if self.balls != {}:
@@ -202,7 +202,7 @@ class Ghost3d(object):
         
     def on_release(self,key):
         try:
-            if key.char == "y":
+            if key.char.lower() == "y":
                 print('RELOAD CHECKPOINTS')
         except AttributeError:
             None

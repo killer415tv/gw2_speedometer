@@ -168,9 +168,9 @@ class Ghost3d(object):
     def on_press(self,key):
         global filename_timer
         try:
-            if key.char == "t":
+            if key.char.lower() == "t":
                 filename_timer = time.perf_counter()
-            if key.char == "y":
+            if key.char.lower() == "y":
                 self.file_ready = False
 
                 if self.balls != {}:
@@ -192,10 +192,10 @@ class Ghost3d(object):
         
     def on_release(self,key):
         try:
-            if key.char == "t":
+            if key.char.lower() == "t":
                 #print('GHOST RESET')
                 return
-            if key.char == "y":
+            if key.char.lower() == "y":
                 print('SEARCH BEST LOG FILE')
         except AttributeError:
             None

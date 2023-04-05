@@ -60,7 +60,7 @@ root.configure(bg='#666666')
 windowWidth = 650
 windowHeight = 300
 positionRight = int(root.winfo_screenwidth()/2 - windowWidth/2) + 120
-positionDown = int(root.winfo_screenheight()/2 - windowHeight/2)
+positionDown = int(5*root.winfo_screenheight()/6 - windowHeight/3)
 
     # IMPORTANT!!!! DONT CHANGE VALUES HERE
     # CHANGE THEM AT CONFIG.TXT
@@ -93,6 +93,8 @@ hud_distance = 0 # 1 = on , 0 = off
 
 #show velocity and colorarc
 hud_gauge = 1 # 1 = on , 0 = off
+#show velocity and colorarc
+hud_gauge_v1 = 0 # 1 = on , 0 = off
 
 #show acceleration, shows the acceleration number on hud
 hud_acceleration = 0 # 1 = on , 0 = off
@@ -264,6 +266,7 @@ class Configuration():
         cfg.set("general", "magic_angle", magic_angle)
         cfg.set("general", "hud_acceleration", hud_acceleration)
         cfg.set("general", "hud_gauge", hud_gauge)
+        cfg.set("general", "hud_gauge_v1", hud_gauge_v1)
         cfg.set("general", "hud_speed", hud_speed)
         cfg.set("general", "hud_distance", hud_distance)
         cfg.set("general", "enable_ghost_keys", enable_ghost_keys)
@@ -301,6 +304,7 @@ class Configuration():
         global magic_angle
         global hud_acceleration
         global hud_gauge
+        global hud_gauge_v1
         global hud_speed
         global hud_distance
         global enable_ghost_keys
@@ -346,6 +350,8 @@ class Configuration():
                 hud_acceleration = int(cfg.get("general", "hud_acceleration"))
             if cfg.has_option("general", "hud_gauge"):
                 hud_gauge = int(cfg.get("general", "hud_gauge"))
+            if cfg.has_option("general", "hud_gauge_v1"):
+                hud_gauge_v1 = int(cfg.get("general", "hud_gauge_v1"))
             if cfg.has_option("general", "hud_speed"):
                 hud_speed = int(cfg.get("general", "hud_speed"))
             if cfg.has_option("general", "hud_distance"):
@@ -392,7 +398,7 @@ class ThreadWithReturnValue(Thread):
         Thread.join(self)
         return self._return
 
-class Meter():
+class Meterv2():
     
     def angle_between360(self, v1, v2):
         dot = v1.dot(v2)
@@ -1389,6 +1395,936 @@ class Meter():
 
         self.root.after(10, self.updateMeterTimer)
 
+class Meter():
+    
+    def uploadLog(self,guildhall,old_filename,ml):
+        headers = {
+            'Origin': 'null',
+            'Referer': 'null'
+        }
+        response = requests.post('https://www.beetlerank.com/upload-log',
+                                 data={'user': json.loads(ml.data.identity)["name"], 'guildhall': guildhall},
+                                 files={'file': open(Path(sys.argv[0]).parent / "logs" / old_filename, 'rb')},
+                                 headers=headers)
+        print("Log uploaded to web")
+
+
+
+        print(response.text)
+        return response.text
+        
+    def setOnTopfullscreen(self):
+        self.root.attributes('-topmost', 1)
+        self.root.after(500, self.setOnTopfullscreen)
+
+    def on_press(self,key):
+        global filename_timer
+        global drift_key
+        try:
+            if str(key).replace("'","") == drift_key:
+                if self.drifting == False:
+                    self.drift_time = time.perf_counter() 
+                self.drifting = True
+                
+            
+        except AttributeError:
+            None
+
+    def on_release(self,key):
+        global drift_key
+        try:
+            if str(key).replace("'","") == drift_key:
+                self.drift_time = time.perf_counter()
+                self.drifting = False
+           
+        except AttributeError:
+            None
+
+    def __init__(self, master=None, **kw):
+        global fundo
+        global winw
+        global winh
+        global _pos
+        global _lastPos
+        global geometry_speedometer
+        
+        self.lastNonZero = 0
+        self.lastNonZero_slope = 0
+        self.lastNonZero_accel = 0
+
+        self.root = Tk()
+        self.root.config(cursor="none")
+        self.root.title("Speedometer")
+        self.root.geometry(geometry_speedometer) #Whatever size
+        self.root.overrideredirect(1) #Remove border
+        self.root.wm_attributes("-transparentcolor", "#666666")
+        self.root.attributes('-topmost', 1)
+        self.root.configure(bg='#f0f0f0')
+        def disable_event():
+            self.toggleTrans()
+        self.root.protocol("WM_DELETE_WINDOW", disable_event)
+
+        if speed_in_3D:
+            _pos = [0,0,0]
+            _lastPos = [0,0,0]
+        else:
+            _pos = [0,0]
+            _lastPos = [0,0]
+
+        self.var = tk.IntVar(self.root, 0)
+        self.max_speed = tk.IntVar(self.root, 0)
+        self.var100 = tk.IntVar(self.root, 0)
+
+        self.canvas = tk.Canvas(self.root, width=winw+800, height=winh-150,
+                                borderwidth=0, highlightthickness=0,
+                                bg='#666666')
+
+        if hud_angles:
+            self.anglevar = tk.StringVar(self.root,0)
+
+        if hud_angles_airboost:
+            self.airdrift_angle_tk = tk.IntVar(self.root, 0.0)
+            
+            self.outer_airdrift_box = self.canvas.create_rectangle(20 + 356, 30,30 + 356, 100, outline="#666666", width="1", tags="airdrift_meter_border")
+            self.inner_airdrift_box = self.canvas.create_rectangle(23 + 356, 33,27 + 356, 97, outline="#666666", fill='#666666', width="5", tags="airdrift_meter")
+            self.airdrift_label = tk.Label(self.root, textvariable = self.airdrift_angle_tk, fg = "white", bg="#666666", font=("Digital-7 Mono", 9)).place(x = 17 + 356, y = 102)
+
+        if hud_acceleration:
+            self.accelvar = tk.StringVar(self.root,0)
+        if hud_slope:
+            self.slopevar = tk.StringVar(self.root,0)
+        if hud_drift_hold:
+            self.drifting = False
+            self.drift_time = 0.0
+            self.drift_time_tk = tk.IntVar(self.root, 0.0)
+
+
+        def _create_circle(self, x, y, r, **kwargs):
+            return self.create_oval(x-r, y-r, x+r, y+r, **kwargs)
+        tk.Canvas.create_circle = _create_circle
+
+        #self.canvas.create_circle(200, 300, 26, fill="#666", outline="white", width=1)
+        #self.canvas.create_circle(200, 300, 22, fill="#666", outline="#00d1e0", width=4)
+
+        if hud_angles_bubbles:
+            self.canvas.create_circle(200, 300, 10, fill="#666", outline="#00d1e0", width=1, tags="avatar_angle")
+            self.canvas.create_circle(200, 300, 2, fill="#666", outline="#adfaff", width=1, tags="camera_angle")
+            self.canvas.create_circle(200, 300, 2, fill="#666", outline="white", width=1, tags="speed_angle")
+            self.canvas.create_circle(200, 300, 2, fill="#666", outline="white", width=1, tags="left_50_angle")
+            self.canvas.create_circle(200, 300, 2, fill="#666", outline="white", width=1, tags="right_50_angle")
+
+
+        #self.scale = tk.Scale(self.root, orient='horizontal', from_=0, to=100, variable=self.var)
+        
+        if hud_drift_hold:
+            listener = keyboard.Listener(
+                on_press=self.on_press,
+                on_release=self.on_release)
+            listener.start()
+
+            self.outer_drifting_box = self.canvas.create_rectangle(20,30,30,100, outline="white", width="1", tags="drift_meter_border")
+            self.inner_drifting_box = self.canvas.create_rectangle(23,33,27,97, outline="#ff5436", fill='#ff5436', width="5", tags="drift_meter")
+            self.drifting_label = tk.Label(self.root, textvariable = self.drift_time_tk, fg = "white", bg="#666666", font=("Digital-7 Mono", 9)).place(x = 12, y = 102)
+
+        if hud_angles:
+            self.angletext = tk.Label(self.root, text="Cam   Beetle", fg = "white", bg="#666666", font=("Lucida Console", 7)).place(x = 146, y = 46)
+            self.anglenum = tk.Label(self.root, textvariable = self.anglevar, fg = "white", bg="#666666", font=("Digital-7 Mono", 8, "bold")).place(x = 145, y = 57)
+        
+        if hud_acceleration:
+            self.acceltext = tk.Label(self.root, text="Accel.", fg = "white", bg="#666666", font=("Lucida Console", 7)).place(x = 231, y = 46)
+            self.accelnum = tk.Label(self.root, textvariable = self.accelvar, fg = "white", bg="#666666", font=("Digital-7 Mono", 8, "bold")).place(x = 230, y = 57)
+
+        if hud_slope:
+            self.acceltext = tk.Label(self.root, text="Slope", fg = "white", bg="#666666", font=("Lucida Console", 7)).place(x = 251, y = 82)
+            self.accelnum = tk.Label(self.root, textvariable = self.slopevar, fg = "white", bg="#666666", font=("Digital-7 Mono", 8, "bold")).place(x = 250, y = 93)
+
+        
+        if hud_speed:
+            self.numero = tk.Label(self.root, textvariable = self.var100, fg = "white", bg="#666666", font=("Digital-7 Mono", 50)).place(relx = 1, x = -412, y = 73, anchor = 'ne')
+        if hud_gauge:
+            self.canvas.create_arc(2*10, 2*15, 2*winw-10, 2*winw-10, extent=108, start=36,style='arc', outline="#666666", width="35", tags="arc")
+            self.canvas.create_arc(2*10, 2*15, 2*winw-10, 2*winw-10, extent=108, start=36,style='arc', outline="white", width="16", tags="arcbg")
+            self.canvas.create_arc(2*10, 2*15, 2*winw-10, 2*winw-10, extent=108, start=36,style='arc', outline="#666666", width="14", tags="arcbg")
+
+            #trans
+            self.canvas.create_arc(2*10, 2*15, 2*winw-10, 2*winw-10, extent=44, start=101,style='arc', outline="#666666", width="10", tags="arc1")
+            #azul
+            self.canvas.create_arc(2*10, 2*15, 2*winw-10, 2*winw-10, extent=12, start=90,style='arc', outline="#7897ff", width="10", tags="arc2")
+            #morado
+            self.canvas.create_arc(2*10, 2*15, 2*winw-10, 2*winw-10, extent=13, start=77,style='arc', outline="#c970cc", width="10", tags="arc3")
+            #amarillo
+            self.canvas.create_arc(2*10, 2*15, 2*winw-10, 2*winw-10, extent=12, start=66,style='arc', outline="#ff8a36", width="10", tags="arc4")
+            #rojo
+            self.canvas.create_arc(2*10, 2*15, 2*winw-10, 2*winw-10, extent=31, start=36,style='arc', outline="#ff5436", width="10", tags="arc5")
+
+            if hud_max_speed:
+                self.max_meter_meter = self.canvas.create_line(winw, winw, 20, winw,fill='lime',width=4)
+                self.max_speed.set(7250)
+                self.updateMeterLine(0.5, self.max_meter_meter)
+                self.max_speed.trace_add('write', self.updateMeterMaxSpeed)
+
+            self.meter = self.canvas.create_line(winw, winw, 20, winw,fill='white',width=4)
+            self.angle = 0.2
+            self.updateMeterLine(self.angle, self.meter)   
+        if hud_speed or hud_gauge:
+            self.var.trace_add('write', self.updateMeter)  # if this line raises an error, change it to the old way of adding a trace: self.var.trace('w', self.updateMeter)
+
+
+
+        #if hud_speed:
+        self.vartime = tk.StringVar(self.root, "")
+        self.timenum_label = tk.Label(self.root, textvariable = self.vartime, fg = "#eee", bg="#666666", font=("Digital-7 Mono", 20)).place(x = 144, y = 145)
+        self.distance = tk.StringVar(self.root, "")
+        self.distance_label = tk.Label(self.root, textvariable = self.distance, fg = "#eee", bg="#666666", font=("Digital-7 Mono", 15)).place(x = 144, y = 170)
+        self.steps_txt = tk.StringVar(self.root, "")
+        self.steps0 = tk.Label(self.root, textvariable = self.steps_txt, fg = "#fff", bg="#666666", font=("Lucida Console", 9, "bold")).place(anchor="center", x = 204, y = 202)
+        self.step1_txt = tk.StringVar(self.root, "")
+        self.steps1 = tk.Label(self.root, textvariable = self.step1_txt, fg = "#eeeeee", bg="#666666", font=("Digital-7 Mono", 10)).place(anchor="center",x = 200, y = 143)
+
+        self.canvas.create_circle(204, 202, 171, fill="#666", outline="#666666", width=4)
+
+        self.canvas.pack(side='top', fill='both', expand='yes')
+
+        self.move = False
+
+        self.setOnTopfullscreen()
+
+        #self.scale.pack()
+
+    def toggleTrans(self):
+        if (self.move):
+            self.root.overrideredirect(1)
+        else:
+            self.root.overrideredirect(0)
+        self.move = not self.move
+
+    def updateMeterLine(self, angle, line):
+        """Draw a meter line"""
+        
+        x = winw - 190 * cos(angle * pi)
+        y = winw - 190 * sin(angle * pi)
+        self.canvas.coords(line, winw, winw, x, y)
+
+    def updateMeter(self, name1, name2, op):
+        global hud_gauge
+        """Convert variable to angle on trace"""
+        mini = 0
+        maxi = 100
+        pos = (self.var.get() - mini) / (maxi - mini)
+        self.angle = pos * 0.6 + 0.2
+        if hud_gauge:
+            self.updateMeterLine(self.angle, self.meter)
+
+    def updateMeterMaxSpeed(self, name1, name2, op):
+        """Convert variable to angle on trace"""
+        mini = 0
+        maxi = 100
+        pos = (self.max_speed.get() - mini) / (maxi - mini)
+        self.updateMeterLine(pos * 0.6 + 0.2, self.max_meter_meter)
+
+    def calculateAcceleration(self):
+        global velocity
+        global _lastVel
+
+        global _time
+        global _lastTime
+
+        if (velocity and _lastVel):
+            self.lastNonZero_accel = time.time()
+            acceleration = round(((velocity - _lastVel) / (_time - _lastTime))/100)
+            self.accelvar.set(acceleration);
+            return acceleration
+        else:
+            if time.time() > self.lastNonZero_accel + 0.05:
+                self.accelvar.set(0);
+                return 0
+    
+    def calculateSlope(self, pos1, pos2):
+        global _3Dpos
+        global _last3Dpos
+        global slope
+
+        a = _3Dpos[1] - _last3Dpos[1]
+        b = distance.euclidean([_3Dpos[0],_3Dpos[2]], [_last3Dpos[0],_last3Dpos[2]])
+
+        if (b):
+            slope = round(np.rad2deg(np.arctan(a/b)))
+        else:
+            slope = 0
+
+        if slope:
+            self.lastNonZero_slope = time.time()
+            self.slopevar.set(slope);
+        else:
+            if time.time() > self.lastNonZero_slope + 0.05:
+                None
+                self.slopevar.set(slope);
+            
+            
+
+        slope2 = round((_3Dpos[1] -_last3Dpos[1])*10000 )/100
+        
+
+
+
+    def updateMeterTimer(self):
+
+        global _lastPos
+        global _lastVel
+        global _lastTick
+        global _lastTime
+        global velocity
+        global _time
+        global _pos
+        global _3Dpos
+        global _last3Dpos
+        global _tick
+        global timer
+        global color
+        global speed_in_3D
+
+
+        global keyboard_
+        global pressedQ
+        global delaytimer
+
+        global log
+        global filename
+        global total_timer
+
+        global live_start
+        global live_reset
+        global enable_livesplit_hotkey
+
+        global enable_ghost_keys
+        global ghost_start
+        global recalculate_ghost
+
+        global total_distance
+
+        global guildhall_name
+        global cup_name
+        global guildhall_laps
+
+        global racer
+        global client
+        global map_position_last_time_send
+
+        global mapId
+        global lastMapId
+
+        global game_focus
+        global hud_slope
+
+
+        if hud_drift_hold:
+            
+            i = self.canvas.find_withtag("drift_meter")
+            b = self.canvas.find_withtag("drift_meter_border")
+            if self.drifting:
+                seconds = round((time.perf_counter() - self.drift_time) * 100)/100
+                self.drift_time_tk.set(round((time.perf_counter() - self.drift_time) * 10)/10)
+                pixels = min(64,round(seconds * 64 / 1.2))
+                self.canvas.coords(i, 23, 97-pixels , 27, 97)
+                self.canvas.itemconfig(b, outline="white")
+                
+                if (seconds > 1.0):
+                    self.canvas.itemconfig(i, outline="#ff8a36")
+                    self.canvas.itemconfig(i, fill="#ff8a36")
+                else:
+                    self.canvas.itemconfig(i, outline="#7897ff")
+                    self.canvas.itemconfig(i, fill="#7897ff")
+                if (seconds > 1.2):
+                    self.canvas.itemconfig(i, outline="#de1f18")
+                    self.canvas.itemconfig(i, fill="#de1f18")
+                    self.canvas.itemconfig(b, outline="#de1f18")
+            else:
+                self.canvas.coords(i, 23, 96 , 27, 97)
+                self.canvas.itemconfig(i, outline="white")
+                self.canvas.itemconfig(i, fill="white")
+                self.canvas.itemconfig(b, outline="#666")
+
+
+        def different(v1,v2):
+            if ( v1[0] == v2[0] and v1[1] == v2[1] and v1[2] == v2[2] ):
+                return False
+            else:
+                return True
+
+        def checkpoint(step, stepName, coords, radius):
+
+            global checkpoints_list
+
+            global last_checkpoint_position
+            global _3Dpos
+            global _last3Dpos
+            global _time
+            global guildhall_name
+            global guildhall_laps
+            global speed_in_3D
+
+            global pressedQ
+            global keyboard_
+            global delaytimer
+            global filename
+            global total_timer
+            global lap_timer
+            global total_distance
+            global lap
+
+            global magic_angle
+            global upload
+            global racer
+            global map_position_last_time_send
+            global next_step
+
+            global player_color
+            global map_angle    
+
+            global acceleration                                    
+
+            #if csv checkpoints has no radius , default is 5 for reset and 15 for the rest
+            if radius == 0:
+                if step == -1:
+                    radius = 5
+                else: 
+                    radius = 15
+
+            if step == -1:
+                arraystep = (ctypes.c_float * len(coords))(*coords)
+                #la distancia de 5 es como si fuera una esfera de tamaño similar a una esfera de carreras de tiria
+                if distance.euclidean(_3Dpos, arraystep) < radius and (pressedQ == 0 or different(last_checkpoint_position, arraystep)):
+                    if 'racer' in globals():
+                        racer.saveCheckpoint(0)
+                        
+                    last_checkpoint_position = arraystep
+                    if enable_livesplit_hotkey == 1:
+                        keyboard_.press(live_reset)
+                        keyboard_.release(live_reset)
+                    pressedQ = 0.5
+                    #cerrar fichero si hubiera una sesión anterior
+                    filename = ""
+                    total_timer = _time
+                    lap_timer = _time
+                    #print("----------------------------------")
+                    #print("GOING TO MAP TP = RESET RUN ")
+                    #print("----------------------------------")
+                    self.steps_txt.set("")
+                    self.step1_txt.set("")
+                    self.vartime.set("")
+                    tmhud.write("")
+                    self.distance.set("")
+                    lap = 1
+                    next_step = 0
+            
+
+            total_laps = int(guildhall_laps.get()[:1])
+
+            #only valid steps are the next one, or the first one
+            if step == next_step:
+
+                step0 = coords
+                arraystep0 = (ctypes.c_float * len(step0))(*step0)
+                if distance.euclidean(_3Dpos, arraystep0) < radius and (pressedQ == 0 or different(last_checkpoint_position, arraystep0)):
+                    
+                    if 'racer' in globals():
+                        if stepName == "end":
+                            racer.saveCheckpoint(0)
+                        else:
+                            racer.saveCheckpoint(int(step) + 1)
+
+                    last_checkpoint_position = arraystep0
+                    if stepName == "start":
+                        next_step = 1
+                        
+                        if enable_livesplit_hotkey == 1:
+                            keyboard_.press(live_start)
+                            keyboard_.release(live_start)
+                        #first time we start
+                        if enable_ghost_keys:
+                            keyboard_.press(ghost_start)
+                            keyboard_.release(ghost_start)
+                        pressedQ = delaytimer
+                        #cerrar fichero si hubiera una sesión anterior
+                        
+                        #debug mumble link object
+                        #print(ml.data)
+                        #print(ml.context)
+
+                        if int(lap) == 1:
+                            
+                            self.steps_txt.set(guildhall_name.get() )
+                            self.step1_txt.set(str(lap) + "/"+ str(total_laps) + " T0" + " " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(0), "%M:%S:%f")[:-3])
+                            self.vartime.set("")
+                            tmhud.write("")
+                            self.distance.set("")
+                            total_distance = 0
+                            total_timer = _time
+                            lap_timer = _time
+                            #esta línea es la clave
+
+                            #paso 1 - comprobar que existe la carpeta /logs
+                            if not (Path(sys.argv[0]).parent / "logs").exists():
+                                (Path(sys.argv[0]).parent / "logs").mkdir()
+
+                            filename = guildhall_name.get() + "_log_" + str(_time) + ".csv"
+                            if log:
+                                #print("----------------------------------")
+                                #print("NEW LOG FILE - " + filename)
+                                #print("----------------------------------")
+                                writer = open(Path(sys.argv[0]).parent / "logs" / filename, 'a', newline='', encoding='utf-8')
+                                writer.seek(0,2)
+                                writer.writelines( (',').join(["X","Y","Z","SPEED","ANGLE_CAM", "ANGLE_BEETLE","TIME", "ACCELERATION", "MAP_ANGLE"]))
+                            if show_checkpoints_window and racer.session_id.get() != "":
+                                #mqtt se manda el tiempo como inicio
+                                racer.sendMQTT({"option": "s", "lap": lap, "time" : 0, "user": racer.username.get()})
+                                #racer.sendWebsocket({"option": "s", "lap": lap, "time" : 0, "user": racer.username.get()})
+                        else:
+                            lap_timer = _time
+                            steptime_lap = _time - lap_timer
+                            steptime = _time - total_timer
+                            #cross the start on second lap
+                            newline = ""
+                            
+                            self.step1_txt.set(str(lap) + "/"+ str(total_laps) + " T0" + " " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime_lap), "%M:%S:%f")[:-3])
+
+                            filename = guildhall_name.get() + "_log_" + str(_time) + ".csv"
+                            if log:
+                                #print("----------------------------------")
+                                #print("NEW LOG FILE - " + filename)
+                                #print("----------------------------------")
+                                writer = open(Path(sys.argv[0]).parent / "logs" / filename, 'a', newline='', encoding='utf-8')
+                                writer.seek(0,2)
+                                writer.writelines( (',').join(["X","Y","Z","SPEED","ANGLE_CAM", "ANGLE_BEETLE","TIME", "ACCELERATION", "MAP_ANGLE"]))
+                            if show_checkpoints_window and racer.session_id.get() != "":
+                                #mqtt se manda el tiempo como inicio
+                                racer.sendMQTT({"option": "s", "lap": lap, "step": 0, "time" : steptime, "user": racer.username.get()})
+                                #racer.sendWebsocket({"option": "s", "lap": lap, "step": 0, "time" : steptime, "user": racer.username.get()})
+
+                    if stepName == "end":
+                        next_step = 0
+                        steptime = _time - total_timer
+                        steptime_lap = _time - lap_timer
+                        pressedQ = 0.5
+                        
+
+                        if filename != "":
+                            
+
+                            #upload log to 
+
+                            old_filename = filename
+                            filename = ""
+
+                            if upload.get() == 1:
+                                if log:
+                                    twrv = ThreadWithReturnValue(target=self.uploadLog, args=(guildhall_name.get(),old_filename, ml,))
+                                    twrv.start()
+                                    if int(total_laps) == 1:
+                                        message.write(twrv.join())
+                                    
+                                    
+                                    racer.saveGuildhall(guildhall_name.get())
+
+                            if int(lap) == int(total_laps):
+                                
+                                last_filename_df = pd.DataFrame()
+                                file_df = pd.read_csv(Path(sys.argv[0]).parent / "logs" / old_filename)
+                                last_filename_df = last_filename_df.append(file_df)
+
+                                current_time = last_filename_df.values[-1][6]                                
+                                datefinish = datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(current_time), "%M:%S:%f")[:-3]
+                                
+                                if enable_livesplit_hotkey == 1:
+                                    keyboard_.press(live_start)
+                                    keyboard_.release(live_start)
+
+                                #filename = ""
+                                #print("----------------------------------")
+                                #print("CHECKPOINT FINAL RACE: " + datefinish)
+                                #print("----------------------------------")
+                                newline = self.step1_txt.get() + "\n"
+                                self.step1_txt.set(str(lap) + "/"+ str(total_laps) + " TF " + datefinish)
+                                
+                                self.vartime.set(datefinish)
+                                tmhud.write(datefinish)
+                                
+
+                                if log:
+                                    #store in file the record time of full track , today date and player name
+                                    now = datetime.datetime.now()
+                                    today_date = now.strftime("%d/%m/%Y %H:%M:%S")
+                                    folder = str(Path(sys.argv[0]).parent / guildhall_name.get())
+                                    writer = open(folder + "_records.csv", 'a', newline='', encoding='utf-8')
+                                    writer.seek(0,2)
+                                    writer.writelines("\r")
+                                    writer.writelines( (',').join([datefinish, today_date, json.loads(ml.data.identity)["name"]]))
+
+                                if show_checkpoints_window and racer.session_id.get() != "":
+                                    #mqtt se manda el tiempo como inicio
+                                    racer.sendMQTT({"option": "f", "lap":lap, "time": steptime, "step": 999, "user": racer.username.get()})
+                                    #racer.sendWebsocket({"option": "f", "lap":lap, "time": steptime, "step": 999, "user": racer.username.get()})
+                                
+                                lap = 1
+                                
+                            else:
+                                steptime = _time - total_timer
+                                steptime_lap = _time - lap_timer
+                                #cross the start on second lap
+                                newline = self.step1_txt.get() + "\n "
+                                #print("----------------------------------")
+                                #print("CHECKPOINT FINAL LAP : " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime), "%M:%S:%f")[:-3])
+                                #print("----------------------------------")
+                                self.step1_txt.set(str(lap) + "/"+ str(total_laps) + " TF " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime_lap), "%M:%S:%f")[:-3])
+
+                                if show_checkpoints_window and racer.session_id.get() != "":
+                                    #mqtt se manda el tiempo como inicio
+                                    racer.sendMQTT({"option": "f", "lap": lap, "step": 998, "time" : steptime, "user": racer.username.get()})
+                                    #racer.sendWebsocket({"option": "f", "lap": lap, "step": 998, "time" : steptime, "user": racer.username.get()})
+                                
+                                lap = lap + 1
+
+                            """ 
+                            #stores in counterDone.txt number of total laps done
+                            file = open(Path(sys.argv[0]).parent / "counterDone.txt")
+                            global numero_contador
+                            line = file.read()
+                            if line == '':
+                                line = "1"
+                            numero_contador = int(line.strip()) + 1
+                            file.close()
+                            file = open(Path(sys.argv[0]).parent / "counterDone.txt", "w")
+                            file.write(str(numero_contador))
+                            file.close()
+                            """
+
+                            if enable_ghost_keys:
+                                keyboard_.press(recalculate_ghost)
+                                keyboard_.release(recalculate_ghost)
+
+                    if stepName == "*":
+                        
+                        next_step = step + 1
+
+                        steptime = _time - total_timer
+                        steptime_lap = _time - lap_timer
+
+
+                        if enable_livesplit_hotkey == 1:
+                            keyboard_.press(live_start)
+                            keyboard_.release(live_start)
+                        pressedQ = 2 # 10 SEGUNDOS
+                        #print("----------------------------------")
+                        #print("CHECKPOINT " + str(step) + ": " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime), "%M:%S:%f")[:-3])
+                        #print("----------------------------------")
+                        self.steps_txt.set(guildhall_name.get() )
+                        newline = self.step1_txt.get() + "\n "
+                        if step == 1 and lap == 1:
+                            newline = " "
+                        self.step1_txt.set(str(lap) + "/"+ str(total_laps) + " T" + str(step) + " " + datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(steptime_lap), "%M:%S:%f")[:-3])
+                        
+                        if show_checkpoints_window and racer.session_id.get() != "":
+                            #mqtt se manda el tiempo como inicio
+                            racer.sendMQTT({"option": "c", "step": step, "lap": lap, "time": steptime, "user": racer.username.get()})
+                            #racer.sendWebsocket({"option": "c", "step": step, "lap": lap, "time": steptime, "user": racer.username.get()})
+
+        
+        """Fade over time"""
+        #print("actualiza", flush=True)
+        #toma de datos nueva
+        ml.read()
+
+        game_status = '{0:08b}'.format(ml.context.uiState)
+        game_focus = game_status[4]
+
+        mapId = ml.context.mapId
+        if (mapId != lastMapId):
+            lastMapId = ml.context.mapId
+
+            if (guildhall_name.get() != 'None, im free!'):
+                if (ml.context.mapId == 54):
+                    racer.changeCup("TYRIACUP")
+                    racer.saveGuildhall("TYRIA BRISBAN WILD.")
+                elif (ml.context.mapId == 39):
+                    racer.changeCup("TYRIACUP")
+                    racer.saveGuildhall("TYRIA INF.LEAP")
+                elif (ml.context.mapId == 32):
+                    racer.changeCup("TYRIACUP")
+                    racer.saveGuildhall("TYRIA DIESSA PLATEAU")
+                elif (ml.context.mapId == 31):
+                    racer.changeCup("TYRIACUP")
+                    racer.saveGuildhall("TYRIA SNOWDEN DRIFTS")
+                elif (ml.context.mapId == 24):
+                    racer.changeCup("TYRIACUP")
+                    racer.saveGuildhall("TYRIA GENDARRAN")
+                elif (ml.context.mapId == 1330):
+                    racer.changeCup("TYRIACUP")
+                    racer.saveGuildhall("TYRIA GROTHMAR VALLEY")
+        
+        if hud_slope:    
+            self.calculateSlope(_3Dpos,_last3Dpos)
+
+        _tick = ml.data.uiTick
+        _time = time.time()
+        _last3Dpos = _3Dpos
+        _3Dpos = ml.data.fAvatarPosition
+
+        if speed_in_3D:
+            _pos = [ml.data.fAvatarPosition[0],ml.data.fAvatarPosition[1],ml.data.fAvatarPosition[2]]
+        else:
+            _pos = [ml.data.fAvatarPosition[0],ml.data.fAvatarPosition[2]]
+
+        
+        if 'racer' in globals() and client != "":
+            if map_position_last_time_send != round(_time*10/2):
+                map_position_last_time_send = round(_time*10/2)
+                racer.sendMQTT({"option": "position", "x": ml.data.fAvatarPosition[0], "y": ml.data.fAvatarPosition[1], "z": ml.data.fAvatarPosition[2], "user": racer.username.get(), "map": guildhall_name.get(), "color": player_color})
+        
+
+        if show_checkpoints_window and 'racer' in globals():  
+            if ml.data.identity != "":
+                racer.username.set(json.loads(ml.data.identity).get("name"))
+            else: 
+                racer.username.set("anon")
+
+        if _lastTime + timer <= _time:
+            pressedQ = max(pressedQ - timer, 0)
+
+            if show_checkpoints_window: 
+
+                # check checkpoints
+                if len(checkpoints_list):
+                    for index, checkpoint_data in checkpoints_list.iterrows():
+                        if "RADIUS" in checkpoint_data:
+                            radius = checkpoint_data['RADIUS']
+                        else:
+                            radius = 0
+                        #print(checkpoint_data['STEP'], checkpoint_data['STEPNAME'], [checkpoint_data['X'],checkpoint_data['Y'],checkpoint_data['Z']] )
+                        checkpoint(checkpoint_data['STEP'], checkpoint_data['STEPNAME'], [checkpoint_data['X'],checkpoint_data['Y'],checkpoint_data['Z']], radius )
+
+            #DEBUG
+            #print(list(_pos) , flush=True)
+            #dst = distance.euclidean(_pos, _lastPos)
+            #print(_pos, _pos)
+            #calculo de velocidad quitando eje Y (altura)
+
+            dst = distance.euclidean(_pos, _lastPos)
+            total_distance = total_distance + dst
+            velocity = dst * 39.3700787 / timer
+            
+            #if velocity > 0.0:
+
+            #calcular el vector unitario
+            angle_between_res1 = 0
+            angle_between_res2 = 0
+
+            if True:
+                def unit_vector(a):
+                    return a/ np.linalg.norm(a)
+
+                def angle_between(v1, v2):
+                    arg1 = np.cross(v1, v2)
+                    arg2 = np.dot(v1, v2)
+                    angle = np.arctan2(arg1, arg2)
+                    return np.degrees(angle)
+
+                def angle_between2(v1, v2):
+                    dot_pr = v1.dot(v2)
+                    norms = np.linalg.norm(v1) * np.linalg.norm(v2)
+                
+                    return str(round(np.rad2deg(np.arccos(dot_pr / norms))))
+
+                # construimos un vector con la posición actual y la anterior
+                if speed_in_3D == 1:
+                    Y_index = 2
+                else:
+                    Y_index = 1
+                a = np.array([_pos[0] - _lastPos[0], _pos[Y_index] - _lastPos[Y_index]])
+                b = np.array([ml.data.fCameraFront[0], ml.data.fCameraFront[2]])
+                c = np.array([ml.data.fAvatarFront[0], ml.data.fAvatarFront[2]])
+                
+                # si el vector es nulo , no hacemos nada, no hay movimiento
+                if _pos[0] - _lastPos[0] == 0 or _pos[Y_index] - _lastPos[Y_index] == 0:
+                    # self.step3_txt.set("stop")
+                    stop = 1
+                else:
+                    # si nos estamos moviendo, calculamos el vector unitario del vector velocidad
+                    uv = unit_vector(a)
+                    # calculamos el vector unitario del angulo de camara
+                    uc = unit_vector(b)
+                    # calculamos el vector unitario del angulo de camara (avatarFront)
+                    uaf = unit_vector(c)
+                    global map_angle
+                    map_angle = float(angle_between([0 , 1], uaf))+180
+                    
+                    #self.steps_txt.set("Angles :") 
+
+                    #self.step3_txt.set("vel: " + str(round(float(uv[0]),2)) + ' ' + str(round(float(uv[1]),2)) )
+                    #self.step4_txt.set("ava: " + str(round(float(uaf[0]),2)) + ' ' + str(round(float(uaf[1]),2)) )
+                    #self.step2_txt.set("cam: "+ str(round(float(uc[0]),2)) + ' ' + str(round(float(uc[1]),2)) )
+
+                    angle_between_res1 = float(angle_between(uc, uv))
+                    angle_between_res2 = float(angle_between(uaf, uv))
+                    if math.isnan(angle_between_res1) == False and math.isnan(angle_between_res2) == False:
+
+                        if hud_max_speed:
+                            
+                            aa = int(angle_between_res2)
+                            bb = 0
+
+                            if aa < -90:
+                                bb = (72) 
+                            elif aa >= -90 and aa < -45:
+                                bb = (((aa+90) * (aa+90)) / 50) 
+                            elif int(aa) >= -45 and int(aa) < 45:
+                                bb = ((aa * aa) / 50)
+                            elif aa >= 45 and aa < 90: 
+                                bb = (((aa-90) * (aa-90)) / 50)
+                            else:
+                                bb = (72) 
+
+                            self.max_speed.set(min(bb + 72, 100))
+
+                        if hud_angles:
+                            self.anglevar.set(str(int(angle_between_res1)) + "º/ " + str(int(angle_between_res2)) + "º")
+                        
+                        if hud_angles_airboost:
+                            global magic_angle
+
+                            i = self.canvas.find_withtag("airdrift_meter")
+                            b = self.canvas.find_withtag("airdrift_meter_border")
+                            beetleangle = abs(int(angle_between_res2))
+                            self.airdrift_angle_tk.set(beetleangle)
+                            pixels = min(64,round(beetleangle * 64 / magic_angle))
+                            self.canvas.coords(i, 23 + 356, 97-pixels , 27 + 356, 97)
+                            self.canvas.itemconfig(i, outline="#7897ff")
+                            self.canvas.itemconfig(i, fill="#7897ff")
+                            self.canvas.itemconfig(b, outline="#666666")
+                            
+                            if (beetleangle > 5):
+                                self.canvas.itemconfig(i, outline="#7897ff")
+                                self.canvas.itemconfig(i, fill="#7897ff")
+                                self.canvas.itemconfig(b, outline="white")
+                            if (beetleangle > magic_angle):
+                                self.canvas.itemconfig(i, outline="#ff8a36")
+                                self.canvas.itemconfig(i, fill="#ff8a36")
+                                self.canvas.itemconfig(b, outline="#ff8a36")
+                            if (beetleangle > magic_angle + 10):
+                                self.canvas.itemconfig(i, outline="#de1f18")
+                                self.canvas.itemconfig(i, fill="#de1f18")
+                                self.canvas.itemconfig(b, outline="#de1f18")
+                        
+
+                        if hud_angles_bubbles:
+                            full_straight_vector = [0,-1]
+
+                            #forzamos el vector velocidad siempre alante
+                            uv = full_straight_vector
+                            #creamos un vector camara girando el velocidad 
+                            theta = np.radians(angle_between_res1/2)
+                            c, s = np.cos(theta), np.sin(theta)
+                            R = np.array(((c,-s), (s, c)))
+                            uc = np.dot(R, uv)
+                            #creamos un vector avatar front girando la velocidad
+                            theta = np.radians(angle_between_res2/2)
+                            c, s = np.cos(theta), np.sin(theta)
+                            R = np.array(((c,-s), (s, c)))
+                            uaf = np.dot(R, uv)
+
+                            #uc = [cos(angle_between_res1),sin(angle_between_res1)]
+
+                            theta = np.radians(magic_angle/2)
+                            c, s = np.cos(theta), np.sin(theta)
+                            R = np.array(((c,-s), (s, c)))
+                            r50v = np.dot(R, uv)
+                            theta = np.radians(-magic_angle/2)
+                            c, s = np.cos(theta), np.sin(theta)
+                            R = np.array(((c,-s), (s, c)))
+                            l50v = np.dot(R, uv)
+                        
+                            #representamos con dos circulos el angulo de velocidad y el de camara
+                            left_tick = self.canvas.find_withtag("left_50_angle")
+                            # forzamos la representación del angulo velocidad a ponerse arriba en 0º
+                            self.canvas.coords(left_tick, 200 + 195 * float(r50v[0])-4,  195 + 195 * float(r50v[1])-4 , 200 + 195 * float(r50v[0])+4 ,  195 + 195 * float(r50v[1])+4 )
+                            #representamos con dos circulos el angulo de velocidad y el de camara
+                            right_tick = self.canvas.find_withtag("right_50_angle")
+                            # forzamos la representación del angulo velocidad a ponerse arriba en 0º
+                            self.canvas.coords(right_tick, 200 + 190 * float(l50v[0])-4,  195 + 190 * float(l50v[1])-4 , 200 + 190 * float(l50v[0])+4 ,  195 + 190 * float(l50v[1])+4 )
+
+                            #representamos con dos circulos el angulo de velocidad y el de camara
+                            speed_circle = self.canvas.find_withtag("speed_angle")
+                            # forzamos la representación del angulo velocidad a ponerse arriba en 0º
+                            self.canvas.coords(speed_circle, 200 + 190 * float(uv[0])-4,  195 + 190 * float(uv[1])-4 , 200 + 190 * float(uv[0])+4 ,  195 + 190 * float(uv[1])+4 )
+                            camera_circle = self.canvas.find_withtag("camera_angle")
+                            # el angulo de la camara hay que forzarlo a ser relativo al de velocidad
+                            self.canvas.coords(camera_circle, 200 + 190 * float(uc[0])-8,  195 + 190 * float(uc[1])-8 , 200 + 190 * float(uc[0])+8 ,  195 + 190 * float(uc[1])+8 )
+                            avatar_circle = self.canvas.find_withtag("avatar_angle")
+                            # el angulo de la camara hay que forzarlo a ser relativo al de velocidad
+                            self.canvas.coords(avatar_circle, 200 + 190 * float(uaf[0])-11,  195 + 190 * float(uaf[1])-11 , 200 + 190 * float(uaf[0])+11 ,  195 + 190 * float(uaf[1])+11 )
+
+                #calculamos la aceleración
+                if hud_acceleration:
+                    acceleration = self.calculateAcceleration()
+                else:
+                    acceleration = 0
+
+                    
+                #escribir velocidad,tiempo,x,y,z en fichero, solo si está abierto el fichero y si está habilitado el log
+                
+                def roundstr(a):
+                    return str(round(a * 10000)/10000)
+
+                if filename != "" and round((velocity*100/10000)*99/72) < 150:
+                    #print([filename,str(_pos[0]),str(_pos[1]),str(_pos[2]),str(velocity), str(_time - total_timer)])
+                    
+                    self.vartime.set(datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(_time - total_timer), "%M:%S:%f")[:-3])
+                    tmhud.write(datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(_time - total_timer), "%M:%S:%f")[:-3])
+                    if hud_distance:
+                        self.distance.set(str(round(total_distance)) + "m.")
+                    if log and velocity > 0:
+                        writer = open(Path(sys.argv[0]).parent / "logs" / filename, 'a', newline='', encoding='utf-8')
+                        writer.seek(0,2)
+                        writer.writelines("\r")
+                        writer.writelines( (',').join([roundstr(_3Dpos[0]),roundstr(_3Dpos[1]),roundstr(_3Dpos[2]),str(round((velocity*100/10000)*99/72)),roundstr(angle_between_res1),roundstr(angle_between_res2), str(_time - lap_timer), roundstr(acceleration),roundstr(map_angle)]))
+
+                
+                if velocity > 0:
+                    color = "#666666"                
+                if velocity > 4000:
+                    color = "#666666" #"#2294a8"
+                if velocity > 5000:
+                    color = "#666666" #"#c970cc"
+                if velocity > 6000:
+                    color = "#666666" #"#edad18"
+                if velocity > 7250:
+                    color = "#de1f18"
+
+                if velocity > 0:
+                    self.lastNonZero = time.time()
+                    if round(velocity*100/10000) < 140:
+                        self.var.set(round(velocity*100/10000))
+                        self.var100.set(round((velocity*100/10000)*99/72))
+                        i = self.canvas.find_withtag("arc")
+                        self.canvas.itemconfig(i, outline=color)
+                        _lastVel = velocity
+                else:
+                    if time.time() > self.lastNonZero + 0.05:
+                        if round(velocity*100/10000) < 140:
+                            self.var.set(round(velocity*100/10000))
+                            self.var100.set(round((velocity*100/10000)*99/72))
+                            i = self.canvas.find_withtag("arc")
+                            self.canvas.itemconfig(i, outline=color)
+                            _lastVel = velocity
+                        
+                                    
+            _lastTime = _time
+            _lastPos = _pos
+            #_lastVel = velocity
+            _lastTick = _tick
+
+        self.root.after(10, self.updateMeterTimer)
+
+
 
 class Racer():
 
@@ -1758,6 +2694,7 @@ class Racer():
             self.conf_websocket_port_entry.configure(fg=self.color_trans_fg, bg="#222222")
             self.conf_save.configure(fg=self.color_trans_fg, bg="#222222")
             self.conf.configure(fg=self.color_trans_fg, bg="#222222")
+            self.close.configure(fg=self.color_trans_fg, bg="#222222")
 
             self.root.configure(bg=self.color_trans_bg)
         else:
@@ -1802,6 +2739,7 @@ class Racer():
             self.conf_websocket_port_entry.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
             self.conf_save.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
             self.conf.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.close.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
 
             self.root.configure(bg=self.color_normal_bg)
             
@@ -1937,7 +2875,7 @@ class Racer():
         guildhall_laps = StringVar(self.root)
         guildhall_laps.set("1 lap")
 
-        self.t_1 = tk.Label(self.root, text="""Race Assistant v2.09.12""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
+        self.t_1 = tk.Label(self.root, text="""Race Assistant v3.04.05""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
         self.t_1.place(x=0, y=10)
         self.t_2 = tk.Label(self.root, text="""Choose map to race""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
         self.t_2.place(x=0, y=40)
@@ -2061,6 +2999,7 @@ class Racer():
         checkboxes = [
             ("Show speed", hud_speed, "hud_speed"),
             ("Show gauge", hud_gauge, "hud_gauge"),
+            ("Classic style gauge (v1)", hud_gauge_v1, "hud_gauge_v1"),
             ("Show slope", hud_slope, "hud_slope"),
             ("Show distance", hud_distance, "hud_distance"),
             ("Show acceleration", hud_acceleration, "hud_acceleration"),
@@ -2168,6 +3107,9 @@ class Racer():
 
         self.conf = tk.Button(self.root, text='CONFIG', command=lambda:changeConfigVisibility(), font=("Lucida Console", '7'))
         self.conf.place(x=259, y=44, width=45, height=15)
+
+        self.close = tk.Button(self.root, text='CLOSE', command=lambda:quit(), font=("Lucida Console", '7'))
+        self.close.place(x=214, y=44, width=45, height=15)
 
         self.t_3_6 = tk.Button(self.root, text='RESET', command=lambda:self.reset(),font=("Lucida Console", 9))
         self.t_3_6.place(x=259, y=60, width=45, height=36)
@@ -2645,8 +3587,10 @@ if __name__ == '__main__':
     conf = Configuration()
 
     #Whatever buttons, etc 
-
-    meter = Meter()
+    if hud_gauge_v1:
+        meter = Meter()
+    else:
+        meter = Meterv2()
 
     tmhud = TrackManiaHud()
     tmhud.write("")

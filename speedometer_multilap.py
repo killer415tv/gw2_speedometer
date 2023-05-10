@@ -101,6 +101,7 @@ hud_acceleration = 0 # 1 = on , 0 = off
 
 #show Angle meter, shows angles between velocity and mouse camera , and velocity and avatar angle 
 hud_angles = 0 # 1 = on , 0 = off 
+hud_altitude = 0 # 1 = on , 0 = off 
 hud_angles_bubbles = 0 # 1 = on , 0 = off
 hud_angles_airboost = 0
 hud_max_speed = 0
@@ -112,7 +113,12 @@ drift_key = 'c' # for special keys like ALT use 'Key.alt_l' more info https://py
 #show race assistant window, map selection and multiplayer
 show_checkpoints_window = 1 
 
-player_color = "#333333"
+player_color = "#ffffff"
+speed_color0 = "#999999"
+speed_color1 = "#7897ff"
+speed_color2 = "#c970cc"
+speed_color3 = "#ff8a36"
+speed_color4 = "#ff5436"
 
 game_focus = 0
 
@@ -226,6 +232,7 @@ class Configuration():
         global live_start
         global live_reset
         global log
+        global hud_altitude
         global hud_angles
         global hud_angles_bubbles
         global magic_angle
@@ -250,6 +257,11 @@ class Configuration():
         global use_websocket
         global websocket_host
         global websocket_port
+        global speed_color0
+        global speed_color1
+        global speed_color2
+        global speed_color3
+        global speed_color4
 
         cfg.add_section("general")
 
@@ -259,6 +271,7 @@ class Configuration():
         cfg.set("general", "live_start", live_start)
         cfg.set("general", "live_reset", live_reset)
         cfg.set("general", "log", log)
+        cfg.set("general", "hud_altitude", hud_altitude)
         cfg.set("general", "hud_angles", hud_angles)
         cfg.set("general", "hud_angles_bubbles", hud_angles_bubbles)
         cfg.set("general", "hud_angles_airboost", hud_angles_airboost)
@@ -276,11 +289,17 @@ class Configuration():
         cfg.set("general", "hud_drift_hold", hud_drift_hold)
         cfg.set("general", "drift_key", drift_key)
         if player_color == None:
-            player_color = '#333333'
+            player_color = '#ffffff'
         cfg.set("general", "player_color", player_color)
         cfg.set("general", "use_websocket", use_websocket)
         cfg.set("general", "websocket_host", websocket_host)
         cfg.set("general", "websocket_port", websocket_port)
+
+        cfg.set("general", "speed_color0", speed_color0)
+        cfg.set("general", "speed_color1", speed_color1)
+        cfg.set("general", "speed_color2", speed_color2)
+        cfg.set("general", "speed_color3", speed_color3)
+        cfg.set("general", "speed_color4", speed_color4)
 
         if 'racer' in globals():
             cfg.set("general", "geometry_speedometer", meter.root.geometry())
@@ -299,6 +318,7 @@ class Configuration():
         global live_start
         global live_reset
         global log
+        global hud_altitude
         global hud_angles
         global hud_angles_bubbles
         global magic_angle
@@ -321,6 +341,11 @@ class Configuration():
         global use_websocket
         global websocket_host
         global websocket_port
+        global speed_color0
+        global speed_color1
+        global speed_color2
+        global speed_color3
+        global speed_color4
 
         if cfg.read(["./config.txt"]):
 
@@ -336,6 +361,8 @@ class Configuration():
                 live_reset = cfg.get("general", "live_reset")
             if cfg.has_option("general", "log"):
                 log = int(cfg.get("general", "log"))
+            if cfg.has_option("general", "hud_altitude"):
+                hud_altitude = int(cfg.get("general", "hud_altitude"))
             if cfg.has_option("general", "hud_angles"):
                 hud_angles = int(cfg.get("general", "hud_angles"))
             if cfg.has_option("general", "hud_angles_bubbles"):
@@ -380,6 +407,17 @@ class Configuration():
                 websocket_host = (cfg.get("general", "websocket_host"))
             if cfg.has_option("general", "websocket_port"):
                 websocket_port = (cfg.get("general", "websocket_port"))
+
+            if cfg.has_option("general", "speed_color0"):
+                speed_color0 = (cfg.get("general", "speed_color0"))
+            if cfg.has_option("general", "speed_color1"):
+                speed_color1 = (cfg.get("general", "speed_color1"))
+            if cfg.has_option("general", "speed_color2"):
+                speed_color2 = (cfg.get("general", "speed_color2"))
+            if cfg.has_option("general", "speed_color3"):
+                speed_color3 = (cfg.get("general", "speed_color3"))
+            if cfg.has_option("general", "speed_color4"):
+                speed_color4 = (cfg.get("general", "speed_color4"))
         else:
             # Generate a default config file with default values
             self.saveConf()
@@ -491,13 +529,15 @@ class Meterv2():
 
         if hud_angles:
             self.anglevar = tk.StringVar(self.root,0)
+        if hud_altitude:
+            self.altitudevar = tk.StringVar(self.root,0)
 
         if hud_angles_airboost:
             self.airdrift_angle_tk = tk.IntVar(self.root, 0.0)
             
             self.outer_airdrift_box = self.canvas.create_rectangle(20 + 306, 80,30 + 306, 150, outline="#666666", width="1", tags="airdrift_meter_border")
             self.inner_airdrift_box = self.canvas.create_rectangle(23 + 306, 83,27 + 306, 147, outline="#666666", fill='#666666', width="5", tags="airdrift_meter")
-            self.airdrift_label = tk.Label(self.root, textvariable = self.airdrift_angle_tk, fg = "white", bg="#666666", font=("Digital-7 Mono", 9)).place(x = 17 + 306, y = 152)
+            self.airdrift_label = tk.Label(self.root, textvariable = self.airdrift_angle_tk, fg = "white", bg="#666666", font=("Montserrat Regular", 9)).place(x = 17 + 306, y = 152)
 
         if hud_acceleration:
             self.accelvar = tk.StringVar(self.root,0)
@@ -534,24 +574,35 @@ class Meterv2():
 
             self.outer_drifting_box = self.canvas.create_rectangle(20+45,80,30+45,150, outline="white", width="1", tags="drift_meter_border")
             self.inner_drifting_box = self.canvas.create_rectangle(23+45,83,27+45,147, outline="#ff5436", fill='#ff5436', width="5", tags="drift_meter")
-            self.drifting_label = tk.Label(self.root, textvariable = self.drift_time_tk, fg = "white", bg="#666666", font=("Digital-7 Mono", 9)).place(x = 58, y = 152)
+            self.drifting_label = tk.Label(self.root, textvariable = self.drift_time_tk, fg = "white", bg="#666666", font=("Montserrat Regular", 9)).place(x = 58, y = 152)
 
-        if hud_angles:
-            self.angletext = tk.Label(self.root, text="Cam    Beetle", fg = "white", bg="#666666", font=("Lucida Console", 7)).place(x = 166, y = 42)
-            self.anglenum = tk.Label(self.root, textvariable = self.anglevar, fg = "white", bg="#666666", font=("Digital-7 Mono", 8, "bold")).place(x = 165, y = 54)
+
         
         if hud_acceleration:
-            self.acceltext = tk.Label(self.root, text="Accel.", fg = "white", bg="#666666", font=("Lucida Console", 7)).place(x = 111, y = 94)
-            self.accelnum = tk.Label(self.root, textvariable = self.accelvar, fg = "white", bg="#666666", font=("Digital-7 Mono", 8, "bold")).place(x = 111, y = 105)
+            self.acceltext = tk.Label(self.root, text="Accel.", fg = "white", bg="#666666", font=("Montserrat Regular", 7)).place(x = 111, y = 94)
+            self.accelnum = tk.Label(self.root, textvariable = self.accelvar, fg = "white", bg="#666666", font=("Montserrat Regular", 8, "bold")).place(x = 111, y = 110)
 
         if hud_slope:
-            self.acceltext = tk.Label(self.root, text="Slope", fg = "white", bg="#666666", font=("Lucida Console", 7)).place(x = 260, y = 94)
-            self.accelnum = tk.Label(self.root, textvariable = self.slopevar, fg = "white", bg="#666666", font=("Digital-7 Mono", 8, "bold")).place(x = 260, y = 105)
+            self.acceltext = tk.Label(self.root, text="Slope", fg = "white", bg="#666666", font=("Montserrat Regular", 7)).place(x = 260, y = 94)
+            self.accelnum = tk.Label(self.root, textvariable = self.slopevar, fg = "white", bg="#666666", font=("Montserrat Regular", 8, "bold")).place(x = 260, y = 110)
 
         
         if hud_speed:
             #self.numero = tk.Label(self.root, textvariable = self.var100, fg = "white", bg="#666666", font=("Montserrat", 45, "")).place(relx = 1, x = -412, y = 73, anchor = 'ne')
             self.numero = tk.Label(self.root, textvariable = self.var100, fg = "white", bg="#666666", font=("Montserrat Regular", 49, "")).place(anchor="center", x = 200, y = 115)
+
+        if hud_angles:
+            self.angletext = tk.Label(self.root, text="Cam    Beetle", fg = "white", bg="#666666", font=("Montserrat Regular", 7)).place(x = 166, y = 38)
+            self.anglenum = tk.Label(self.root, textvariable = self.anglevar, fg = "white", bg="#666666", font=("Montserrat Regular", 8, "bold")).place(x = 165, y = 52)
+
+
+        
+        if hud_altitude:
+            self.altitudetext = tk.Label(self.root, text="Alt.", fg = "white", bg="#666666", font=("Lucida Console", 7)).place(x = 165, y = 74)
+            self.altitudenum = tk.Label(self.root, textvariable = self.altitudevar, fg = "white", bg="#666666", font=("Montserrat Regular", 10, "bold")).place(anchor="center", x = 199, y = 80)
+        
+
+
         if hud_gauge:
             self.canvas.create_arc( 100,20,  300,220, extent=359, start=0,style='arc', outline="#666666", width="28", tags="arc")
             self.canvas.create_arc( 100,20,  300,220, extent=359, start=0,style='arc', outline="#333", width="16", tags="arcbg")
@@ -590,7 +641,7 @@ class Meterv2():
         self.vartime = tk.StringVar(self.root, "")
         self.timenum_label = tk.Label(self.root, textvariable = self.vartime, fg = "#eee", bg="#666666", font=("Digital-7 Mono", 20)).place(x = 144, y = 155)
         self.distance = tk.StringVar(self.root, "")
-        self.distance_label = tk.Label(self.root, textvariable = self.distance, fg = "#eee", bg="#666666", font=("Digital-7 Mono", 15)).place(anchor="center",x = 200, y = 200)
+        self.distance_label = tk.Label(self.root, textvariable = self.distance, fg = "#eee", bg="#666666", font=("Montserrat Regular", 10)).place(anchor="center",x = 200, y = 200)
         self.steps_txt = tk.StringVar(self.root, "")
         self.steps0 = tk.Label(self.root, textvariable = self.steps_txt, fg = "#fff", bg="#666666", font=("Lucida Console", 9, "bold")).place(anchor="center", x = 200, y = 242)
         self.step1_txt = tk.StringVar(self.root, "")
@@ -616,6 +667,11 @@ class Meterv2():
     def updateMeterLine(self, speed, line):
         """Draw a meter line"""
 
+        global color1
+        global color2
+        global color3
+        global color4
+
         i = self.canvas.find_withtag(line)
 
         #convert speeed to angle
@@ -623,16 +679,16 @@ class Meterv2():
         angle = speed * 359 / 100
 
         self.canvas.itemconfig(i, extent=angle)
-        color = "#aaa"      
+        color = speed_color0 #"#aaa"      
         if line == "speedarc": 
             if speed < -40:
-                color = "#7897ff" #"#2294a8"
+                color = speed_color1 #"#7897ff"
             if speed < -50:
-                color = "#c970cc" #"#c970cc"
+                color = speed_color2 #"#c970cc"
             if speed < -60:
-                color = "#ff8a36" #"#edad18"
+                color = speed_color3 #"#ff8a36"
             if speed < -72:
-                color = "#ff5436"
+                color = speed_color4 #"#ff5436"
 
         self.canvas.itemconfig(i, outline=color)
 
@@ -1219,6 +1275,8 @@ class Meterv2():
 
                         if hud_angles:
                             self.anglevar.set(str(int(angle_between_res1)) + "º/ " + str(int(angle_between_res2)) + "º")
+                        if hud_altitude:
+                            self.altitudevar.set(str(int(ml.data.fAvatarPosition[1])))
                         
                         if hud_angles_airboost:
                             global magic_angle
@@ -2422,7 +2480,7 @@ class Racer():
         if received.get('option') == "321GO-GO":
             #print("GO GO GO!!")
             self.thread_queue.put("GOGOGOGO")
-            countdowntxt = "Brr!"
+            countdowntxt = "GOGOGO! FAEST!"
             
             # limpiar ranking de partida
             # falta mostrar por pantalla el 3 2 1
@@ -2688,13 +2746,21 @@ class Racer():
                 makeCheckboxTransparent(label, cb)
 
             self.conf_color_label.configure(bg=self.color_trans_bg)
-            self.conf_color_btn.configure(fg=self.color_trans_fg, bg="#222222")
+
+            self.conf_speedcolor0_label.configure(bg=self.color_trans_bg)
+            self.conf_speedcolor1_label.configure(bg=self.color_trans_bg)
+            self.conf_speedcolor2_label.configure(bg=self.color_trans_bg)
+            self.conf_speedcolor3_label.configure(bg=self.color_trans_bg)
+            self.conf_speedcolor4_label.configure(bg=self.color_trans_bg)
+            #self.conf_color_btn.configure(fg=self.color_trans_fg, bg="#222222")
             makeCheckboxTransparent(self.conf_websocket_label, self.conf_websocket_cbtn)
             self.conf_websocket_host_entry.configure(fg=self.color_trans_fg, bg="#222222")
             self.conf_websocket_port_entry.configure(fg=self.color_trans_fg, bg="#222222")
             self.conf_save.configure(fg=self.color_trans_fg, bg="#222222")
             self.conf.configure(fg=self.color_trans_fg, bg="#222222")
             self.close.configure(fg=self.color_trans_fg, bg="#222222")
+            self.hide.configure(fg=self.color_trans_fg, bg="#222222")
+            self.showbtn.configure(fg=self.color_trans_fg, bg="#222222")
 
             self.root.configure(bg=self.color_trans_bg)
         else:
@@ -2733,13 +2799,20 @@ class Racer():
                 makeCheckboxNormal(label, cb)
 
             self.conf_color_label.configure(bg=self.color_normal_bg)
-            self.conf_color_btn.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.conf_speedcolor0_label.configure(bg=self.color_normal_bg)
+            self.conf_speedcolor1_label.configure(bg=self.color_normal_bg)
+            self.conf_speedcolor2_label.configure(bg=self.color_normal_bg)
+            self.conf_speedcolor3_label.configure(bg=self.color_normal_bg)
+            self.conf_speedcolor4_label.configure(bg=self.color_normal_bg)
+            #self.conf_color_btn.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
             makeCheckboxNormal(self.conf_websocket_label, self.conf_websocket_cbtn)
             self.conf_websocket_host_entry.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
             self.conf_websocket_port_entry.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
             self.conf_save.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
             self.conf.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
             self.close.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.hide.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
+            self.showbtn.configure(fg=self.color_normal_fg, bg=self.color_normal_bg)
 
             self.root.configure(bg=self.color_normal_bg)
             
@@ -2875,10 +2948,10 @@ class Racer():
         guildhall_laps = StringVar(self.root)
         guildhall_laps.set("1 lap")
 
-        self.t_1 = tk.Label(self.root, text="""Race Assistant v3.04.05""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 15))
+        self.t_1 = tk.Label(self.root, text="""Race Assistant v3.05.10""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Montserrat Regular", 15))
         self.t_1.place(x=0, y=10)
-        self.t_2 = tk.Label(self.root, text="""Choose map to race""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.t_2.place(x=0, y=40)
+        self.t_2 = tk.Label(self.root, text="""Choose map to race""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Montserrat Regular", 10))
+        self.t_2.place(x=1, y=40)
         
         #get all list of maps from the maps folder
         path = Path(sys.argv[0]).parent / "maps"
@@ -2888,14 +2961,14 @@ class Racer():
             self.maps = ['-']    
         
         self.t_3 = tk.OptionMenu(self.root, cup_name, *self.cups, command = self.changeCup)
-        self.t_3.config(font=("Lucida Console", 8))
+        self.t_3.config(font=("Montserrat Regular", 10))
         self.t_3["highlightthickness"] = 0
         self.t_3["activebackground"] = "#222222"
         self.t_3["activeforeground"] = "white" 
         self.t_3.place(x=19, y=60, width=180, height=18)
 
         self.t_3_2 = tk.OptionMenu(self.root, guildhall_name, *self.maps, command = self.saveGuildhall)
-        self.t_3_2.config(font=("Lucida Console", 8))
+        self.t_3_2.config(font=("Montserrat Regular", 10))
         self.t_3_2["highlightthickness"] = 0
         self.t_3_2["activebackground"] = "#222222"
         self.t_3_2["activeforeground"] = "white" 
@@ -2903,6 +2976,7 @@ class Racer():
         
         self.laps = ['1 lap', '2 laps', '3 laps', '4 laps', '5 laps', '6 laps', '7 laps']
         self.t_3_5 = OptionMenu(self.root, guildhall_laps, *self.laps)
+        self.t_3_5.config(font=("Montserrat Regular", 8))
         self.t_3_5["highlightthickness"] = 0
         self.t_3_5["activebackground"] = "#222222"
         self.t_3_5["activeforeground"] = "white"
@@ -2929,14 +3003,42 @@ class Racer():
             else:
                 globals()[field] = 1
 
-        def choose_color():
- 
+        def choose_color(variable):
             global player_color 
+            global speed_color0
+            global speed_color1
+            global speed_color2 
+            global speed_color3 
+            global speed_color4 
             # variable to store hexadecimal code of color
-            player_color = colorchooser.askcolor(title ="Choose color")[1]
-            if (player_color):
-                self.conf_color_label.configure(fg=player_color)
-                conf_save()
+
+            if variable == "player_color":
+                player_color = colorchooser.askcolor(title ="Choose color")[1]
+                if (player_color):
+                    self.conf_color_label.configure(fg=player_color)
+            if variable == "speed_color0":
+                speed_color0 = colorchooser.askcolor(title ="Choose color")[1]
+                if (speed_color0):
+                    self.conf_speedcolor0_label.configure(fg=speed_color0)
+            if variable == "speed_color1":
+                speed_color1 = colorchooser.askcolor(title ="Choose color")[1]
+                if (speed_color1):
+                    self.conf_speedcolor1_label.configure(fg=speed_color1)
+            if variable == "speed_color2":
+                speed_color2 = colorchooser.askcolor(title ="Choose color")[1]
+                if (speed_color2):
+                    self.conf_speedcolor2_label.configure(fg=speed_color2)
+            if variable == "speed_color3":
+                speed_color3 = colorchooser.askcolor(title ="Choose color")[1]
+                if (speed_color3):
+                    self.conf_speedcolor3_label.configure(fg=speed_color3)
+            if variable == "speed_color4":
+                speed_color4 = colorchooser.askcolor(title ="Choose color")[1]
+                if (speed_color4):
+                    self.conf_speedcolor4_label.configure(fg=speed_color4)
+
+
+                #conf_save()
 
         def conf_save():
             print("saved and restart")
@@ -2971,7 +3073,7 @@ class Racer():
                     else:
                         meter.toggleTrans()
 
-        self.conf_move = tk.Button(self.root, text='MOVE SPEEDOMETER', command=lambda:toggleAll(),font=("Lucida Console", 10))
+        self.conf_move = tk.Button(self.root, text='MOVE SPEEDOMETER', command=lambda:toggleAll(),font=("Montserrat Regular", 10))
 
         def createCheckboxLabel(text):
             return tk.Label(
@@ -2981,7 +3083,7 @@ class Racer():
                 padx=20,
                 fg=self.fg.get(),
                 bg=self.bg.get(),
-                font=("Lucida Console", 10),
+                font=("Montserrat Regular", 10),
             )
 
         self.config_cb_vars = {}
@@ -2992,7 +3094,7 @@ class Racer():
                 self.root,
                 variable=self.config_cb_vars[varName],
                 command=lambda: conf_toggle(varName),
-                font=("Lucida Console", 10),
+                font=("Montserrat Regular", 10),
                 text="",
                 borderwidth=0)
 
@@ -3003,6 +3105,7 @@ class Racer():
             ("Show slope", hud_slope, "hud_slope"),
             ("Show distance", hud_distance, "hud_distance"),
             ("Show acceleration", hud_acceleration, "hud_acceleration"),
+            ("Show altitude", hud_altitude, "hud_altitude"),
             ("Show angles", hud_angles, "hud_angles"),
             ("Show angle orbs", hud_angles_bubbles, "hud_angles_bubbles"),
             ("Show drift hold", hud_drift_hold, "hud_drift_hold"),
@@ -3018,8 +3121,19 @@ class Racer():
         # print(self.config_checkboxes[0][1].var)
 
         # COLOR
-        self.conf_color_label = tk.Label(self.root, text="■", justify = tk.LEFT, padx = 0, fg = player_color, bg=self.bg.get(), font=("Lucida Console", 15))
-        self.conf_color_btn = tk.Button(self.root, text='Change color', command=lambda:choose_color() ,font=("Lucida Console", 10))
+        self.conf_color_label = tk.Label(self.root, text="■ Player color", cursor= "hand2", justify = tk.LEFT, padx = 0, pady = 0, fg = player_color, bg=self.bg.get(), font=("Montserrat Regular", 10))
+        self.conf_color_label.bind("<Button-1>", lambda e:choose_color("player_color") )
+        self.conf_speedcolor0_label = tk.Label(self.root, text="■ [Gauge] Non-Driftable speed color <55", cursor= "hand2", justify = tk.LEFT, padx = 0, pady = 0, fg = speed_color0, bg=self.bg.get(), font=("Montserrat Regular", 10))
+        self.conf_speedcolor0_label.bind("<Button-1>", lambda e:choose_color("speed_color0") )
+        self.conf_speedcolor1_label = tk.Label(self.root, text="■ [Gauge] Low speed color >55", cursor= "hand2", justify = tk.LEFT, padx = 0, pady = 0, fg = speed_color1, bg=self.bg.get(), font=("Montserrat Regular", 10))
+        self.conf_speedcolor1_label.bind("<Button-1>", lambda e:choose_color("speed_color1") )
+        self.conf_speedcolor2_label = tk.Label(self.root, text="■ [Gauge] Medium speed color >70", cursor= "hand2", justify = tk.LEFT, padx = 0, pady = 0, fg = speed_color2, bg=self.bg.get(), font=("Montserrat Regular", 10))
+        self.conf_speedcolor2_label.bind("<Button-1>", lambda e:choose_color("speed_color2") )
+        self.conf_speedcolor3_label = tk.Label(self.root, text="■ [Gauge] High speed color >83", cursor= "hand2", justify = tk.LEFT, padx = 0, pady = 0, fg = speed_color3, bg=self.bg.get(), font=("Montserrat Regular", 10))
+        self.conf_speedcolor3_label.bind("<Button-1>", lambda e:choose_color("speed_color3") )
+        self.conf_speedcolor4_label = tk.Label(self.root, text="■ [Gauge] Faest speed color >100", cursor= "hand2", justify = tk.LEFT, padx = 0, pady = 0, fg = speed_color4, bg=self.bg.get(), font=("Montserrat Regular", 10))
+        self.conf_speedcolor4_label.bind("<Button-1>", lambda e:choose_color("speed_color4") )
+        ##self.conf_color_btn = tk.Button(self.root, text='Change color', command=lambda:choose_color() ,font=("Montserrat Regular", 10))
 
         # WEBSOCKET OPTIONS
         self.use_websocket = IntVar(self.root, use_websocket)
@@ -3049,7 +3163,7 @@ class Racer():
         update_websocket_conf()
 
         # SAVE OPTIONS
-        self.conf_save = tk.Button(self.root, text='SAVE & RESTART', command=lambda:conf_save() ,font=("Lucida Console", 10))
+        self.conf_save = tk.Button(self.root, text='SAVE & RESTART', command=lambda:conf_save() ,font=("Montserrat Regular", 10))
 
         def changeConfigVisibility():
             global show_config
@@ -3058,6 +3172,73 @@ class Racer():
             show_config = 0 if show_config else 1
             updateConfigVisibility()
 
+        def hideRacer():
+            
+            self.t_1.place_forget()
+            self.t_2.place_forget()
+            self.t_3.place_forget()
+            self.t_3_2.place_forget()
+            self.t_3_5.place_forget()
+            self.conf.place_forget()
+            self.close.place_forget()
+            self.hide.place_forget()
+            self.t_3_6.place_forget()
+            self.t_4.place_forget()
+            self.t_4_4.place_forget()
+            self.t_4_5.place_forget()
+            self.t_4_6.place_forget()
+            self.t_6.place_forget()
+            self.t_5.place_forget()
+            self.t_7.place_forget()
+            self.t_7_1.place_forget()
+            self.t_7_2.place_forget()
+            self.websocket_race_status_label.place_forget()
+            self.t_9.place_forget()
+            self.t_10.place_forget()
+            self.map_ranking.place_forget()
+
+            self.showbtn.place(x=10, y=14, width=50, height=15)
+
+            #self.root.attributes('-topmost', 0)
+            #self.root.lower()
+
+        def showRacer():
+
+            self.t_1.place(x=0, y=10)
+            self.t_2.place(x=0, y=40)
+            self.t_3.place(x=19, y=60, width=180, height=18)
+            self.t_3_2.place(x=19, y=78, width=180, height=18)
+            self.t_3_5.place(x=199, y=60, width=60, height=36)
+            self.conf.place(x=259, y=44, width=45, height=15)
+            self.close.place(x=214, y=44, width=45, height=15)
+            self.hide.place(x=184, y=44, width=30, height=15)
+            self.t_3_6.place(x=259, y=60, width=45, height=36)
+            self.t_4.place(x=151, y=97)
+            self.t_4_4.place(x=20, y=97)
+            self.t_4_5.place(x=17, y=100)
+            self.t_4_6.place(x=139, y=100)
+            self.t_6.place(x=120, y=120, width=80, height=27)
+            self.t_5.place(x=20, y=120, height=26)
+            self.t_7.place(x=200, y=120, width=100, height=27)
+            self.t_7_1.place(x=200, y=176, width=100, height=27)
+            self.t_7_2.place(x=200, y=148, width=100, height=27)
+            self.websocket_race_status_label.place(x=20, y=148)
+            self.t_9.place(x=0, y=175)
+            self.t_10.place(x=0, y=210)
+            self.map_ranking.place(x=20, y=130)
+
+            if self.multiplayer.get() == 1:
+                changeMultiVisibility(0)
+            else:
+                changeMultiVisibility(1)
+
+
+            self.showbtn.place_forget()
+
+            #self.root.attributes('-topmost', 0)
+            #self.root.lower()
+            
+
         def updateConfigVisibility():
             global show_config
 
@@ -3065,14 +3246,22 @@ class Racer():
                 # mostrarlo
                 self.conf_move.place(x=310, y=18, width=160, height=25)
 
+                print("config_checkboxes", len(self.config_checkboxes))
+
+                self.conf_color_label.place(x=314, y=45 + int(len(self.config_checkboxes)) * 20)
+                self.conf_speedcolor0_label.place(x=314, y=45 + (1 + int(len(self.config_checkboxes))) * 20)
+                self.conf_speedcolor1_label.place(x=314, y=45 + (2 + int(len(self.config_checkboxes))) * 20)
+                self.conf_speedcolor2_label.place(x=314, y=45 + (3 + int(len(self.config_checkboxes))) * 20)
+                self.conf_speedcolor3_label.place(x=314, y=45 + (4 + int(len(self.config_checkboxes))) * 20)
+                self.conf_speedcolor4_label.place(x=314, y=45 + (5 + int(len(self.config_checkboxes))) * 20)
+
                 cb_counter = 0
                 for (label, cb) in self.config_checkboxes:
                     label.place(x=314, y=44 + cb_counter * 20)
                     cb.place(x=310, y=44 + cb_counter * 20)
                     cb_counter += 1
 
-                self.conf_color_label.place(x=311, y=42 + cb_counter * 20)
-                self.conf_color_btn.place(x=336, y=44 + cb_counter * 20, width=120, height=23)
+                ##self.conf_color_btn.place(x=336, y=44 + cb_counter * 20, width=120, height=23)
                 cb_counter += 1
 
                 #self.conf_websocket_label.place(x=314, y=44 + cb_counter * 20)
@@ -3084,7 +3273,7 @@ class Racer():
                 #self.conf_websocket_port_entry.place(x=330 + host_entry_width, y=44 + cb_counter * 20, height=28, width=40)
                 #cb_counter += 1
 
-                self.conf_save.place(x=320, y=54 + cb_counter * 20, width=120, height=27)
+                self.conf_save.place(x=320, y=54 + ((5 + cb_counter) * 20), width=120, height=27)
                 cb_counter += 1
             else:
                 # ocultarlo
@@ -3095,7 +3284,7 @@ class Racer():
                     cb.place_forget()
 
                 self.conf_color_label.place_forget()
-                self.conf_color_btn.place_forget()
+                #self.conf_color_btn.place_forget()
 
                 self.conf_websocket_label.place_forget()
                 self.conf_websocket_cbtn.place_forget()
@@ -3105,13 +3294,19 @@ class Racer():
 
                 self.conf_save.place_forget()
 
-        self.conf = tk.Button(self.root, text='CONFIG', command=lambda:changeConfigVisibility(), font=("Lucida Console", '7'))
+        self.conf = tk.Button(self.root, text='CONFIG', command=lambda:changeConfigVisibility(), font=("Montserrat Regular", '7'))
         self.conf.place(x=259, y=44, width=45, height=15)
 
-        self.close = tk.Button(self.root, text='CLOSE', command=lambda:quit(), font=("Lucida Console", '7'))
+        self.close = tk.Button(self.root, text='CLOSE', command=lambda:quit(), font=("Montserrat Regular", '7'))
         self.close.place(x=214, y=44, width=45, height=15)
 
-        self.t_3_6 = tk.Button(self.root, text='RESET', command=lambda:self.reset(),font=("Lucida Console", 9))
+        self.hide = tk.Button(self.root, text='HIDE', command=lambda:hideRacer(), font=("Montserrat Regular", '7'))
+        self.hide.place(x=184, y=44, width=30, height=15)
+
+        self.showbtn = tk.Button(self.root, text='SHOW', command=lambda:showRacer(), font=("Montserrat Regular", '7'))
+        #self.showbtn.place(x=184, y=14, width=30, height=15)
+
+        self.t_3_6 = tk.Button(self.root, text='RESET', command=lambda:self.reset(),font=("Montserrat Regular", 9))
         self.t_3_6.place(x=259, y=60, width=45, height=36)
 
         updateConfigVisibility()
@@ -3131,43 +3326,43 @@ class Racer():
         self.username = StringVar(self.root)
         self.timestamps = []
 
-        self.t_4 = tk.Label(self.root, text="""Upload to ranking""", justify = tk.LEFT, padx = 10, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.t_4.place(x=151, y=100)
-        self.t_4_4 = tk.Label(self.root, text="""Multiplayer""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.t_4_4.place(x=20, y=100)
+        self.t_4 = tk.Label(self.root, text="""Upload to ranking""", justify = tk.LEFT, padx = 10, fg = self.fg.get(), bg=self.bg.get(), font=("Montserrat Regular", 10))
+        self.t_4.place(x=151, y=97)
+        self.t_4_4 = tk.Label(self.root, text="""Multiplayer""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Montserrat Regular", 10))
+        self.t_4_4.place(x=20, y=97)
         
 
         #tk.Label(self.root, text="""Join race:""", justify = tk.CENTER, padx = 20,fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10)).place(x=0, y=110)
         
         self.t_5 = tk.Entry(self.root,textvariable=self.session_id ,show="*")
         self.t_5.place(x=20, y=120, height=28)
-        self.t_6 = tk.Button(self.root, textvariable=self.status, command=lambda:self.joinRace(),font=("Lucida Console", 10))
+        self.t_6 = tk.Button(self.root, textvariable=self.status, command=lambda:self.joinRace(),font=("Montserrat Regular", 10))
         self.t_6.place(x=120, y=120, width=80)
         #self.t_6_1 = tk.Button(self.root, text="MAP", command=self.open_multiplayer_map,font=("Lucida Console", 10))
         #self.t_6_1.place(x=120, y=148, width=80)
 
         #tk.Label(self.root, text="""Create new race:""", justify = tk.CENTER, padx = 20,fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10)).pack()
-        self.t_7 = tk.Button(self.root, text='START RACE', command=lambda:self.newRaceThread(),font=("Lucida Console", 10))
+        self.t_7 = tk.Button(self.root, text='START RACE', command=lambda:self.newRaceThread(),font=("Montserrat Regular", 10))
         self.t_7.place(x=200, y=120, width=100)
-        self.t_7_1 = tk.Button(self.root, text='SURRENDER', command=lambda:self.surrender(),font=("Lucida Console", 10))
+        self.t_7_1 = tk.Button(self.root, text='SURRENDER', command=lambda:self.surrender(),font=("Montserrat Regular", 10))
         self.t_7_1.place(x=200, y=176, width=100)
-        self.t_7_2 = tk.Button(self.root, text='READY', command=lambda:self.ready(),font=("Lucida Console", 10))
+        self.t_7_2 = tk.Button(self.root, text='READY', command=lambda:self.ready(),font=("Montserrat Regular", 10))
         self.t_7_2.place(x=200, y=148, width=100)
 
         self.websocket_race_status = StringVar(self.root, "Not connected")
         self.websocket_race_status_label = tk.Label(self.root, textvariable=self.websocket_race_status,
                                                         justify=tk.LEFT, fg=self.fg.get(), bg=self.bg.get(),
-                                                        font=("Lucida Console", 10), wraplength=165)
+                                                        font=("Montserrat Regular", 10), wraplength=165)
 
-        #self.t_8 = tk.Label(self.root, text="""------""", justify = tk.CENTER, padx = 20,fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.t_9 = tk.Label(self.root, textvariable=self.race_status, justify = tk.CENTER, padx = 20,fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
-        self.t_10 = tk.Label(self.root, textvariable=self.ranking, justify = tk.LEFT, padx = 20,fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
+        #self.t_8 = tk.Label(self.root, text="""------""", justify = tk.CENTER, padx = 20,fg = self.fg.get(), bg=self.bg.get(), font=("Montserrat Regular", 10))
+        self.t_9 = tk.Label(self.root, textvariable=self.race_status, justify = tk.CENTER, padx = 20,fg = self.fg.get(), bg=self.bg.get(), font=("Montserrat Regular", 10))
+        self.t_10 = tk.Label(self.root, textvariable=self.ranking, justify = tk.LEFT, padx = 20,fg = self.fg.get(), bg=self.bg.get(), font=("Montserrat Regular", 10))
 
         #ranking label
         self.map_ranking_var = StringVar(self.root)
         self.map_ranking_var.set("")
 
-        self.map_ranking = tk.Label(self.root, textvariable=self.map_ranking_var, justify = tk.LEFT, padx = 0,fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 10))
+        self.map_ranking = tk.Label(self.root, textvariable=self.map_ranking_var, justify = tk.LEFT, padx = 0,fg = self.fg.get(), bg=self.bg.get(), font=("Montserrat Regular", 10))
         self.map_ranking.place(x=20, y=130)
 
 
@@ -3351,7 +3546,7 @@ class Countdown():
         
         self.localcountdown = tk.StringVar(self.root,"")
 
-        self.time = tk.Label(self.root, textvariable=self.localcountdown, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console", 60, "bold"))
+        self.time = tk.Label(self.root, textvariable=self.localcountdown, fg = self.fg.get(), bg=self.bg.get(), font=("Montserrat Regular", 60, "bold"))
         self.time.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
 
         self.toggleTrans()
@@ -3375,7 +3570,7 @@ class Countdown():
         self.localcountdown.set(countdowntxt)
         countdowntxt = ""
 
-        if countdowntxt == "Brr!":
+        if countdowntxt == "GOGOGO! FAEST!":
             self.root.after(2500, self.checkCountdowntxt)
         else:
             self.root.after(500, self.checkCountdowntxt)
@@ -3425,7 +3620,7 @@ class Message():
                                 bg='#666666')
         self.outer_drifting_box = self.canvas.create_rectangle(1,1,499,219, outline="white", width="1")
 
-        self.time = tk.Label(self.root, textvariable=self.localcountdown, justify = tk.CENTER, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Lucida Console",17))
+        self.time = tk.Label(self.root, textvariable=self.localcountdown, justify = tk.CENTER, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Montserrat Regular",17))
 
         #self.time.place(x=0, y=0)
         self.btn = tk.Button(self.root, textvariable=self.timerStr , padx= 20,font=("Lucida Console", 10),command=lambda:self.hide())

@@ -3284,6 +3284,11 @@ class Racer():
                     cb.place_forget()
 
                 self.conf_color_label.place_forget()
+                self.conf_speedcolor0_label.place_forget()
+                self.conf_speedcolor1_label.place_forget()
+                self.conf_speedcolor2_label.place_forget()
+                self.conf_speedcolor3_label.place_forget()
+                self.conf_speedcolor4_label.place_forget()
                 #self.conf_color_btn.place_forget()
 
                 self.conf_websocket_label.place_forget()

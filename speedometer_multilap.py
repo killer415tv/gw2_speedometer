@@ -3248,14 +3248,14 @@ class Racer():
 
                 print("config_checkboxes", len(self.config_checkboxes))
 
-                self.conf_color_label.place(x=314, y=45 + int(len(self.config_checkboxes)) * 20)
-                self.conf_speedcolor0_label.place(x=314, y=45 + (1 + int(len(self.config_checkboxes))) * 20)
-                self.conf_speedcolor1_label.place(x=314, y=45 + (2 + int(len(self.config_checkboxes))) * 20)
-                self.conf_speedcolor2_label.place(x=314, y=45 + (3 + int(len(self.config_checkboxes))) * 20)
-                self.conf_speedcolor3_label.place(x=314, y=45 + (4 + int(len(self.config_checkboxes))) * 20)
-                self.conf_speedcolor4_label.place(x=314, y=45 + (5 + int(len(self.config_checkboxes))) * 20)
+                self.conf_color_label.place(x=314, y=45 + int(0) * 20)
+                self.conf_speedcolor0_label.place(x=314, y=45 + (1 + int(0)) * 20)
+                self.conf_speedcolor1_label.place(x=314, y=45 + (2 + int(0)) * 20)
+                self.conf_speedcolor2_label.place(x=314, y=45 + (3 + int(0)) * 20)
+                self.conf_speedcolor3_label.place(x=314, y=45 + (4 + int(0)) * 20)
+                self.conf_speedcolor4_label.place(x=314, y=45 + (5 + int(0)) * 20)
 
-                cb_counter = 0
+                cb_counter = 6
                 for (label, cb) in self.config_checkboxes:
                     label.place(x=314, y=44 + cb_counter * 20)
                     cb.place(x=310, y=44 + cb_counter * 20)
@@ -3273,7 +3273,7 @@ class Racer():
                 #self.conf_websocket_port_entry.place(x=330 + host_entry_width, y=44 + cb_counter * 20, height=28, width=40)
                 #cb_counter += 1
 
-                self.conf_save.place(x=320, y=54 + ((5 + cb_counter) * 20), width=120, height=27)
+                self.conf_save.place(x=320, y=54 + ((-1 + cb_counter) * 20), width=120, height=27)
                 cb_counter += 1
             else:
                 # ocultarlo

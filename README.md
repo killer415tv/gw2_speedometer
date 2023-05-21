@@ -98,7 +98,7 @@ http://www.beetlerank.com/
 
 # Demo
 
-To watch how is it ingame:
+Demonstration of SPEEDOMETER ingame:
 
 https://www.youtube.com/watch?v=LxknXO3uT70
 

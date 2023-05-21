@@ -371,15 +371,14 @@ class Ghost3d(object):
         #for x in self.all_files[-ghost_number:]:
         if hasattr(self, 'df') and self.file_ready == True:
             data = self.df[self.df['file_name'] == self.best_file]
-            
             self._set_color("#6f6f6f", "#cfcfcf")
             self.scale = 1/2
-            
-            
+        
             if guildhall_name in self.group1 :
                 self._set_color("#714227", "#936140")   
 
             elif guildhall_name == "TYRIA INF.LEAP":
+                self.scale = 1/2.5
                 self._set_color("#714227", "#af4242")
 
             elif guildhall_name == "TYRIA DIESSA PLATEAU":
@@ -406,7 +405,7 @@ class Ghost3d(object):
                 self.scale = 1/2
                 self._set_color("#714227", "#936140")
 
-            ##print("duro ",len(data))
+            #print("duro ",len(data))
             if len(data) > 0:
 
                 track = data

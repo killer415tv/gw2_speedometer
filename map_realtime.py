@@ -318,7 +318,9 @@ class Ghost3d(object):
         global guildhall_name
 
         self.file_ready = False
-
+        self.group1 = {"VAW Left path", "VAW Right path", "GeeK", "INDI", 
+                      "GWTC",  "RACE Downhill",  "RACE Full Mountain Run", 
+                      "RACE Hillclimb", "EQE", "SoTD", "UAoT", "LRS", "HUR"}
         self.root = Tk()
         self.root.title("Map")
         self.root.geometry("1000x1000+20+20") #Whatever size
@@ -357,6 +359,9 @@ class Ghost3d(object):
 
         self.root.mainloop()
 
+    def _set_color(self, color1, color2) :
+        self.color1 = color1
+        self.color2 = color2
 
     def drawMap(self):
 
@@ -367,90 +372,39 @@ class Ghost3d(object):
         if hasattr(self, 'df') and self.file_ready == True:
             data = self.df[self.df['file_name'] == self.best_file]
             
-            self.color1 = "#6f6f6f"
-            self.color2 = "#cfcfcf"
-
+            self._set_color("#6f6f6f", "#cfcfcf")
             self.scale = 1/2
-            if guildhall_name == "VAW Left path":
-                self.scale = 1/2
-                self.color1 = "#714227"
-                self.color2 = "#936140"
-            elif guildhall_name == "VAW Right path":
-                self.scale = 1/2
-                self.color1 = "#714227"
-                self.color2 = "#936140"
-            elif guildhall_name == "GeeK":
-                self.scale = 1/2
-                self.color1 = "#714227"
-                self.color2 = "#936140"
-            elif guildhall_name == "INDI":
-                self.scale = 1/2
-                self.color1 = "#714227"
-                self.color2 = "#936140"
-            elif guildhall_name == "GWTC":
-                self.scale = 1/2
-                self.color1 = "#714227"
-                self.color2 = "#936140"
-            elif guildhall_name == "RACE Downhill":
-                self.scale = 1/2
-                self.color1 = "#714227"
-                self.color2 = "#936140"
-            elif guildhall_name == "RACE Full Mountain Run":
-                self.scale = 1/2
-                self.color1 = "#714227"
-                self.color2 = "#936140"
-            elif guildhall_name == "RACE Hillclimb":
-                self.scale = 1/2
-                self.color1 = "#714227"
-                self.color2 = "#936140"
-            elif guildhall_name == "EQE":
-                self.scale = 1/2
-                self.color1 = "#714227"
-                self.color2 = "#936140"
-            elif guildhall_name == "SoTD":
-                self.scale = 1/2
-                self.color1 = "#714227"
-                self.color2 = "#936140"
-            elif guildhall_name == "UAoT":
-                self.scale = 1/2
-                self.color1 = "#714227"
-                self.color2 = "#936140"
-            elif guildhall_name == "LRS":
-                self.scale = 1/2
-                self.color1 = "#714227"
-                self.color2 = "#936140"
-            elif guildhall_name == "HUR":
-                self.scale = 1/2
-                self.color1 = "#714227"
-                self.color2 = "#936140"
+            
+            
+            if guildhall_name in self.group1 :
+                self._set_color("#714227", "#936140")   
+
             elif guildhall_name == "TYRIA INF.LEAP":
-                self.scale = 1/2.5
-                self.color1 = "#714227"
-                self.color2 = "#af4242"
+                self._set_color("#714227", "#af4242")
+
             elif guildhall_name == "TYRIA DIESSA PLATEAU":
                 self.scale = 1/3
-                self.color1 = "#716127"
-                self.color2 = "#af8942"
+                self._set_color("#716127", "#af8942")
+
             elif guildhall_name == "TYRIA SNOWDEN DRIFTS":
                 self.scale = 1/1.2
-                self.color1 = "#6f6f6f"
-                self.color2 = "#cfcfcf"
+                self._set_color("#6f6f6f", "#cfcfcf")
+
             elif guildhall_name == "TYRIA GENDARRAN":
                 self.scale = 1/3
-                self.color1 = "#27716d"
-                self.color2 = "#3db4a2"
+                self._set_color("#27716d", "#3db4a2")
+
             elif guildhall_name == "TYRIA BRISBAN WILD.":
                 self.scale = 1/4
-                self.color1 = "#4c7127"
-                self.color2 = "#7db43d"
+                self._set_color("#4c7127", "#7db43d")
+
             elif guildhall_name == "TYRIA GROTHMAR VALLEY":
                 self.scale = 1/3
-                self.color1 = "#714227"
-                self.color2 = "#c85224"
+                self._set_color("#714227", "#c85224")
+
             elif guildhall_name == "OLLO Akina":
                 self.scale = 1/2
-                self.color1 = "#714227"
-                self.color2 = "#936140"
+                self._set_color("#714227", "#936140")
 
             ##print("duro ",len(data))
             if len(data) > 0:

@@ -9,7 +9,6 @@ from pynput.keyboard import Key, Controller
 import csv
 import sys, os
 import numpy as np
-from playsound import playsound
 from datetime import date
 import json
 import glob

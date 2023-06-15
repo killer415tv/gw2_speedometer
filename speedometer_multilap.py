@@ -37,7 +37,7 @@ import requests
 from configparser import RawConfigParser
 import shlex, subprocess
 
-from websocket import WebSocketConnectionClosedException
+from websocket._exceptions import WebSocketConnectionClosedException
 
 from mumblelink import MumbleLink
 

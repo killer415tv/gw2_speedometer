@@ -3549,10 +3549,6 @@ class Countdown():
         self.fg.set(self.color_normal_fg)
         self.bg.set(self.color_normal_bg)
 
-        # windowWidth = 700
-        # windowHeight = 100
-        # positionRight = int(root.winfo_screenwidth()/2 - windowWidth/2)
-        # positionDown = int(root.winfo_screenheight()/2 - windowHeight/2)
         self.root.title("Countdown")
         self.root.geometry(geometry_countdown) #Whatever size
 

@@ -1,4 +1,8 @@
 logs/
 
+config.txt
+cup.txt
+
+.csv
 .idea/
 __pycache__/

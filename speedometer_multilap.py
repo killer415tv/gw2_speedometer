@@ -62,9 +62,15 @@ windowHeight = 300
 positionRight = int(root.winfo_screenwidth()/2 - windowWidth/2) + 120
 positionDown = int(5*root.winfo_screenheight()/6 - windowHeight/3)
 
+cwindowWidth = 700
+cwindowHeight = 100
+cpositionRight = int(root.winfo_screenwidth()/2 - windowWidth/2)
+cpositionDown = int(root.winfo_screenheight()/2 - windowHeight/2)
+
     # IMPORTANT!!!! DONT CHANGE VALUES HERE
     # CHANGE THEM AT CONFIG.TXT
-geometry_speedometer = "650x300+{}+{}".format(positionRight, positionDown)
+geometry_countdown = "{}x{}+{}+{}".format(cwindowWidth, cwindowHeight, cpositionRight, cpositionDown)
+geometry_speedometer = "{}x{}+{}+{}".format(windowWidth, windowHeight, positionRight, positionDown)
 geometry_racer = "750x500+0+400"
 
 #measure the speed in 3 dimensions or ignore the altitude axis
@@ -246,6 +252,7 @@ class Configuration():
         global show_checkpoints_window
         global hud_drift_hold
         global drift_key
+        global geometry_countdown
         global geometry_speedometer
         global geometry_racer
         global hud_angles_airboost
@@ -301,10 +308,9 @@ class Configuration():
         cfg.set("general", "speed_color3", speed_color3)
         cfg.set("general", "speed_color4", speed_color4)
 
-        if 'racer' in globals():
-            cfg.set("general", "geometry_speedometer", meter.root.geometry())
-        if 'meter' in globals():
-            cfg.set("general", "geometry_racer", racer.root.geometry())
+        cfg.set("general", "geometry_speedometer", meter.root.geometry())
+        cfg.set("general", "geometry_racer", racer.root.geometry())
+        cfg.set("general", "geometry_countdown", countdownWidget.root.geometry())
 
         f = open("./config.txt", "w")
         cfg.write(f)
@@ -333,6 +339,7 @@ class Configuration():
         global show_checkpoints_window
         global hud_drift_hold
         global drift_key
+        global geometry_countdown
         global geometry_speedometer
         global geometry_racer
         global hud_angles_airboost
@@ -397,6 +404,8 @@ class Configuration():
                 drift_key = (cfg.get("general", "drift_key"))
             if cfg.has_option("general", "player_color"):
                 player_color = (cfg.get("general", "player_color"))
+            if cfg.has_option("general", "geometry_countdown"):
+                geometry_countdown = (cfg.get("general", "geometry_countdown"))
             if cfg.has_option("general", "geometry_speedometer"):
                 geometry_speedometer = (cfg.get("general", "geometry_speedometer"))
             if cfg.has_option("general", "geometry_racer"):
@@ -3523,6 +3532,7 @@ class Countdown():
     def __init__(self):
         
         global countdowntxt
+        global geometry_countdown
 
         self.move = True
 
@@ -3539,12 +3549,12 @@ class Countdown():
         self.fg.set(self.color_normal_fg)
         self.bg.set(self.color_normal_bg)
 
-        windowWidth = 700
-        windowHeight = 100
-        positionRight = int(root.winfo_screenwidth()/2 - windowWidth/2)
-        positionDown = int(root.winfo_screenheight()/2 - windowHeight/2)
+        # windowWidth = 700
+        # windowHeight = 100
+        # positionRight = int(root.winfo_screenwidth()/2 - windowWidth/2)
+        # positionDown = int(root.winfo_screenheight()/2 - windowHeight/2)
         self.root.title("Countdown")
-        self.root.geometry("{}x{}+{}+{}".format(windowWidth, windowHeight, positionRight, positionDown)) #Whatever size
+        self.root.geometry(geometry_countdown) #Whatever size
 
         self.root.wm_attributes("-transparentcolor", "#666666")
         self.root.configure(bg='#666666')

@@ -38,6 +38,8 @@ from opensimplex import OpenSimplex
 from pyqtgraph import Vector
 from pynput import keyboard
 
+import requests 
+
 try:
     ctypes.windll.shcore.SetProcessDpiAwareness(2) # if your windows version >= 8.1
 except:
@@ -238,7 +240,11 @@ class Ghost3d(object):
             path = os.path.dirname(os.path.abspath(sys.argv[0])) + "\\logs\\"                   
             self.all_files = glob.glob(os.path.join(path, guildhall_name+"_log*.csv"))
 
-            self.checkpoints_file = os.path.dirname(os.path.abspath(sys.argv[0])) + "\\maps\\" + cup_name + "\\" + guildhall_name + ".csv"
+            if cup_name == "OWN MAPS FOLDER":
+                self.checkpoints_file = os.path.dirname(os.path.abspath(sys.argv[0])) + "\\maps\\" + cup_name + "\\" + guildhall_name + ".csv"
+            else:
+                self.checkpoints_file = requests.utils.requote_uri('https://www.beetlerank.com/uploads/checkpoints/'+guildhall_name+'.csv')
+            
 
             print("-----------------------------------------------")
             print("- THE SELECTED CUP IS" , cup_name )

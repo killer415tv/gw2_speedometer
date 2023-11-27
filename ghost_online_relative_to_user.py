@@ -398,7 +398,12 @@ class Ghost3d():
             self.all_files = glob.glob(os.path.join(path, guildhall_name+"_log*.csv"))
 
             #get the checkpoint file for that guildhall
-            self.checkpoints_file = os.path.dirname(os.path.abspath(sys.argv[0])) + "\\maps\\" + cup_name + "\\" + guildhall_name + ".csv"
+            
+            if cup_name == "OWN MAPS FOLDER":
+                self.checkpoints_file = os.path.dirname(os.path.abspath(sys.argv[0])) + "\\maps\\" + cup_name + "\\" + guildhall_name + ".csv"
+            else:
+                self.checkpoints_file = requests.utils.requote_uri('https://www.beetlerank.com/uploads/checkpoints/'+guildhall_name+'.csv')
+
             checkpoints_list_temp = pd.DataFrame()
             file_df = pd.read_csv(self.checkpoints_file)
             checkpoints_list = checkpoints_list_temp.append(file_df)

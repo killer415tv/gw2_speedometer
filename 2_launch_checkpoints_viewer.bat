@@ -8,3 +8,5 @@ IF EXIST "%~1" (
 ) ELSE (
     python "%~dp0checkpoints.py"
 )
+
+pause

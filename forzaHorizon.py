@@ -36,6 +36,8 @@ from opensimplex import OpenSimplex
 from pyqtgraph import Vector
 from pynput import keyboard
 
+import requests 
+
 import shlex, subprocess
 
 
@@ -264,7 +266,11 @@ class Ghost3d(object):
                 file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "checkpoint.txt")
                 checkpoint = int(file.read())
 
-                self.best_file = os.path.dirname(os.path.abspath(sys.argv[0])) + "\\maps\\" + cup_name + "\\" + guildhall_name + ".csv"
+                if cup_name == "OWN MAPS FOLDER":
+                    self.best_file = os.path.dirname(os.path.abspath(sys.argv[0])) + "\\maps\\" + cup_name + "\\" + guildhall_name + ".csv"
+                else:
+                    self.best_file = requests.utils.requote_uri('https://www.beetlerank.com/uploads/checkpoints/'+guildhall_name+'.csv')
+                
 
                 print("-----------------------------------------------")
                 print("--------------- WELCOME TO --------------------")

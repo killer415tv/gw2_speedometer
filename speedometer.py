@@ -52,6 +52,8 @@ position_right_left_offset = -104
 #  DEFAULT CONFIGURATION VARIABLES 
 #-----------------------------
 
+offline_mode = False
+
 root = tk.Tk()
 root.overrideredirect(1)
 root.wm_attributes("-transparentcolor", "#666666")
@@ -2099,25 +2101,25 @@ class Meter():
         if (mapId != lastMapId):
             lastMapId = ml.context.mapId
 
-            if (guildhall_name.get() != 'None, im free!'):
-                if (ml.context.mapId == 54):
-                    racer.changeCup("TYRIACUP")
-                    racer.saveGuildhall("TYRIA BRISBAN WILD.")
-                elif (ml.context.mapId == 39):
-                    racer.changeCup("TYRIACUP")
-                    racer.saveGuildhall("TYRIA INF.LEAP")
-                elif (ml.context.mapId == 32):
-                    racer.changeCup("TYRIACUP")
-                    racer.saveGuildhall("TYRIA DIESSA PLATEAU")
-                elif (ml.context.mapId == 31):
-                    racer.changeCup("TYRIACUP")
-                    racer.saveGuildhall("TYRIA SNOWDEN DRIFTS")
-                elif (ml.context.mapId == 24):
-                    racer.changeCup("TYRIACUP")
-                    racer.saveGuildhall("TYRIA GENDARRAN")
-                elif (ml.context.mapId == 1330):
-                    racer.changeCup("TYRIACUP")
-                    racer.saveGuildhall("TYRIA GROTHMAR VALLEY")
+            #if (guildhall_name.get() != 'None, im free!'):
+            #    if (ml.context.mapId == 54):
+            #        racer.changeCup("TYRIACUP")
+            #        racer.saveGuildhall("TYRIA BRISBAN WILD.")
+            #    elif (ml.context.mapId == 39):
+            #        racer.changeCup("TYRIACUP")
+            #        racer.saveGuildhall("TYRIA INF.LEAP")
+            #    elif (ml.context.mapId == 32):
+            #        racer.changeCup("TYRIACUP")
+            #        racer.saveGuildhall("TYRIA DIESSA PLATEAU")
+            #    elif (ml.context.mapId == 31):
+            #        racer.changeCup("TYRIACUP")
+            #        racer.saveGuildhall("TYRIA SNOWDEN DRIFTS")
+            #    elif (ml.context.mapId == 24):
+            #        racer.changeCup("TYRIACUP")
+            #        racer.saveGuildhall("TYRIA GENDARRAN")
+            #    elif (ml.context.mapId == 1330):
+            #        racer.changeCup("TYRIACUP")
+            #        racer.saveGuildhall("TYRIA GROTHMAR VALLEY")
         
         if hud_slope:    
             self.calculateSlope(_3Dpos,_last3Dpos)
@@ -2826,6 +2828,7 @@ class Racer():
     def changeCup(self,value):
 
         global cup_name
+        global offline_mode
 
         cup_name.set(value)
 
@@ -2848,27 +2851,28 @@ class Racer():
             
             self.saveGuildhall('-')
         else:
-            try:
-                headers = {
-                    'Origin': 'null',
-                    'Referer': 'null',
-                    'Accept': 'application/json'
-                }
-                response = requests.get('https://www.beetlerank.com/api/maps/'+value , headers)
-                resp_dict = response.json()
+            if offline_mode == False:
+                try:
+                    headers = {
+                        'Origin': 'null',
+                        'Referer': 'null',
+                        'Accept': 'application/json'
+                    }
+                    response = requests.get('https://www.beetlerank.com/api/maps/'+value , headers)
+                    resp_dict = response.json()
 
-                print("Obtaining list of Maps from ",value, '....')
-                
-                print(resp_dict["maps"])
-        
-                new_choices = resp_dict['maps']
-                for choice in new_choices:
-                    self.t_3_2['menu'].add_command(label=choice, command=tk._setit(guildhall_name, choice, self.saveGuildhall))
-                
-                self.saveGuildhall('-')
+                    print("Obtaining list of Maps from ",value, '....')
+                    
+                    print(resp_dict["maps"])
+            
+                    new_choices = resp_dict['maps']
+                    for choice in new_choices:
+                        self.t_3_2['menu'].add_command(label=choice, command=tk._setit(guildhall_name, choice, self.saveGuildhall))
+                    
+                    self.saveGuildhall('-')
 
-            except:
-                print("Error obtaining CUPS")
+                except:
+                    print("Error obtaining CUPS")
 
 
     def saveGuildhall(self,value):
@@ -2945,6 +2949,7 @@ class Racer():
         global upload
         global geometry_racer
         global player_color
+        global offline_mode
 
         self.mapOpen = False
         self.move = True
@@ -3015,14 +3020,18 @@ class Racer():
             self.maps = ['-']   
         except:
             print("Error obtaining CUPS")
+            offline_mode = True
             path = Path(sys.argv[0]).parent / "maps"
 
             self.cups = [directory.stem for directory in path.iterdir() if directory.is_dir()]
 
+            if len(self.cups) == 0:
+                self.cups = ['-']
+
             self.maps = [file.stem for file in path.glob('*.csv')]
             if len(self.maps) == 0:
                 self.maps = ['-']    
-        
+
         self.t_3 = tk.OptionMenu(self.root, cup_name, *self.cups, command = self.changeCup)
         self.t_3.config(font=("Montserrat Regular", 10))
         self.t_3["highlightthickness"] = 0
@@ -3878,7 +3887,8 @@ if __name__ == '__main__':
                 message.write(response.text)
 
         except:
-            print("NO CONNECTION TO BEETLERANK.COM")
+            print("NO CONNECTION TO BEETLERANK.COM - Loading speedometer on OFFLINE mode")
+            print("- You can put some folders on map folder as CUPS, and place the checkpoint files inside each CUP")
 
     
     """

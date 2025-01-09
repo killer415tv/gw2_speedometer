@@ -1416,8 +1416,8 @@ class Meterv2():
 
 
         if 'racer' in globals() and (client != "" or websocket_client):
-            if map_position_last_time_send != round(_time * 10 / 2):
-                map_position_last_time_send = round(_time * 10 / 2)
+            if map_position_last_time_send != round(_time / 2):
+                map_position_last_time_send = round(_time / 2)
                 if not (ml.data.fAvatarPosition[0] == 0 and ml.data.fAvatarPosition[1] == 0 and ml.data.fAvatarPosition[2] == 0):
                     if client != "":
                         racer.sendMQTT(
@@ -2136,8 +2136,8 @@ class Meter():
 
         
         if 'racer' in globals() and client != "":
-            if map_position_last_time_send != round(_time*10/2):
-                map_position_last_time_send = round(_time*10/2)
+            if map_position_last_time_send != round(_time / 2):
+                map_position_last_time_send = round(_time / 2)
                 racer.sendMQTT({"option": "position", "x": ml.data.fAvatarPosition[0], "y": ml.data.fAvatarPosition[1], "z": ml.data.fAvatarPosition[2], "user": racer.username.get(), "map": guildhall_name.get(), "color": player_color})
         
 

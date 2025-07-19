@@ -17,7 +17,7 @@ df = pd.DataFrame()
 for file_ in all_files:
     file_df = pd.read_csv(file_)
     file_df['file_name'] = file_
-    df = df.append(file_df)
+    df = pd.concat([df, file_df], ignore_index=True)
 
     # use this for 1 line for each csv
 fig = px.line_3d(df, x="X", y="Z", z="Y", color="file_name")

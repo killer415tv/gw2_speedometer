@@ -28,7 +28,7 @@ import queue
 
 
 import PySide2
-from pyqtgraph.Qt import QtCore, QtGui
+from pyqtgraph.Qt import QtCore, QtGui, QtWidgets
 import pyqtgraph.opengl as gl
 
 import sys
@@ -320,7 +320,7 @@ class Ghost3d(object):
         self.df = pd.DataFrame()
         file_df = pd.read_csv(self.best_file)
         file_df['file_name'] = self.best_file
-        self.df = self.df.append(file_df)
+        self.df = pd.concat([self.df, file_df], ignore_index=True)
 
 
     def __init__(self):
@@ -339,14 +339,14 @@ class Ghost3d(object):
         self.root.title("Checkpoints")
 
         # setup the view window
-        self.app = QtGui.QApplication(sys.argv)
+        self.app = QtWidgets.QApplication(sys.argv)
 
         #time viewer
-        self.wtime = QtGui.QWidget()
+        self.wtime = QtWidgets.QWidget()
         self.wtime.setStyleSheet("background-color: black;")
 
 
-        layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
         layout.setAlignment(QtCore.Qt.AlignCenter)
         self.wtime.setLayout(layout)
 
@@ -667,7 +667,7 @@ class Ghost3d(object):
         get the graphics window open and setup
         """
         if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
-            QtGui.QApplication.instance().exec_()
+            QtWidgets.QApplication.instance().exec_()
 
     def animation(self):
         """

@@ -25,7 +25,7 @@ import queue
 
 import PySide2
 
-from pyqtgraph.Qt import QtCore, QtGui
+from pyqtgraph.Qt import QtCore, QtGui, QtWidgets
 import pyqtgraph.opengl as gl
 
 from PySide2.QtWidgets import QApplication, QDialog, QLineEdit, QPushButton, QWidget, QVBoxLayout, QLabel, QFileDialog, QCheckBox
@@ -371,7 +371,7 @@ class Ghost3d():
                 file_df = pd.read_csv(file_url)
 
             file_df['file_name'] = file_url
-            self.df = self.df.append(file_df)
+            self.df = pd.concat([self.df, file_df], ignore_index=True)
             min_time = 99999
             self.best_file = file_url
 
@@ -406,7 +406,7 @@ class Ghost3d():
 
             checkpoints_list_temp = pd.DataFrame()
             file_df = pd.read_csv(self.checkpoints_file)
-            checkpoints_list = checkpoints_list_temp.append(file_df)
+            checkpoints_list = pd.concat([checkpoints_list_temp, file_df], ignore_index=True)
 
             print("-----------------------------------------------")
             print("- THE SELECTED MAP IS" , guildhall_name )
@@ -418,7 +418,7 @@ class Ghost3d():
                 for file_ in self.all_files:
                     file_df = pd.read_csv(file_)
                     file_df['file_name'] = file_
-                    self.df = self.df.append(file_df)
+                    self.df = pd.concat([self.df, file_df], ignore_index=True)
 
                 #aquí tenemos que quedarnos solo con el mejor tiempo
 
@@ -473,7 +473,7 @@ class Ghost3d():
                     self.df = pd.DataFrame()
                     file_df = pd.read_csv(self.best_file)
                     file_df['file_name'] = self.best_file
-                    self.df = self.df.append(file_df)
+                    self.df = pd.concat([self.df, file_df], ignore_index=True)
                     print("-----------------------------------------------")
                     print("- LOAD LOG FILE" , self.best_file )
                     print("-----------------------------------------------")
@@ -519,10 +519,10 @@ class Ghost3d():
     
 
     def create_top_section(self):
-        self.wtime = QtGui.QWidget()
+        self.wtime = QtWidgets.QWidget()
         self.wtime.setStyleSheet("background-color: black;")
 
-        layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
         layout.setAlignment(QtCore.Qt.AlignCenter)
         self.wtime.setLayout(layout)
 
@@ -838,7 +838,7 @@ class Ghost3d():
         get the graphics window open and setup
         """
         if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
-            QtGui.QApplication.instance().exec_()
+            QtWidgets.QApplication.instance().exec_()
 
     def animation(self):
         """

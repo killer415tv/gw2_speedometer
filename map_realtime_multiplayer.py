@@ -5,7 +5,13 @@ from tkinter import *
 import ctypes
 import datetime
 
-import websocket
+try:
+    from websocket import WebSocketApp
+    import websocket
+except ImportError:
+    print("ERROR: websocket-client not installed correctly")
+    print("Please run: pip install websocket-client")
+    exit(1)
 from scipy.spatial import distance
 
 import os
@@ -164,7 +170,7 @@ class Ghost3d(object):
             self.df = pd.DataFrame()
             file_df = pd.read_csv(file_)
             file_df['file_name'] = file_
-            self.df = self.df.append(file_df)
+            self.df = pd.concat([self.df, file_df], ignore_index=True)
             min_time = 99999
             self.best_file = file_
             print("-----------------------------------------------")
@@ -292,7 +298,7 @@ class Ghost3d(object):
 
         print("+ connecting....")
         # websocket.enableTrace(True)
-        ws_app = websocket.WebSocketApp(f"ws://{WEBSOCKET_HOSTNAME}:{WEBSOCKET_PORT}", on_open=on_open, on_message=on_message)
+        ws_app = WebSocketApp(f"ws://{WEBSOCKET_HOSTNAME}:{WEBSOCKET_PORT}", on_open=on_open, on_message=on_message)
         ws_app.run_forever()
 
     def get_distinct_color(self, n):

@@ -217,7 +217,7 @@ class Ghost3d(object):
             self.df = pd.DataFrame()
             file_df = pd.read_csv(file_)
             file_df['file_name'] = file_
-            self.df = self.df.append(file_df)
+            self.df = pd.concat([self.df, file_df], ignore_index=True)
             min_time = 99999
             self.best_file = file_
             print("-----------------------------------------------")
@@ -253,14 +253,14 @@ class Ghost3d(object):
 
             checkpoints_list = pd.DataFrame()
             file_df = pd.read_csv(self.checkpoints_file)
-            checkpoints_list = checkpoints_list.append(file_df)
+            checkpoints_list = pd.concat([checkpoints_list, file_df], ignore_index=True)
 
             if len(self.all_files) > 0:
                 self.df = pd.DataFrame()
                 for file_ in self.all_files:
                     file_df = pd.read_csv(file_)
                     file_df['file_name'] = file_
-                    self.df = self.df.append(file_df)
+                    self.df = pd.concat([self.df, file_df], ignore_index=True)
 
                 #aquí tenemos que quedarnos solo con el mejor tiempo
 
@@ -282,17 +282,29 @@ class Ghost3d(object):
                         endpoint = [checkpoints_list.loc[checkpoints_list['STEPNAME'] == 'end'].X.values,checkpoints_list.loc[checkpoints_list['STEPNAME'] == 'end'].Y.values,checkpoints_list.loc[checkpoints_list['STEPNAME'] == 'end'].Z.values]
 
                         try:
-                            if distance.euclidean(endpoint, last_elem_array) < 50:
+                            print("endpoint",endpoint)
+                            print("last_elem_array",last_elem_array)
+                            # Convert endpoint arrays to single values
+                            endpoint_x = float(endpoint[0][0])
+                            endpoint_y = float(endpoint[1][0]) 
+                            endpoint_z = float(endpoint[2][0])
+                            endpoint_array = [endpoint_x, endpoint_y, endpoint_z]
+                            
+                            # Convert last_elem_array to list
+                            last_pos = [last_elem_array[0], last_elem_array[1], last_elem_array[2]]
+                            
+                            print("distance",distance.euclidean(endpoint_array, last_pos))
+                            if distance.euclidean(endpoint_array, last_pos) < 60:
                                 #candidato a válido
                                 time = list(data.values[-1])[6]
                                 if time < min_time:
                                     min_time = time
                                     self.best_file = x
                         except:
-                            print("File",x,"is corrupted, you can delete it")
+                            print("File",x,"is corrupted, you can delete it 1")
 
                     except:
-                        print("File",x,"is corrupted, you can delete it")
+                        print("File",x,"is corrupted, you can delete it 2")
 
                 if min_time == 99999:
                     print("-----------------------------------------------")
@@ -309,7 +321,7 @@ class Ghost3d(object):
                     self.df = pd.DataFrame()
                     file_df = pd.read_csv(self.best_file)
                     file_df['file_name'] = self.best_file
-                    self.df = self.df.append(file_df)
+                    self.df = pd.concat([self.df, file_df], ignore_index=True)
                     min_time = 99999
                     print("-----------------------------------------------")
                     print("- LOAD LOG FILE" , self.best_file )

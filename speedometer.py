@@ -9,7 +9,13 @@ import time
 import datetime
 import math
 import scipy.spatial.transform._rotation_groups
-import websocket
+try:
+    from websocket import WebSocketApp
+    import websocket
+except ImportError:
+    print("ERROR: websocket-client not installed correctly")
+    print("Please run: pip install websocket-client")
+    exit(1)
 from scipy.spatial import distance
 import pynput.keyboard._win32 
 import pynput.mouse._win32 
@@ -1021,7 +1027,7 @@ class Meterv2():
                                 
                                 last_filename_df = pd.DataFrame()
                                 file_df = pd.read_csv(Path(sys.argv[0]).parent / "logs" / old_filename)
-                                last_filename_df = last_filename_df.append(file_df)
+                                last_filename_df = pd.concat([last_filename_df, file_df], ignore_index=True)
 
                                 current_time = last_filename_df.values[-1][6]                                
                                 datefinish = datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(current_time), "%M:%S:%f")[:-3]
@@ -1990,7 +1996,7 @@ class Meter():
                                 
                                 last_filename_df = pd.DataFrame()
                                 file_df = pd.read_csv(Path(sys.argv[0]).parent / "logs" / old_filename)
-                                last_filename_df = last_filename_df.append(file_df)
+                                last_filename_df = pd.concat([last_filename_df, file_df], ignore_index=True)
 
                                 current_time = last_filename_df.values[-1][6]                                
                                 datefinish = datetime.datetime.strftime(datetime.datetime.utcfromtimestamp(current_time), "%M:%S:%f")[:-3]
@@ -2637,7 +2643,7 @@ class Racer():
         websocket_host = self.conf_websocket_host_entry.get()
         websocket_port = self.conf_websocket_port_entry.get()
 
-        websocket_client = websocket.WebSocketApp(f"ws://{websocket_host}:{websocket_port}",
+        websocket_client = WebSocketApp(f"ws://{websocket_host}:{websocket_port}",
                                                     on_message=on_message)
 
         websocket_client_thread = Thread(target=websocket_client.run_forever)
@@ -2902,7 +2908,7 @@ class Racer():
 
             checkpoints_list = pd.DataFrame()
             file_df = pd.read_csv(self.checkpoints_file)
-            checkpoints_list = checkpoints_list.append(file_df)
+            checkpoints_list = pd.concat([checkpoints_list, file_df], ignore_index=True)
     
         except:
             print("Checkpoint file not found")

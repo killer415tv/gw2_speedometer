@@ -28,7 +28,7 @@ import queue
 
 
 import PySide2
-from pyqtgraph.Qt import QtCore, QtGui
+from pyqtgraph.Qt import QtCore, QtGui, QtWidgets
 import pyqtgraph.opengl as gl
 
 import sys
@@ -224,7 +224,7 @@ class Ghost3d(object):
             self.df = pd.DataFrame()
             file_df = pd.read_csv(file_)
             file_df['file_name'] = file_
-            self.df = self.df.append(file_df)
+            self.df = pd.concat([self.df, file_df], ignore_index=True)
             min_time = 99999
             self.best_file = file_
             print("-----------------------------------------------")
@@ -261,7 +261,7 @@ class Ghost3d(object):
                 self.df = pd.DataFrame()
                 file_df = pd.read_csv(self.best_file, encoding = 'utf8')
                 file_df['file_name'] = self.best_file
-                self.df = self.df.append(file_df)
+                self.df = pd.concat([self.df, file_df], ignore_index=True)
                 min_time = 99999
                 print("-----------------------------------------------")
                 print("- FILE LOADED" , self.best_file )
@@ -284,18 +284,18 @@ class Ghost3d(object):
         self.root.title("Checkpoints")
 
         # setup the view window
-        self.app = QtGui.QApplication(sys.argv)
+        self.app = QtWidgets.QApplication(sys.argv)
 
         #time viewer
-        self.wtime = QtGui.QWidget()
+        self.wtime = QtWidgets.QWidget()
         self.wtime.setStyleSheet("background-color: black;")
 
 
-        layout = QtGui.QVBoxLayout()
+        layout = QtWidgets.QVBoxLayout()
         layout.setAlignment(QtCore.Qt.AlignCenter)
         self.wtime.setLayout(layout)
 
-        #self.label = QtGui.QLabel(str(timer))
+        #self.label = QtWidgets.QLabel(str(timer))
         #self.label.setFont(QtGui.QFont('Lucida Console', 20))
         #self.label.setStyleSheet("background: rgba(255, 0, 0, 0);");
         
@@ -789,7 +789,7 @@ class Ghost3d(object):
         get the graphics window open and setup
         """
         if (sys.flags.interactive != 1) or not hasattr(QtCore, 'PYQT_VERSION'):
-            QtGui.QApplication.instance().exec_()
+            QtWidgets.QApplication.instance().exec_()
 
     def animation(self):
         """

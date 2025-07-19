@@ -327,7 +327,7 @@ class Ghost3d(object):
         layout.setAlignment(QtCore.Qt.AlignCenter)
         self.wtime.setLayout(layout)
 
-        self.label = QtGui.QLabel(str(timer) + " seconds to reach next checkpoint")
+        self.label = QtWidgets.QLabel(str(timer) + " seconds to reach next checkpoint")
         self.label.setFont(QtGui.QFont('Lucida Console', 20))
         self.label.setStyleSheet("background: rgba(255, 255, 255, 1);");
         

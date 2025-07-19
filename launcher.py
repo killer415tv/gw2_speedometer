@@ -4,10 +4,10 @@
 GW2 Speedometer Launcher
 ========================
 
-Launcher unificado para todas las aplicaciones del proyecto GW2 Speedometer.
-Permite lanzar fácilmente todas las herramientas desde una interfaz central.
+Unified launcher for all GW2 Speedometer project applications.
+Easily launch all tools from a central interface.
 
-Autor: Mejorado para facilidad de uso
+Author: Enhanced for ease of use
 """
 
 import tkinter as tk
@@ -92,9 +92,9 @@ class GW2SpeedometerLauncher:
                                style='Header.TLabel')
         title_label.pack()
         
-        # Subtítulo
+        # Subtitle
         subtitle_label = ttk.Label(header_frame,
-                                 text="Herramientas profesionales para carreras de escarabajos en Guild Wars 2",
+                                 text="Professional racing tools for beetle races in Guild Wars 2",
                                  style='Subtitle.TLabel')
         subtitle_label.pack(pady=(5, 0))
         
@@ -125,62 +125,62 @@ class GW2SpeedometerLauncher:
             canvas.yview_scroll(int(-1*(event.delta/120)), "units")
         canvas.bind_all("<MouseWheel>", _on_mousewheel)
         
-        # Definir aplicaciones disponibles
+        # Define available applications
         self.apps = [
             {
                 'name': '🏎️ Speedometer',
-                'description': 'Velocímetro principal con HUD completo, medición de ángulos, aceleración y sistema de checkpoints',
+                'description': 'Main speedometer with complete HUD, angle measurement, acceleration and checkpoint system',
                 'file': 'speedometer.py',
-                'category': 'Principal',
+                'category': 'Main',
                 'color': self.colors['success']
             },
             {
-                'name': '👁️ Visor de Checkpoints',
-                'description': 'Visualizador 3D de checkpoints y rutas. Muestra los puntos de control en el mundo 3D',
+                'name': '👁️ Checkpoint Viewer',
+                'description': '3D checkpoint and route visualizer. Shows control points in the 3D world',
                 'file': 'checkpoints.py',
-                'category': 'Visualización',
+                'category': 'Visualization',
                 'color': self.colors['accent']
             },
             {
-                'name': '👻 Sistema Ghost',
-                'description': 'Modo fantasma para competir contra tus mejores tiempos. Incluye rankings online',
+                'name': '👻 Ghost System',
+                'description': 'Ghost mode to compete against your best times. Includes online rankings',
                 'file': 'ghost_online.py',
-                'category': 'Competición',
+                'category': 'Competition',
                 'color': self.colors['warning']
             },
             {
-                'name': '📐 Visualizador de Vectores',
-                'description': 'Muestra vectores de dirección, velocidad y ángulos en tiempo real',
+                'name': '📐 Vector Visualizer',
+                'description': 'Shows direction vectors, velocity and angles in real time',
                 'file': 'vectors.py',
-                'category': 'Análisis',
+                'category': 'Analysis',
                 'color': self.colors['accent']
             },
             {
-                'name': '🏁 Creador de Checkpoints (Carreras)',
-                'description': 'Herramienta para crear checkpoints personalizados para carreras',
+                'name': '🏁 Checkpoint Creator (Racing)',
+                'description': 'Tool to create custom checkpoints for racing',
                 'file': 'RACINGcheckpointcreator.py',
-                'category': 'Herramientas',
+                'category': 'Tools',
                 'color': self.colors['secondary']
             },
             {
-                'name': '🧗 Creador de Checkpoints (Jumping Puzzles)',
-                'description': 'Herramienta para crear checkpoints para jumping puzzles',
+                'name': '🧗 Checkpoint Creator (Jumping Puzzles)',
+                'description': 'Tool to create checkpoints for jumping puzzles',
                 'file': 'JPcheckpointcreator.py',
-                'category': 'Herramientas',
+                'category': 'Tools',
                 'color': self.colors['secondary']
             },
             {
-                'name': '🗺️ Mapa en Tiempo Real',
-                'description': 'Visualización de mapa en tiempo real con posición del jugador',
+                'name': '🗺️ Real-time Map',
+                'description': 'Real-time map visualization with player position',
                 'file': 'map_realtime.py',
-                'category': 'Visualización',
+                'category': 'Visualization',
                 'color': self.colors['accent']
             },
             {
-                'name': '🌐 Mapa Multijugador',
-                'description': 'Mapa en tiempo real con soporte multijugador',
+                'name': '🌐 Multiplayer Map',
+                'description': 'Real-time map with multiplayer support',
                 'file': 'map_realtime_multiplayer.py',
-                'category': 'Multijugador',
+                'category': 'Multiplayer',
                 'color': self.colors['warning']
             }
         ]
@@ -258,10 +258,10 @@ class GW2SpeedometerLauncher:
                                 justify='center')
         category_label.pack(pady=(0, 8))
         
-        # Botón de lanzar
+        # Launch button
         launch_btn = tk.Button(content_frame,
-                             text="Lanzar",
-                             bg=app['color'],
+                             text="Launch",
+                             bg=self.colors['accent'],
                              fg='white',
                              font=('Segoe UI', 8, 'bold'),
                              border=0,
@@ -271,9 +271,9 @@ class GW2SpeedometerLauncher:
                              command=lambda a=app: self.launch_app(a))
         launch_btn.pack(pady=(0, 5))
         
-        # Indicador de estado compacto
+        # Compact status indicator
         status_label = tk.Label(content_frame,
-                              text="● Detenido",
+                              text="● Stopped",
                               bg=self.colors['secondary'],
                               fg=self.colors['text_secondary'],
                               font=('Segoe UI', 7))
@@ -282,11 +282,11 @@ class GW2SpeedometerLauncher:
         # Guardar referencia al status label para actualizaciones
         app['status_label'] = status_label
         
-        # Tooltip con descripción completa
+        # Tooltip with complete description
         self.create_tooltip(card_frame, app['description'])
         
     def create_tooltip(self, widget, text):
-        """Crear tooltip para mostrar descripción completa al pasar el ratón"""
+        """Create tooltip to show complete description on mouse hover"""
         def show_tooltip(event):
             tooltip = tk.Toplevel()
             tooltip.wm_overrideredirect(True)
@@ -303,7 +303,7 @@ class GW2SpeedometerLauncher:
             def hide_tooltip():
                 tooltip.destroy()
             
-            tooltip.after(3000, hide_tooltip)  # Auto-hide después de 3 segundos
+            tooltip.after(3000, hide_tooltip)  # Auto-hide after 3 seconds
             widget.tooltip = tooltip
         
         def hide_tooltip(event):
@@ -314,20 +314,20 @@ class GW2SpeedometerLauncher:
         widget.bind('<Leave>', hide_tooltip)
 
     def create_footer(self):
-        """Crear el pie de página con información y controles"""
+        """Create footer with information and controls"""
         footer_frame = tk.Frame(self.root, bg=self.colors['secondary'], pady=15)
         footer_frame.pack(fill='x', side='bottom')
         
-        # Frame para botones de utilidad
+        # Frame for utility buttons
         utils_frame = tk.Frame(footer_frame, bg=self.colors['secondary'])
         utils_frame.pack(pady=(0, 10))
         
-        # Botones de utilidad
+        # Utility buttons
         buttons = [
-            ("🔧 Verificar Dependencias", self.check_dependencies),
-            ("📁 Abrir Carpeta Logs", self.open_logs_folder),
-            ("📄 Abrir README", self.open_readme),
-            ("❌ Cerrar Todo", self.close_all_apps)
+            ("🔧 Check Dependencies", self.check_dependencies),
+            ("📁 Open Logs Folder", self.open_logs_folder),
+            ("📄 Open README", self.open_readme),
+            ("❌ Close All", self.close_all_apps)
         ]
         
         for text, command in buttons:
@@ -343,66 +343,66 @@ class GW2SpeedometerLauncher:
                           command=command)
             btn.pack(side='left', padx=5)
         
-        # Información del proyecto
+        # Project information
         info_label = tk.Label(footer_frame,
-                            text="GW2 Speedometer Suite v2.06.28 | Herramientas para carreras de escarabajos en Guild Wars 2",
+                            text="GW2 Speedometer Suite v2.06.28 | Professional tools for beetle racing in Guild Wars 2",
                             bg=self.colors['secondary'],
                             fg=self.colors['text_secondary'],
                             font=('Segoe UI', 8))
         info_label.pack()
 
     def launch_app(self, app):
-        """Lanzar una aplicación específica"""
+        """Launch a specific application"""
         try:
             if app['file'] in self.running_processes:
-                messagebox.showwarning("Aplicación en Ejecución", 
-                                     f"{app['name']} ya está ejecutándose.")
+                messagebox.showwarning("Application Running", 
+                                     f"{app['name']} is already running.")
                 return
             
-            # Verificar que el archivo existe
+            # Check if file exists
             app_path = Path(app['file'])
             if not app_path.exists():
                 messagebox.showerror("Error", 
-                                   f"No se encontró el archivo {app['file']}")
+                                   f"File {app['file']} not found")
                 return
             
-            # Lanzar la aplicación en un proceso separado
+            # Launch application in separate process
             process = subprocess.Popen([sys.executable, app['file']], 
                                      cwd=Path.cwd(),
                                      creationflags=subprocess.CREATE_NEW_CONSOLE if os.name == 'nt' else 0)
             
-            # Guardar referencia al proceso
+            # Save process reference
             self.running_processes[app['file']] = process
             
-            # Actualizar estado visual
-            app['status_label'].config(text="● Ejecutándose", fg=self.colors['success'])
+            # Update visual status
+            app['status_label'].config(text="● Running", fg=self.colors['success'])
             
-            # Monitorear el proceso
+            # Monitor process
             self.monitor_process(app)
             
-            #messagebox.showinfo("Éxito", f"{app['name']} se ha lanzado correctamente.")
+            #messagebox.showinfo("Success", f"{app['name']} launched successfully.")
             
         except Exception as e:
-            messagebox.showerror("Error", f"Error al lanzar {app['name']}: {str(e)}")
+            messagebox.showerror("Error", f"Error launching {app['name']}: {str(e)}")
 
     def monitor_process(self, app):
-        """Monitorear el estado de un proceso"""
+        """Monitor process status"""
         def check_process():
             if app['file'] in self.running_processes:
                 process = self.running_processes[app['file']]
                 if process.poll() is not None:
-                    # El proceso ha terminado
+                    # Process has terminated
                     del self.running_processes[app['file']]
-                    app['status_label'].config(text="● Detenido", fg=self.colors['text_secondary'])
+                    app['status_label'].config(text="● Stopped", fg=self.colors['text_secondary'])
                 else:
-                    # El proceso sigue corriendo, verificar de nuevo en 2 segundos
+                    # Process still running, check again in 2 seconds
                     self.root.after(2000, check_process)
         
-        # Iniciar monitoreo
+        # Start monitoring
         self.root.after(1000, check_process)
 
     def check_dependencies(self):
-        """Verificar que todas las dependencias estén instaladas"""
+        """Check if all dependencies are installed"""
         try:
             import pandas
             import numpy
@@ -414,15 +414,15 @@ class GW2SpeedometerLauncher:
             import requests
             import websocket
             
-            messagebox.showinfo("Dependencias", "✅ Todas las dependencias están instaladas correctamente.")
+            messagebox.showinfo("Dependencies", "✅ All dependencies are installed correctly.")
             
         except ImportError as e:
-            messagebox.showerror("Dependencias Faltantes", 
-                               f"❌ Faltan dependencias: {str(e)}\n\n"
-                               f"Ejecuta 'install.bat' para instalar todas las dependencias.")
+            messagebox.showerror("Missing Dependencies", 
+                               f"❌ Missing dependencies: {str(e)}\n\n"
+                               f"Run 'install.bat' to install all dependencies.")
 
     def open_logs_folder(self):
-        """Abrir la carpeta de logs"""
+        """Open logs folder"""
         logs_path = Path("logs")
         if logs_path.exists():
             if os.name == 'nt':  # Windows
@@ -430,10 +430,10 @@ class GW2SpeedometerLauncher:
             else:  # Unix/Linux/Mac
                 subprocess.run(['xdg-open', str(logs_path)])
         else:
-            messagebox.showinfo("Carpeta Logs", "La carpeta 'logs' se creará automáticamente cuando ejecutes el speedometer.")
+            messagebox.showinfo("Logs Folder", "The 'logs' folder will be created automatically when you run the speedometer.")
 
     def open_readme(self):
-        """Abrir el archivo README"""
+        """Open README file"""
         readme_path = Path("README.md")
         if readme_path.exists():
             if os.name == 'nt':  # Windows
@@ -441,68 +441,68 @@ class GW2SpeedometerLauncher:
             else:  # Unix/Linux/Mac
                 subprocess.run(['xdg-open', str(readme_path)])
         else:
-            messagebox.showwarning("README", "No se encontró el archivo README.md")
+            messagebox.showwarning("README", "README.md file not found")
 
     def close_all_apps(self):
-        """Cerrar todas las aplicaciones ejecutándose"""
+        """Close all running applications"""
         if not self.running_processes:
-            messagebox.showinfo("Sin Aplicaciones", "No hay aplicaciones ejecutándose.")
+            messagebox.showinfo("No Applications", "No applications are running.")
             return
         
-        result = messagebox.askyesno("Cerrar Aplicaciones", 
-                                   f"¿Estás seguro de que quieres cerrar {len(self.running_processes)} aplicación(es)?")
+        result = messagebox.askyesno("Close Applications", 
+                                   f"Are you sure you want to close {len(self.running_processes)} application(s)?")
         
         if result:
             for app_file, process in list(self.running_processes.items()):
                 try:
                     process.terminate()
-                    # Dar tiempo para terminar gracefully
+                    # Give time to terminate gracefully
                     process.wait(timeout=3)
                 except subprocess.TimeoutExpired:
-                    # Si no termina, forzar cierre
+                    # If it doesn't terminate, force kill
                     process.kill()
                 except Exception as e:
-                    print(f"Error cerrando {app_file}: {e}")
+                    print(f"Error closing {app_file}: {e}")
             
             self.running_processes.clear()
             
-            # Actualizar estados visuales
+            # Update visual states
             for app in self.apps:
                 if 'status_label' in app:
-                    app['status_label'].config(text="● Detenido", fg=self.colors['text_secondary'])
+                    app['status_label'].config(text="● Stopped", fg=self.colors['text_secondary'])
             
-            messagebox.showinfo("Éxito", "Todas las aplicaciones han sido cerradas.")
+            messagebox.showinfo("Success", "All applications have been closed.")
 
     def on_closing(self):
-        """Manejar el cierre de la aplicación"""
+        """Handle application closure"""
         if self.running_processes:
-            result = messagebox.askyesno("Cerrar Launcher", 
-                                       "Hay aplicaciones ejecutándose. ¿Quieres cerrarlas también?")
+            result = messagebox.askyesno("Close Launcher", 
+                                       "There are applications running. Do you want to close them too?")
             if result:
                 self.close_all_apps()
         
         self.root.destroy()
 
     def run(self):
-        """Ejecutar el launcher"""
+        """Run the launcher"""
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.root.mainloop()
 
 
 def main():
-    """Función principal"""
+    """Main function"""
     try:
-        # Cambiar al directorio del script
+        # Change to script directory
         script_dir = Path(__file__).parent
         os.chdir(script_dir)
         
-        # Crear y ejecutar el launcher
+        # Create and run launcher
         launcher = GW2SpeedometerLauncher()
         launcher.run()
         
     except Exception as e:
-        print(f"Error al iniciar el launcher: {e}")
-        messagebox.showerror("Error Fatal", f"Error al iniciar el launcher: {e}")
+        print(f"Error starting launcher: {e}")
+        messagebox.showerror("Fatal Error", f"Error starting launcher: {e}")
 
 
 if __name__ == "__main__":

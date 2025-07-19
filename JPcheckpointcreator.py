@@ -350,8 +350,8 @@ class Ghost3d(object):
         layout.setAlignment(QtCore.Qt.AlignCenter)
         self.wtime.setLayout(layout)
 
-        #self.label = QtGui.QLabel(str(timer))
-        #self.label.setFont(QtGui.QFont('Lucida Console', 20))
+        #self.label = QtWidgets.QLabel(str(timer))
+#self.label.setFont(QtGui.QFont('Lucida Console', 20))
         #self.label.setStyleSheet("background: rgba(255, 0, 0, 0);");
         
         #my_font = QFont("Times New Roman", 12)

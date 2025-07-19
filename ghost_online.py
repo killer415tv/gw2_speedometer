@@ -525,24 +525,24 @@ class Ghost3d():
         layout.setAlignment(QtCore.Qt.AlignCenter)
         self.wtime.setLayout(layout)
 
-        self.label = QtGui.QLabel(str(timer))
+        self.label = QtWidgets.QLabel(str(timer))
         self.label.setFont(QtGui.QFont("Digital-7 Mono", 25))
         self.label.setStyleSheet("background: rgba(255, 0, 0, 0);");
 
-        self.labelspeed = QtGui.QLabel("Initial Speed: 000")
+        self.labelspeed = QtWidgets.QLabel("Initial Speed: 000")
         self.labelspeed.setFont(QtGui.QFont("Digital-7 Mono", 23))
         self.labelspeed.setStyleSheet("background: rgba(255, 0, 0, 0);");
         
         
         """ # add buttons
 
-        self.buttonfov_var_add = QtGui.QPushButton(self.wtime)
+        self.buttonfov_var_add = QtWidgets.QPushButton(self.wtime)
         self.buttonfov_var_add.setText("+ more")
 
-        self.buttonelevation_var_add = QtGui.QPushButton(self.wtime)
+        self.buttonelevation_var_add = QtWidgets.QPushButton(self.wtime)
         self.buttonelevation_var_add.setText("+ more")
 
-        self.buttondistance_var_add = QtGui.QPushButton(self.wtime)
+        self.buttondistance_var_add = QtWidgets.QPushButton(self.wtime)
         self.buttondistance_var_add.setText("+ more")
 
         self.buttonfov_var_add.clicked.connect(self.fov_var_add_clicked)
@@ -551,13 +551,13 @@ class Ghost3d():
         
         # less buttons
 
-        self.buttonfov_var_less = QtGui.QPushButton(self.wtime)
+        self.buttonfov_var_less = QtWidgets.QPushButton(self.wtime)
         self.buttonfov_var_less.setText("+ more")
 
-        self.buttonelevation_var_less = QtGui.QPushButton(self.wtime)
+        self.buttonelevation_var_less = QtWidgets.QPushButton(self.wtime)
         self.buttonelevation_var_less.setText("+ more")
 
-        self.buttondistance_var_less = QtGui.QPushButton(self.wtime)
+        self.buttondistance_var_less = QtWidgets.QPushButton(self.wtime)
         self.buttondistance_var_less.setText("+ more")
 
         self.buttonfov_var_less.clicked.connect(self.fov_var_less_clicked)

@@ -11,20 +11,23 @@ Author: Enhanced for ease of use
 """
 
 import tkinter as tk
-from tkinter import ttk, messagebox, font
+from tkinter import ttk, messagebox, font, Canvas
+from tkinter.font import Font
 import subprocess
 import sys
 import os
 import threading
 from pathlib import Path
 import json
+import webbrowser
+# PIL y cairosvg se importan dinámicamente en load_logo() para evitar errores si no están instaladas
 
 class GW2SpeedometerLauncher:
     def __init__(self):
         self.root = tk.Tk()
-        self.root.title("GW2 Speedometer Suite v2.06.28")
+        self.root.title("Beetlerank Speed Suite v2.06.28")
         self.root.geometry("950x700")
-        self.root.configure(bg='#2c3e50')
+        self.root.configure(bg='#1a1a1a')
         
         # Hacer que la ventana sea redimensionable
         self.root.minsize(800, 600)
@@ -36,6 +39,9 @@ class GW2SpeedometerLauncher:
         # Configurar estilos
         self.setup_styles()
         
+        # Cargar logo
+        self.load_logo()
+        
         # Crear interfaz
         self.create_header()
         self.create_main_content()
@@ -44,21 +50,51 @@ class GW2SpeedometerLauncher:
         # Verificar dependencias al iniciar
         self.check_dependencies()
         
+    def load_logo(self):
+        """Load and process the Beetlerank logo"""
+        self.logo_img = None
+        try:
+            # Check if SVG file exists
+            logo_path = Path("logo.svg")
+            if not logo_path.exists():
+                return
+                
+            # Try to load dependencies
+            import cairosvg
+            from PIL import Image, ImageTk
+            from io import BytesIO
+            
+            # Convert SVG to PNG
+            png_output = cairosvg.svg2png(url=str(logo_path), output_width=180, output_height=40)
+            
+            # Load PNG into PIL and convert for tkinter
+            logo_image = Image.open(BytesIO(png_output))
+            self.logo_img = ImageTk.PhotoImage(logo_image)
+            
+        except ImportError:
+            # Dependencies not installed yet - create text placeholder
+            pass
+        except Exception as e:
+            # Any other error - continue without logo
+            print(f"Logo loading failed: {e}")
+            pass
+        
     def setup_styles(self):
         """Configurar estilos personalizados para la interfaz"""
         self.style = ttk.Style()
         self.style.theme_use('clam')
         
-        # Colores del tema
+        # Beetlerank.com color scheme
         self.colors = {
-            'bg': '#2c3e50',
-            'secondary': '#34495e', 
-            'accent': '#3498db',
-            'success': '#27ae60',
-            'warning': '#f39c12',
-            'danger': '#e74c3c',
-            'text': '#ecf0f1',
-            'text_secondary': '#bdc3c7'
+            'bg': '#1a1a1a',           # Dark background like beetlerank
+            'secondary': '#2d2d2d',     # Dark gray for cards
+            'accent': '#e74c3c',        # Red accent like beetlerank
+            'success': '#27ae60',       # Keep green for success
+            'warning': '#f39c12',       # Keep orange for warnings
+            'danger': '#c0392b',        # Darker red for errors
+            'text': '#ffffff',          # Pure white text
+            'text_secondary': '#999999', # Gray secondary text
+            'border': '#404040'         # Gray borders
         }
         
         # Configurar estilos personalizados
@@ -82,25 +118,62 @@ class GW2SpeedometerLauncher:
                            font=('Segoe UI', 9))
 
     def create_header(self):
-        """Crear la cabecera de la aplicación"""
-        header_frame = tk.Frame(self.root, bg=self.colors['bg'], pady=20)
+        """Create the application header with Beetlerank branding"""
+        header_frame = tk.Frame(self.root, bg=self.colors['bg'], pady=25)
         header_frame.pack(fill='x')
         
-        # Título principal
-        title_label = ttk.Label(header_frame, 
-                               text="GW2 Speedometer Suite",
-                               style='Header.TLabel')
-        title_label.pack()
+        # Logo and title container
+        logo_title_frame = tk.Frame(header_frame, bg=self.colors['bg'])
+        logo_title_frame.pack(pady=(0, 15))
+        
+        # Logo
+        if hasattr(self, 'logo_img') and self.logo_img:
+            logo_label = tk.Label(logo_title_frame, image=self.logo_img, bg=self.colors['bg'])
+            logo_label.pack(pady=(0, 10))
+        
+        # Main title with custom styling
+        title_frame = tk.Frame(logo_title_frame, bg=self.colors['bg'])
+        title_frame.pack()
+        
+        # "Beetlerank" text in red
+        beetlerank_label = tk.Label(title_frame, 
+                                   text="BEETLERANK",
+                                   bg=self.colors['bg'],
+                                   fg=self.colors['accent'],
+                                   font=('Segoe UI', 24, 'bold'))
+        beetlerank_label.pack(side='left')
+        
+        # "Speed Suite" text in white
+        suite_label = tk.Label(title_frame,
+                              text=" SPEED SUITE",
+                              bg=self.colors['bg'],
+                              fg=self.colors['text'],
+                              font=('Segoe UI', 24, 'bold'))
+        suite_label.pack(side='left')
         
         # Subtitle
         subtitle_label = ttk.Label(header_frame,
                                  text="Professional racing tools for beetle races in Guild Wars 2",
                                  style='Subtitle.TLabel')
-        subtitle_label.pack(pady=(5, 0))
+        subtitle_label.pack(pady=(10, 0))
         
-        # Separator
-        separator = ttk.Separator(header_frame, orient='horizontal')
-        separator.pack(fill='x', pady=(20, 0))
+        # Beetlerank.com link
+        link_label = tk.Label(header_frame,
+                            text="Visit beetlerank.com",
+                            bg=self.colors['bg'],
+                            fg=self.colors['accent'],
+                            font=('Segoe UI', 10, 'underline'),
+                            cursor='hand2')
+        link_label.pack(pady=(5, 0))
+        link_label.bind("<Button-1>", lambda e: webbrowser.open("https://beetlerank.com"))
+        
+        # Separator line with red accent
+        separator_frame = tk.Frame(header_frame, bg=self.colors['bg'], height=2)
+        separator_frame.pack(fill='x', pady=(15, 0))
+        
+        # Red accent line
+        accent_line = tk.Frame(separator_frame, bg=self.colors['accent'], height=2)
+        accent_line.pack(fill='x')
 
     def create_main_content(self):
         """Crear el contenido principal con las aplicaciones en cuadrícula"""
@@ -215,16 +288,18 @@ class GW2SpeedometerLauncher:
 
     def create_app_card_grid(self, parent, app, row, col):
         """Crear una tarjeta compacta para cuadrícula"""
-        # Frame principal de la tarjeta
-        card_frame = tk.Frame(parent, bg=self.colors['secondary'], relief='raised', bd=1)
-        card_frame.grid(row=row, column=col, padx=8, pady=8, sticky='ew')
+        # Frame principal de la tarjeta con bordes sutiles
+        card_frame = tk.Frame(parent, bg=self.colors['secondary'], 
+                             relief='solid', bd=1, highlightbackground=self.colors['border'],
+                             highlightcolor=self.colors['border'], highlightthickness=1)
+        card_frame.grid(row=row, column=col, padx=10, pady=10, sticky='ew')
         
         # Configurar peso de las columnas para distribución uniforme
         parent.grid_columnconfigure(col, weight=1, uniform="columns")
         
         # Frame de contenido
         content_frame = tk.Frame(card_frame, bg=self.colors['secondary'])
-        content_frame.pack(fill='both', expand=True, padx=12, pady=12)
+        content_frame.pack(fill='both', expand=True, padx=15, pady=15)
         
         # Emoji y nombre (más grande y prominente)
         name_parts = app['name'].split(' ', 1)
@@ -293,11 +368,13 @@ class GW2SpeedometerLauncher:
             tooltip.wm_geometry(f"+{event.x_root+10}+{event.y_root+10}")
             
             label = tk.Label(tooltip, text=text, 
-                           bg='#2c3e50', fg='white',
+                           bg=self.colors['secondary'], fg=self.colors['text'],
                            font=('Segoe UI', 9),
                            wraplength=300,
                            justify='left',
-                           padx=8, pady=6)
+                           padx=8, pady=6,
+                           relief='solid', bd=1,
+                           highlightbackground=self.colors['border'])
             label.pack()
             
             def hide_tooltip():
@@ -344,12 +421,25 @@ class GW2SpeedometerLauncher:
             btn.pack(side='left', padx=5)
         
         # Project information
-        info_label = tk.Label(footer_frame,
-                            text="GW2 Speedometer Suite v2.06.28 | Professional tools for beetle racing in Guild Wars 2",
+        info_frame = tk.Frame(footer_frame, bg=self.colors['secondary'])
+        info_frame.pack()
+        
+        info_label = tk.Label(info_frame,
+                            text="Beetlerank Speed Suite v2.06.28 | Powered by ",
                             bg=self.colors['secondary'],
                             fg=self.colors['text_secondary'],
                             font=('Segoe UI', 8))
-        info_label.pack()
+        info_label.pack(side='left')
+        
+        # Clickable beetlerank.com link in footer
+        beetlerank_link = tk.Label(info_frame,
+                                 text="beetlerank.com",
+                                 bg=self.colors['secondary'],
+                                 fg=self.colors['accent'],
+                                 font=('Segoe UI', 8, 'underline'),
+                                 cursor='hand2')
+        beetlerank_link.pack(side='left')
+        beetlerank_link.bind("<Button-1>", lambda e: webbrowser.open("https://beetlerank.com"))
 
     def launch_app(self, app):
         """Launch a specific application"""

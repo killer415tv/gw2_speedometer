@@ -1,98 +1,98 @@
 @echo off
 echo ===============================================
-echo    GW2 Speedometer Suite - Instalacion
+echo    GW2 Speedometer Suite - Installation
 echo ===============================================
 echo.
 
-REM Configurar variables
+REM Configure variables
 set VENV_DIR=venv
 set PYTHON_MIN_VERSION=3.9
 set PROJECT_NAME=GW2 Speedometer Suite
 
-REM Verificar si Python esta instalado
-echo [1/6] Verificando Python...
+REM Check if Python is installed
+echo [1/6] Checking Python...
 python --version >nul 2>&1
 if errorlevel 1 (
-    echo ❌ ERROR: Python no esta instalado o no esta en PATH
+    echo ERROR: Python is not installed or not in PATH
     echo.
-    echo Por favor instala Python 3.9 o superior desde:
+    echo Please install Python 3.9 or higher from:
     echo https://www.python.org/downloads/
     echo.
-    echo IMPORTANTE: Marca la opcion "Add Python to PATH" durante la instalacion
+    echo IMPORTANT: Check "Add Python to PATH" during installation
     echo.
     pause
     exit /b 1
 )
 
-REM Obtener version de Python
+REM Get Python version
 for /f "tokens=2" %%i in ('python --version 2^>^&1') do set PYTHON_VERSION=%%i
-echo ✅ Python %PYTHON_VERSION% encontrado
+echo OK: Python %PYTHON_VERSION% found
 
-REM Verificar version minima
+REM Check minimum version
 python -c "import sys; exit(0 if sys.version_info >= (3, 9) else 1)" >nul 2>&1
 if errorlevel 1 (
-    echo ❌ ERROR: Se requiere Python 3.9 o superior
-    echo Version actual: %PYTHON_VERSION%
+    echo ERROR: Python 3.9 or higher required
+    echo Current version: %PYTHON_VERSION%
     echo.
-    echo Descarga Python 3.9+ desde: https://www.python.org/downloads/
+    echo Download Python 3.9+ from: https://www.python.org/downloads/
     pause
     exit /b 1
 )
 
 echo.
-echo [2/6] Verificando pip...
+echo [2/6] Checking pip...
 python -m pip --version >nul 2>&1
 if errorlevel 1 (
-    echo ❌ ERROR: pip no esta disponible
-    echo Instalando pip...
+    echo ERROR: pip is not available
+    echo Installing pip...
     python -m ensurepip --upgrade
     if errorlevel 1 (
-        echo ❌ ERROR: No se pudo instalar pip
+        echo ERROR: Could not install pip
         pause
         exit /b 1
     )
 )
-echo ✅ pip disponible
+echo OK: pip available
 
 echo.
-echo [3/6] Eliminando entorno virtual anterior (si existe)...
+echo [3/6] Removing previous virtual environment (if exists)...
 if exist "%VENV_DIR%" (
-    echo Eliminando %VENV_DIR%...
+    echo Removing %VENV_DIR%...
     rmdir /s /q "%VENV_DIR%"
 )
 
 echo.
-echo [4/6] Creando entorno virtual...
+echo [4/6] Creating virtual environment...
 python -m venv "%VENV_DIR%"
 if errorlevel 1 (
-    echo ❌ ERROR: No se pudo crear el entorno virtual
+    echo ERROR: Could not create virtual environment
     pause
     exit /b 1
 )
-echo ✅ Entorno virtual creado en %VENV_DIR%
+echo OK: Virtual environment created in %VENV_DIR%
 
 echo.
-echo [5/6] Activando entorno virtual e instalando dependencias...
+echo [5/6] Activating virtual environment and installing dependencies...
 call "%VENV_DIR%\Scripts\activate.bat"
 
-REM Actualizar pip en el entorno virtual
-echo Actualizando pip...
+REM Update pip in virtual environment
+echo Updating pip...
 python -m pip install --upgrade pip
 
-REM Instalar wheel para evitar problemas de compilacion
-echo Instalando wheel...
+REM Install wheel to avoid compilation issues
+echo Installing wheel...
 python -m pip install wheel
 
-REM Instalar dependencias principales
-echo Instalando dependencias principales...
+REM Install main dependencies
+echo Installing main dependencies...
 python -m pip install -r requirements.txt
 
 if errorlevel 1 (
-    echo ❌ ERROR: No se pudieron instalar las dependencias
+    echo ERROR: Could not install dependencies
     echo.
-    echo Intentando instalacion individual de paquetes criticos...
+    echo Trying individual installation of critical packages...
     
-    REM Instalar paquetes uno por uno para mejor diagnostico
+    REM Install packages one by one for better diagnostics
     python -m pip install numpy==1.21.2
     python -m pip install pandas==1.3.2
     python -m pip install scipy==1.7.1
@@ -101,101 +101,101 @@ if errorlevel 1 (
     python -m pip install paho-mqtt==1.5.1
     python -m pip install websocket-client==1.3.3
     
-    REM Paquetes que pueden ser problematicos - instalar sin version especifica
-    echo Instalando paquetes de GUI...
+    REM Packages that might be problematic - install without specific version
+    echo Installing GUI packages...
     python -m pip install PySide2 || (
-        echo ⚠️ ADVERTENCIA: No se pudo instalar PySide2
-        echo Algunas funciones 3D pueden no estar disponibles
+        echo WARNING: Could not install PySide2
+        echo Some 3D functions may not be available
     )
     
     python -m pip install pyqtgraph || (
-        echo ⚠️ ADVERTENCIA: No se pudo instalar pyqtgraph  
-        echo Algunas funciones 3D pueden no estar disponibles
+        echo WARNING: Could not install pyqtgraph  
+        echo Some 3D functions may not be available
     )
     
     python -m pip install pyopengl || (
-        echo ⚠️ ADVERTENCIA: No se pudo instalar pyopengl
-        echo Algunas funciones 3D pueden no estar disponibles  
+        echo WARNING: Could not install pyopengl
+        echo Some 3D functions may not be available  
     )
     
     python -m pip install opensimplex || (
-        echo ⚠️ ADVERTENCIA: No se pudo instalar opensimplex
-        echo Algunas funciones pueden no estar disponibles
+        echo WARNING: Could not install opensimplex
+        echo Some functions may not be available
     )
     
     python -m pip install plotly || (
-        echo ⚠️ ADVERTENCIA: No se pudo instalar plotly
-        echo Funciones de graficos avanzados pueden no estar disponibles
+        echo WARNING: Could not install plotly
+        echo Advanced graphics functions may not be available
     )
     
     echo.
-    echo ⚠️ Instalacion completada con advertencias
-    echo El speedometer principal deberia funcionar correctamente
-    echo Algunas funciones 3D avanzadas pueden no estar disponibles
+    echo WARNING: Installation completed with warnings
+    echo Main speedometer should work correctly
+    echo Some advanced 3D functions may not be available
 ) else (
-    echo ✅ Dependencias instaladas correctamente
+    echo OK: Dependencies installed correctly
 )
 
 echo.
-echo [6/6] Creando scripts de lanzamiento...
+echo [6/6] Creating launch scripts...
 
-REM Crear launcher principal
+REM Create main launcher
 echo @echo off > launch.bat
-echo echo Iniciando GW2 Speedometer Suite... >> launch.bat
+echo echo Starting GW2 Speedometer Suite... >> launch.bat
 echo cd /d "%%~dp0" >> launch.bat
 echo call venv\Scripts\activate.bat >> launch.bat
 echo python launcher.py >> launch.bat
 echo if errorlevel 1 pause >> launch.bat
 
-REM Crear script de lanzamiento rapido del speedometer
+REM Create quick speedometer launch script
 echo @echo off > quick_speedometer.bat
-echo echo Iniciando Speedometer... >> quick_speedometer.bat
+echo echo Starting Speedometer... >> quick_speedometer.bat
 echo cd /d "%%~dp0" >> quick_speedometer.bat
 echo call venv\Scripts\activate.bat >> quick_speedometer.bat
 echo python speedometer.py >> quick_speedometer.bat
 echo pause >> quick_speedometer.bat
 
-REM Crear script de actualizacion
+REM Create update script
 echo @echo off > update.bat
-echo echo Actualizando dependencias... >> update.bat
+echo echo Updating dependencies... >> update.bat
 echo cd /d "%%~dp0" >> update.bat
 echo call venv\Scripts\activate.bat >> update.bat
 echo python -m pip install --upgrade pip >> update.bat
 echo python -m pip install -r requirements.txt --upgrade >> update.bat
-echo echo Actualizacion completada >> update.bat
+echo echo Update completed >> update.bat
 echo pause >> update.bat
 
-echo ✅ Scripts de lanzamiento creados
+echo OK: Launch scripts created
 
 echo.
 echo ===============================================
-echo          ✅ INSTALACION COMPLETADA
+echo          INSTALLATION COMPLETED
 echo ===============================================
 echo.
-echo Scripts disponibles:
-echo   • launch.bat         - Launcher principal
-echo   • quick_speedometer.bat - Speedometer directo  
-echo   • update.bat         - Actualizar dependencias
+echo Available scripts:
+echo   - launch.bat         - Main launcher
+echo   - quick_speedometer.bat - Direct speedometer  
+echo   - update.bat         - Update dependencies
 echo.
-echo Para iniciar el programa:
-echo   1. Ejecuta launch.bat para el launcher completo
-echo   2. O ejecuta quick_speedometer.bat para inicio rapido
+echo To start the program:
+echo   1. Run launch.bat for the complete launcher
+echo   2. Or run quick_speedometer.bat for quick start
 echo.
-echo IMPORTANTE: 
-echo - Siempre usa estos scripts para ejecutar el programa
-echo - NO ejecutes los archivos .py directamente 
-echo - El entorno virtual se activa automaticamente
+echo IMPORTANT: 
+echo - Always use these scripts to run the program
+echo - DO NOT run .py files directly 
+echo - Virtual environment activates automatically
 echo.
 
-REM Preguntar si quiere ejecutar el programa ahora
-set /p choice="¿Quieres ejecutar el launcher ahora? (s/n): "
-if /i "%choice%"=="s" (
+REM Ask if user wants to run the program now
+set /p choice="Do you want to run the launcher now? (y/n): "
+if /i "%choice%"=="y" (
     echo.
-    echo Iniciando launcher...
+    echo Starting launcher...
     call launch.bat
 ) else (
     echo.
-    echo Ejecuta 'launch.bat' cuando quieras usar el programa
+    echo Run 'launch.bat' when you want to use the program
 )
 
 echo.

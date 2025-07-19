@@ -1,40 +1,40 @@
-# 🚀 Guía de Instalación - GW2 Speedometer Suite
+# 🚀 Installation Guide - Beetlerank Speed Suite
 
-## 📋 Instalación Automática (Recomendada)
+## 📋 Automatic Installation (Recommended)
 
 ### Windows
-1. **Descarga el proyecto** desde GitHub como ZIP y descomprímelo
-2. **Ejecuta** `install.bat` como administrador
-3. **Sigue las instrucciones** en pantalla
-4. **Lanza el programa** con `launch.bat`
+1. **Download the project** from GitHub as ZIP and extract it
+2. **Run** `install.bat` as administrator
+3. **Follow the instructions** on screen
+4. **Launch the program** with `launch.bat`
 
 ### Linux/Mac
-1. **Descarga el proyecto** desde GitHub como ZIP y descomprímelo
-2. **Abre terminal** en la carpeta del proyecto
-3. **Ejecuta**: `chmod +x install.sh && ./install.sh`
-4. **Lanza el programa** con `./launch.sh`
+1. **Download the project** from GitHub as ZIP and extract it
+2. **Open terminal** in the project folder
+3. **Execute**: `chmod +x install.sh && ./install.sh`
+4. **Launch the program** with `./launch.sh`
 
 ---
 
-## 🔧 Instalación Manual
+## 🔧 Manual Installation
 
-### Requisitos Previos
-- **Python 3.9 o superior** ([Descargar aquí](https://www.python.org/downloads/))
-- **Git** (opcional)
+### Prerequisites
+- **Python 3.9 or higher** ([Download here](https://www.python.org/downloads/))
+- **Git** (optional)
 
-### Pasos Detallados
+### Detailed Steps
 
-#### 1. Obtener el Código
+#### 1. Get the Code
 ```bash
-# Opción A: Con Git
-git clone https://github.com/tu-usuario/gw2_speedometer.git
+# Option A: With Git
+git clone https://github.com/killer415tv/gw2_speedometer.git
 cd gw2_speedometer
 
-# Opción B: Descarga directa
-# Descarga el ZIP desde GitHub y descomprime
+# Option B: Direct download
+# Download the ZIP from GitHub and extract
 ```
 
-#### 2. Crear Entorno Virtual
+#### 2. Create Virtual Environment
 ```bash
 # Windows
 python -m venv venv
@@ -45,32 +45,32 @@ python3 -m venv venv
 source venv/bin/activate
 ```
 
-#### 3. Instalar Dependencias
+#### 3. Install Dependencies
 ```bash
-# Instalación completa (recomendada)
+# Complete installation (recommended)
 pip install -r requirements.txt
 
-# Instalación mínima (solo speedometer básico)
+# Minimal installation (basic speedometer only)
 pip install numpy pandas scipy pynput requests paho-mqtt websocket-client
 ```
 
-#### 4. Ejecutar
+#### 4. Run Applications
 ```bash
-# Launcher completo
+# Complete launcher
 python launcher.py
 
-# Solo speedometer
+# Direct speedometer
 python speedometer.py
 ```
 
 ---
 
-## 🚨 Solución de Problemas
+## 🚨 Troubleshooting
 
-### Error: "Python no encontrado"
+### Error: "Python not found"
 **Windows:**
-- Reinstala Python desde [python.org](https://python.org)
-- ✅ **MARCA** "Add Python to PATH" durante la instalación
+- Reinstall Python from [python.org](https://python.org)
+- ✅ **CHECK** "Add Python to PATH" during installation
 
 **Linux:**
 ```bash
@@ -83,15 +83,15 @@ sudo yum install python3 python3-pip
 
 **macOS:**
 ```bash
-# Con Homebrew
+# With Homebrew
 brew install python3
 
-# O descarga desde python.org
+# Or download from python.org
 ```
 
 ### Error: "No module named XXX"
 ```bash
-# Activa el entorno virtual y reinstala
+# Activate virtual environment and reinstall
 # Windows
 venv\Scripts\activate
 pip install -r requirements.txt
@@ -101,28 +101,38 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### Problemas con PySide2/PyQt
+### Issues with PySide2/PyQt
 ```bash
-# Intenta alternativas
+# Try alternatives
 pip uninstall PySide2
 pip install PyQt5
 
-# O usa sin GUI 3D
+# Or use without 3D GUI
 pip install --no-deps pyqtgraph
 ```
 
-### Error de Permisos (Linux/Mac)
+### Permission Errors (Linux/Mac)
 ```bash
-# Dar permisos a los scripts
+# Give permissions to scripts
 chmod +x *.sh
 chmod +x install.sh
 ```
 
+### WebSocket Connection Issues
+```bash
+# Ensure correct websocket package
+pip uninstall websocket websocket-client
+pip install websocket-client
+
+# Test the import
+python -c "from websocket import WebSocketApp; print('Success')"
+```
+
 ---
 
-## 📱 Diferentes Formas de Ejecutar
+## 📱 Different Ways to Run
 
-### 1. Launcher Completo (Recomendado)
+### 1. Complete Launcher (Recommended)
 ```bash
 # Windows
 launch.bat
@@ -130,11 +140,11 @@ launch.bat
 # Linux/Mac
 ./launch.sh
 ```
-- ✅ Interfaz gráfica con todas las aplicaciones
-- ✅ Gestión automática de procesos
-- ✅ Verificación de dependencias
+- ✅ Graphical interface with all applications
+- ✅ Automatic process management
+- ✅ Dependency verification
 
-### 2. Speedometer Directo
+### 2. Direct Speedometer
 ```bash
 # Windows
 quick_speedometer.bat
@@ -142,28 +152,33 @@ quick_speedometer.bat
 # Linux/Mac
 ./quick_speedometer.sh
 ```
-- ✅ Inicio más rápido
-- ✅ Solo la aplicación principal
+- ✅ Faster startup
+- ✅ Main application only
 
-### 3. Aplicaciones Individuales
+### 3. Individual Applications
 ```bash
-# Activar entorno virtual primero
+# Activate virtual environment first
 # Windows: venv\Scripts\activate
 # Linux/Mac: source venv/bin/activate
 
-python speedometer.py          # Speedometer principal
-python checkpoints.py          # Visor de checkpoints 3D
-python ghost_online.py         # Sistema de ghost
-python vectors.py              # Visualizador de vectores
-python RACINGcheckpointcreator.py  # Creador de checkpoints (carreras)
-python JPcheckpointcreator.py  # Creador de checkpoints (jumping puzzles)
+python speedometer.py                    # Main speedometer
+python checkpoints.py                    # 3D checkpoint viewer
+python ghost_online.py                   # Ghost system
+python ghost_online_relative_to_user.py  # Relative ghost system
+python vectors.py                        # Vector visualizer
+python RACINGcheckpointcreator.py        # Racing checkpoint creator
+python JPcheckpointcreator.py            # Jumping puzzle creator
+python map_realtime.py                   # Real-time map
+python map_realtime_multiplayer.py       # Multiplayer map
+python forzaHorizon.py                   # Forza Horizon style display
+python web3DPlotter.py                   # 3D web plotter
 ```
 
 ---
 
-## 🔄 Actualización
+## 🔄 Updates
 
-### Actualizar Dependencias
+### Update Dependencies
 ```bash
 # Windows
 update.bat
@@ -175,75 +190,227 @@ update.bat
 pip install -r requirements.txt --upgrade
 ```
 
-### Actualizar Código
+### Update Code
 ```bash
-# Con Git
+# With Git
 git pull origin main
 
 # Manual
-# Descarga la nueva versión y reemplaza archivos
+# Download new version and replace files
 ```
 
 ---
 
-## 🎮 Configuración Post-Instalación
+## 🎮 Post-Installation Setup
 
-### 1. Configurar Guild Wars 2
-- ✅ Inicia Guild Wars 2
-- ✅ El juego debe estar **ejecutándose** para usar el speedometer
+### 1. Configure Guild Wars 2
+- ✅ Start Guild Wars 2
+- ✅ Game must be **running** to use the speedometer
 
-### 2. Primera Ejecución
-1. Ejecuta `launch.bat` (Windows) o `./launch.sh` (Linux/Mac)
-2. Haz clic en "🔧 Verificar Dependencias" 
-3. Si todo está verde ✅, ¡estás listo!
+### 2. First Execution
+1. Execute `launch.bat` (Windows) or `./launch.sh` (Linux/Mac)
+2. Click on "🔧 Check Dependencies" 
+3. If everything is green ✅, you're ready!
 
-### 3. Configurar Speedometer
-1. Lanza "🏎️ Speedometer" desde el launcher
-2. Configura tus preferencias en el menú
-3. Selecciona tu mapa en el sistema de checkpoints
+### 3. Configure Speedometer
+1. Launch "🏎️ Speedometer" from the launcher
+2. Configure your preferences in the menu
+3. Select your map in the checkpoint system
 
 ---
 
-## 📦 Estructura del Proyecto
+## 🎯 Application Details
+
+### Main Applications
+
+#### 🏎️ Speedometer
+**Primary racing tool with complete HUD**
+- Real-time speed, acceleration, angle measurements
+- Multi-lap support with automatic checkpoints
+- Configurable display elements
+- Integration with beetlerank.com rankings
+
+**Launch**: Click "Speedometer" in launcher or run `speedometer.py`
+
+#### 👻 Ghost System
+**Race against your best times**
+- Load previous race logs as ghost opponents
+- Online ghost sharing and competitions
+- Personal best tracking
+- Visual representation of optimal racing lines
+
+**Launch**: 
+- `ghost_online.py` - Standard ghost mode
+- `ghost_online_relative_to_user.py` - Relative positioning ghost
+
+#### 👁️ Checkpoint Viewer  
+**3D visualization of race tracks**
+- Preview course layout before racing
+- Understand optimal racing lines
+- Checkpoint placement analysis
+- Interactive 3D navigation
+
+**Launch**: Click "Checkpoint Viewer" or run `checkpoints.py`
+
+#### 📐 Vector Visualizer
+**Advanced movement analysis**
+- Real-time velocity vectors
+- Direction and angle measurements  
+- Performance optimization tools
+- Technical racing analysis
+
+**Launch**: Click "Vector Visualizer" or run `vectors.py`
+
+### Creation Tools
+
+#### 🏁 Racing Checkpoint Creator
+**Design custom race tracks**
+- Place checkpoints for racing circuits
+- Define start/finish lines
+- Export tracks for community sharing
+- Test track layouts
+
+**Launch**: Click "Checkpoint Creator (Racing)" or run `RACINGcheckpointcreator.py`
+
+#### 🧗 Jumping Puzzle Creator  
+**Build jumping puzzle checkpoints**
+- Create checkpoint sequences for puzzles
+- Define progression paths
+- Export puzzle definitions
+- Community puzzle sharing
+
+**Launch**: Click "Checkpoint Creator (Jumping Puzzles)" or run `JPcheckpointcreator.py`
+
+### Visualization Tools
+
+#### 🗺️ Real-time Map
+**Live position tracking**
+- See your current position on map
+- Navigation assistance
+- Exploration tracking
+- Route planning
+
+**Launch**: Click "Real-time Map" or run `map_realtime.py`
+
+#### 🌐 Multiplayer Map
+**Multi-player position sharing**
+- See friends' positions in real-time
+- Group coordination for events
+- Multiplayer race tracking
+- Social exploration
+
+**Launch**: Click "Multiplayer Map" or run `map_realtime_multiplayer.py`
+
+---
+
+## 📦 Project Structure
 ```
 gw2_speedometer/
-├── launcher.py              # 🚀 Launcher principal
-├── speedometer.py           # 🏎️ Speedometer principal
-├── install.bat/.sh          # 🔧 Instaladores automáticos
-├── launch.bat/.sh           # ▶️ Scripts de ejecución
-├── requirements.txt         # 📋 Dependencias
-├── venv/                    # 🐍 Entorno virtual (se crea automáticamente)
-├── logs/                    # 📊 Logs de carreras
-├── maps/                    # 🗺️ Mapas personalizados
-└── installer/               # 🛠️ Herramientas de instalación legacy
+├── launcher.py                        # 🚀 Main launcher
+├── speedometer.py                     # 🏎️ Primary speedometer
+├── install.bat/.sh                    # 🔧 Automatic installers
+├── launch.bat/.sh                     # ▶️ Launch scripts
+├── quick_speedometer.bat/.sh          # ⚡ Direct speedometer
+├── update.bat/.sh                     # 🔄 Dependency updaters
+├── requirements.txt                   # 📋 Dependencies
+├── venv/                              # 🐍 Virtual environment (auto-created)
+├── logs/                              # 📊 Race logs and telemetry
+├── maps/                              # 🗺️ Custom maps and tracks
+├── maps_old_folder/                   # 📁 Legacy map collection
+├── fonts/                             # 🔤 Custom fonts for display
+├── oldversions/                       # 📜 Legacy application versions
+├── apps/                              # 📱 Additional applications
+└── installer/                         # 🛠️ Legacy installation tools
 ```
 
 ---
 
-## 🆘 Soporte
+## ⚙️ Advanced Configuration
 
-### ¿Necesitas Ayuda?
-1. **Revisa** esta guía completa
-2. **Ejecuta** el verificador de dependencias en el launcher
-3. **Consulta** los logs de error en la consola
-4. **Busca** tu error en la sección de problemas comunes
+### Environment Variables
+```bash
+# Optional performance tweaks
+export PYTHONPATH="${PYTHONPATH}:/path/to/gw2_speedometer"
+export GW2_SPEEDOMETER_CONFIG="/path/to/custom/config"
+```
 
-### Información del Sistema
-Para reportar problemas, incluye:
-- 🖥️ Sistema operativo y versión
-- 🐍 Versión de Python (`python --version`)
-- 📋 Mensaje de error completo
-- 🎮 Versión de Guild Wars 2
+### Custom Maps
+1. Place `.csv` map files in the `maps/` folder
+2. Follow the naming convention: `MAPNAME.csv`
+3. Use the checkpoint creators to generate proper format
+4. Maps automatically appear in the speedometer selection
+
+### Network Configuration
+- **Default WebSocket**: `beetlerank.com:1234`
+- **MQTT Broker**: Configurable in speedometer settings
+- **HTTP API**: Uses standard HTTPS for rankings upload
 
 ---
 
-## ✅ Verificación de Instalación Exitosa
+## 🆘 Support & Diagnostics
 
-Si la instalación fue correcta, deberías poder:
-- ✅ Ejecutar `launch.bat` sin errores
-- ✅ Ver el launcher con todas las aplicaciones listadas
-- ✅ Verificar dependencias muestra todo en verde
-- ✅ Lanzar el speedometer y ver la interfaz
-- ✅ El speedometer muestra datos cuando GW2 está ejecutándose
+### Diagnostic Tools
+The launcher includes built-in diagnostic tools:
 
-¡Disfruta de tus carreras de escarabajos! 🏁 
+1. **Dependency Checker** - Verifies all packages are installed
+2. **Connection Tester** - Tests network connectivity to services  
+3. **Guild Wars 2 Detector** - Confirms game integration is working
+4. **Performance Monitor** - Shows system resource usage
+
+### Log Files
+Check these locations for troubleshooting:
+- **Race Logs**: `logs/` folder
+- **Error Logs**: Console output when running from terminal
+- **Config Files**: `config.txt`, `cup.txt`
+
+### Getting Help
+1. **Check Dependencies**: Use the launcher's built-in checker
+2. **Review Logs**: Look for error messages in console output  
+3. **Community Support**: Visit [beetlerank.com](https://beetlerank.com)
+4. **GitHub Issues**: Report bugs with system information
+
+### System Information for Bug Reports
+When reporting issues, include:
+- 🖥️ Operating system and version
+- 🐍 Python version (`python --version`)  
+- 📋 Complete error message
+- 🎮 Guild Wars 2 version and region
+- 🌐 Network configuration (if relevant)
+
+---
+
+## ✅ Installation Verification
+
+### Quick Test
+After installation, verify everything works:
+1. ✅ `launch.bat` runs without errors
+2. ✅ Launcher GUI appears with all applications listed
+3. ✅ "Check Dependencies" shows all green checkmarks  
+4. ✅ Speedometer launches and shows interface
+5. ✅ With GW2 running, speedometer displays live data
+
+### Performance Check
+- Memory usage should be ~100MB total
+- CPU usage should be minimal (<5%) when idle
+- Network usage only when uploading times or multiplayer
+
+---
+
+## 🏁 Ready to Race!
+
+Once installation is complete:
+1. **Start Guild Wars 2**
+2. **Run the launcher** (`launch.bat` or `./launch.sh`)
+3. **Launch Speedometer** from the GUI
+4. **Select your track** and start racing!
+5. **Join the community** at [beetlerank.com](https://beetlerank.com)
+
+---
+
+<div align="center">
+
+**Happy Racing! 🏆**
+
+For more information visit [beetlerank.com](https://beetlerank.com)
+
+</div> 

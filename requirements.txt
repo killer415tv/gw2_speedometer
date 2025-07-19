@@ -18,11 +18,9 @@ scipy>=1.7.0,<2.0.0
 # Control de teclado y ratón
 pynput>=1.7.0,<2.0.0
 
-# Procesamiento de imágenes (para el logo)
-Pillow>=8.0.0,<11.0.0
-
-# Conversión de SVG (para el logo)
-cairosvg>=2.5.0,<3.0.0
+# Logo support (opcional - solo si usas logo.svg en lugar de logo.png)
+# Pillow>=8.0.0,<11.0.0
+# cairosvg>=2.5.0,<3.0.0
 
 # Comunicaciones HTTP
 requests>=2.26.0,<3.0.0

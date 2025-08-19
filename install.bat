@@ -85,7 +85,7 @@ python -m pip install wheel
 
 REM Install main dependencies
 echo Installing main dependencies...
-python -m pip install -r requirements.txt
+python -m pip install -r gw2_speedometer_internal\requirements.txt
 
 if errorlevel 1 (
     echo ERROR: Could not install dependencies
@@ -142,7 +142,7 @@ echo [6/6] Creating launch scripts...
 REM Create main launcher
 echo @echo off > launch.bat
 echo echo Starting GW2 Speedometer Suite... >> launch.bat
-echo cd /d "%%~dp0" >> launch.bat
+echo cd /d "%%~dp0\gw2_speedometer_internal" >> launch.bat
 echo call venv\Scripts\activate.bat >> launch.bat
 echo python launcher.py >> launch.bat
 echo if errorlevel 1 pause >> launch.bat
@@ -150,7 +150,7 @@ echo if errorlevel 1 pause >> launch.bat
 REM Create quick speedometer launch script
 echo @echo off > quick_speedometer.bat
 echo echo Starting Speedometer... >> quick_speedometer.bat
-echo cd /d "%%~dp0" >> quick_speedometer.bat
+echo cd /d "%%~dp0\gw2_speedometer_internal" >> quick_speedometer.bat
 echo call venv\Scripts\activate.bat >> quick_speedometer.bat
 echo python speedometer.py >> quick_speedometer.bat
 echo pause >> quick_speedometer.bat
@@ -158,7 +158,7 @@ echo pause >> quick_speedometer.bat
 REM Create update script
 echo @echo off > update.bat
 echo echo Updating dependencies... >> update.bat
-echo cd /d "%%~dp0" >> update.bat
+echo cd /d "%%~dp0\gw2_speedometer_internal" >> update.bat
 echo call venv\Scripts\activate.bat >> update.bat
 echo python -m pip install --upgrade pip >> update.bat
 echo python -m pip install -r requirements.txt --upgrade >> update.bat

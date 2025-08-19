@@ -123,7 +123,7 @@ After installation, you have multiple options:
 
 ### Prerequisites
 - **Guild Wars 2** - Game must be running to use speedometer
-- **Python 3.9+** - Automatically installed by `install.bat`
+- **Python 3.10.9** - Automatically installed by `install.bat`
 - **Windows/Linux/Mac** - Cross-platform support
 
 ### First Launch

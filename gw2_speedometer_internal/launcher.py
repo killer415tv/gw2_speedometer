@@ -236,7 +236,7 @@ class GW2SpeedometerLauncher:
                 'color': self.colors['secondary']
             },
             {
-                'name': '🧗 Checkpoint Creator (Jumping Puzzles)',
+                'name': '🧗 Checkpoint Creator (Jumping)',
                 'description': 'Tool to create checkpoints for jumping puzzles',
                 'file': 'JPcheckpointcreator.py',
                 'category': 'Tools',

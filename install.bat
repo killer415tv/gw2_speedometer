@@ -6,7 +6,7 @@ echo.
 
 REM Configure variables
 set VENV_DIR=venv
-set PYTHON_MIN_VERSION=3.9
+set PYTHON_MIN_VERSION=3.10.9
 set PROJECT_NAME=GW2 Speedometer Suite
 
 REM Check if Python is installed
@@ -143,7 +143,7 @@ REM Create main launcher
 echo @echo off > launch.bat
 echo echo Starting GW2 Speedometer Suite... >> launch.bat
 echo cd /d "%%~dp0\gw2_speedometer_internal" >> launch.bat
-echo call venv\Scripts\activate.bat >> launch.bat
+echo call ..\venv\Scripts\activate.bat >> launch.bat
 echo python launcher.py >> launch.bat
 echo if errorlevel 1 pause >> launch.bat
 
@@ -151,7 +151,7 @@ REM Create quick speedometer launch script
 echo @echo off > quick_speedometer.bat
 echo echo Starting Speedometer... >> quick_speedometer.bat
 echo cd /d "%%~dp0\gw2_speedometer_internal" >> quick_speedometer.bat
-echo call venv\Scripts\activate.bat >> quick_speedometer.bat
+echo call ..\venv\Scripts\activate.bat >> quick_speedometer.bat
 echo python speedometer.py >> quick_speedometer.bat
 echo pause >> quick_speedometer.bat
 
@@ -159,7 +159,7 @@ REM Create update script
 echo @echo off > update.bat
 echo echo Updating dependencies... >> update.bat
 echo cd /d "%%~dp0\gw2_speedometer_internal" >> update.bat
-echo call venv\Scripts\activate.bat >> update.bat
+echo call ..\venv\Scripts\activate.bat >> update.bat
 echo python -m pip install --upgrade pip >> update.bat
 echo python -m pip install -r requirements.txt --upgrade >> update.bat
 echo echo Update completed >> update.bat

@@ -1,6 +1,6 @@
 @echo off 
 echo Starting GW2 Speedometer Suite... 
 cd /d "%~dp0\gw2_speedometer_internal" 
-call venv\Scripts\activate.bat 
+call ..\venv\Scripts\activate.bat 
 python launcher.py 
 if errorlevel 1 pause 

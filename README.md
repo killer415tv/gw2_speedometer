@@ -39,6 +39,9 @@ After installation, you have multiple options:
 
 ## 🏎️ Features
 
+<img width="949" height="679" alt="image" src="https://github.com/user-attachments/assets/991a615a-15fd-499c-b353-1343c77cef9c" />
+
+
 ### Core Racing Tools
 - **📊 Advanced Speedometer** - Real-time speed, acceleration, and angle measurements
 - **👻 Ghost Mode** - Race against your best times with online rankings

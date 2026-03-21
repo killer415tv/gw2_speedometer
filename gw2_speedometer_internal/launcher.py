@@ -329,8 +329,8 @@ class GW2SpeedometerLauncher:
                                 justify='center')
         category_label.pack(pady=(0, 5))
         
-        # Launch button compacto
-        launch_btn = tk.Button(content_frame,
+        # Action button compacto (cambia entre Launch y Close)
+        action_btn = tk.Button(content_frame,
                              text="Launch",
                              bg=self.colors['accent'],
                              fg='white',
@@ -340,7 +340,7 @@ class GW2SpeedometerLauncher:
                              pady=3,
                              cursor='hand2',
                              command=lambda a=app: self.launch_app(a))
-        launch_btn.pack(pady=(0, 3))
+        action_btn.pack(pady=(0, 3))
         
         # Status indicator compacto
         status_label = tk.Label(content_frame,
@@ -350,8 +350,9 @@ class GW2SpeedometerLauncher:
                               font=('Segoe UI', 6))
         status_label.pack()
         
-        # Guardar referencia al status label para actualizaciones
+        # Guardar referencias para actualizaciones
         app['status_label'] = status_label
+        app['action_btn'] = action_btn
         
         # Tooltip with complete description
         self.create_tooltip(card_frame, app['description'])
@@ -441,19 +442,19 @@ class GW2SpeedometerLauncher:
         """Launch a specific application"""
         try:
             if app['file'] in self.running_processes:
-                messagebox.showwarning("Application Running", 
+                messagebox.showwarning("Application Running",
                                      f"{app['name']} is already running.")
                 return
             
             # Check if file exists
             app_path = Path(app['file'])
             if not app_path.exists():
-                messagebox.showerror("Error", 
+                messagebox.showerror("Error",
                                    f"File {app['file']} not found")
                 return
             
             # Launch application in separate process
-            process = subprocess.Popen([sys.executable, app['file']], 
+            process = subprocess.Popen([sys.executable, app['file']],
                                      cwd=Path.cwd(),
                                      creationflags=subprocess.CREATE_NEW_CONSOLE if os.name == 'nt' else 0)
             
@@ -463,6 +464,11 @@ class GW2SpeedometerLauncher:
             # Update visual status
             app['status_label'].config(text="● Running", fg=self.colors['success'])
             
+            # Change button to Close
+            app['action_btn'].config(text="Close",
+                                    bg=self.colors['danger'],
+                                    command=lambda a=app: self.close_app(a))
+            
             # Monitor process
             self.monitor_process(app)
             
@@ -470,6 +476,38 @@ class GW2SpeedometerLauncher:
             
         except Exception as e:
             messagebox.showerror("Error", f"Error launching {app['name']}: {str(e)}")
+    
+    def close_app(self, app):
+        """Close a specific application"""
+        try:
+            if app['file'] not in self.running_processes:
+                messagebox.showwarning("Not Running",
+                                     f"{app['name']} is not running.")
+                return
+            
+            process = self.running_processes[app['file']]
+            
+            # Terminate the process
+            try:
+                process.terminate()
+                process.wait(timeout=3)
+            except subprocess.TimeoutExpired:
+                # If it doesn't terminate, force kill
+                process.kill()
+            
+            # Remove from running processes
+            del self.running_processes[app['file']]
+            
+            # Update visual status
+            app['status_label'].config(text="● Stopped", fg=self.colors['text_secondary'])
+            
+            # Change button back to Launch
+            app['action_btn'].config(text="Launch",
+                                    bg=self.colors['accent'],
+                                    command=lambda a=app: self.launch_app(a))
+            
+        except Exception as e:
+            messagebox.showerror("Error", f"Error closing {app['name']}: {str(e)}")
 
     def monitor_process(self, app):
         """Monitor process status"""
@@ -480,6 +518,10 @@ class GW2SpeedometerLauncher:
                     # Process has terminated
                     del self.running_processes[app['file']]
                     app['status_label'].config(text="● Stopped", fg=self.colors['text_secondary'])
+                    # Change button back to Launch
+                    app['action_btn'].config(text="Launch",
+                                            bg=self.colors['accent'],
+                                            command=lambda a=app: self.launch_app(a))
                 else:
                     # Process still running, check again in 2 seconds
                     self.root.after(2000, check_process)
@@ -556,6 +598,11 @@ class GW2SpeedometerLauncher:
             for app in self.apps:
                 if 'status_label' in app:
                     app['status_label'].config(text="● Stopped", fg=self.colors['text_secondary'])
+                # Change button back to Launch
+                if 'action_btn' in app:
+                    app['action_btn'].config(text="Launch",
+                                            bg=self.colors['accent'],
+                                            command=lambda a=app: self.launch_app(a))
             
             messagebox.showinfo("Success", "All applications have been closed.")
 

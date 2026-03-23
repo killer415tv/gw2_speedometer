@@ -67,8 +67,18 @@ root.configure(bg='#666666')
 
 windowWidth = 650
 windowHeight = 300
-positionRight = int(root.winfo_screenwidth()/2 - windowWidth/2) + 120
-positionDown = int(5*root.winfo_screenheight()/6 - windowHeight/3)
+# Calcular posición segura para que la ventana siempre esté dentro de la pantalla
+screenWidth = root.winfo_screenwidth()
+screenHeight = root.winfo_screenheight()
+# Posición por defecto: centro horizontal, parte inferior de la pantalla
+positionRight = int(screenWidth / 2 - windowWidth / 2)
+positionDown = int(screenHeight - windowHeight - 50)  # 50px desde el borde inferior
+
+# Verificar que no se salga de la pantalla
+if positionRight + windowWidth > screenWidth:
+    positionRight = screenWidth - windowWidth - 10
+if positionDown + windowHeight > screenHeight:
+    positionDown = screenHeight - windowHeight - 10
 
     # IMPORTANT!!!! DONT CHANGE VALUES HERE
     # CHANGE THEM AT CONFIG.TXT
@@ -2998,7 +3008,7 @@ class Racer():
         guildhall_laps = StringVar(self.root)
         guildhall_laps.set("1 lap")
 
-        self.t_1 = tk.Label(self.root, text="""Race Assistant v3.11.27""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Montserrat Regular", 15))
+        self.t_1 = tk.Label(self.root, text="""Race Assistant v6.3.23""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Montserrat Regular", 15))
         self.t_1.place(x=0, y=10)
         self.t_2 = tk.Label(self.root, text="""Choose map to race""", justify = tk.LEFT, padx = 20, fg = self.fg.get(), bg=self.bg.get(), font=("Montserrat Regular", 10))
         self.t_2.place(x=1, y=40)

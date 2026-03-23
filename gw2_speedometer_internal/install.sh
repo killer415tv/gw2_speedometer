@@ -125,8 +125,8 @@ if [ $? -ne 0 ]; then
     # Paquetes que pueden ser problemáticos - instalar sin versión específica
     echo "Instalando paquetes de GUI..."
     
-    python -m pip install PySide2 || {
-        echo -e "${YELLOW}⚠️ ADVERTENCIA: No se pudo instalar PySide2${NC}"
+    python -m pip install PySide6 || {
+        echo -e "${YELLOW}⚠️ ADVERTENCIA: No se pudo instalar PySide6${NC}"
         echo "Algunas funciones 3D pueden no estar disponibles"
     }
     

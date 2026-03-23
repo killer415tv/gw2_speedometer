@@ -103,7 +103,7 @@ if errorlevel 1 (
     
     REM Packages that might be problematic - install without specific version
     echo Installing GUI packages...
-    python -m pip install PySide2 || (
+    python -m pip install PySide6 || (
         echo WARNING: Could not install PySide2
         echo Some 3D functions may not be available
     )

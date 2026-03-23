@@ -29,7 +29,7 @@ import queue
 
 
 import numpy as np
-import PySide2
+import PySide6
 from pyqtgraph.Qt import QtCore, QtGui
 import pyqtgraph.opengl as gl
 

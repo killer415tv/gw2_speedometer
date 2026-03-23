@@ -23,13 +23,13 @@ from datetime import datetime
 import threading
 import queue
 
-import PySide2
+import PySide6
 
 from pyqtgraph.Qt import QtCore, QtGui, QtWidgets
 import pyqtgraph.opengl as gl
 
-from PySide2.QtWidgets import QApplication, QDialog, QLineEdit, QPushButton, QWidget, QVBoxLayout, QLabel, QFileDialog, QCheckBox
-from PySide2.QtCore import Qt
+from PySide6.QtWidgets import QApplication, QDialog, QLineEdit, QPushButton, QWidget, QVBoxLayout, QLabel, QFileDialog, QCheckBox
+from PySide6.QtCore import Qt
 
 import sys
 from opensimplex import OpenSimplex

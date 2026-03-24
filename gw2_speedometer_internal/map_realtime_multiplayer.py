@@ -349,7 +349,7 @@ class Ghost3d(object):
                 if self.TEST_DELAY:
                     self.timestamps_packet_sent[user] = data.get('timestamp')
 
-        print("+ connecting....")
+        print("+ connecting")
         # websocket.enableTrace(True)
         ws_app = WebSocketApp(f"ws://{WEBSOCKET_HOSTNAME}:{WEBSOCKET_PORT}", on_open=on_open, on_message=on_message)
         ws_app.run_forever()

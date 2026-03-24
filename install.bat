@@ -6,7 +6,7 @@ echo.
 
 REM Configure variables
 set VENV_DIR=venv
-set PYTHON_MIN_VERSION=3.10.9
+set PYTHON_MIN_VERSION=3.12.1
 set PROJECT_NAME=GW2 Speedometer Suite
 
 REM Check if Python is installed
@@ -15,7 +15,7 @@ python --version >nul 2>&1
 if errorlevel 1 (
     echo ERROR: Python is not installed or not in PATH
     echo.
-    echo Please install Python 3.9 or higher from:
+    echo Please install Python 3.12 or higher from:
     echo https://www.python.org/downloads/
     echo.
     echo IMPORTANT: Check "Add Python to PATH" during installation
@@ -31,10 +31,10 @@ echo OK: Python %PYTHON_VERSION% found
 REM Check minimum version
 python -c "import sys; exit(0 if sys.version_info >= (3, 9) else 1)" >nul 2>&1
 if errorlevel 1 (
-    echo ERROR: Python 3.9 or higher required
+    echo ERROR: Python 3.12 or higher required
     echo Current version: %PYTHON_VERSION%
     echo.
-    echo Download Python 3.9+ from: https://www.python.org/downloads/
+    echo Download Python 3.12+ from: https://www.python.org/downloads/
     pause
     exit /b 1
 )

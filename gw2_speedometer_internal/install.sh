@@ -9,7 +9,7 @@ NC='\033[0m' # No Color
 
 # Variables
 VENV_DIR="venv"
-PYTHON_MIN_VERSION="3.9"
+PYTHON_MIN_VERSION="3.12"
 PROJECT_NAME="GW2 Speedometer Suite"
 
 echo -e "${BLUE}===============================================${NC}"
@@ -32,7 +32,7 @@ echo -e "${BLUE}[1/6] Verificando Python...${NC}"
 
 # Buscar Python (python3, python, python3.9, etc.)
 PYTHON_CMD=""
-for cmd in python3 python python3.9 python3.10 python3.11; do
+for cmd in python3 python python3.9 python3.10 python3.11 python3.12; do
     if command_exists "$cmd"; then
         PYTHON_VERSION=$($cmd --version 2>&1 | cut -d' ' -f2)
         if version_ge "$PYTHON_VERSION" "$PYTHON_MIN_VERSION"; then
@@ -43,9 +43,9 @@ for cmd in python3 python python3.9 python3.10 python3.11; do
 done
 
 if [ -z "$PYTHON_CMD" ]; then
-    echo -e "${RED}❌ ERROR: Python 3.9+ no encontrado${NC}"
+    echo -e "${RED}❌ ERROR: Python 3.12+ no encontrado${NC}"
     echo
-    echo "Por favor instala Python 3.9 o superior:"
+    echo "Por favor instala Python 3.12 o superior:"
     echo "  Ubuntu/Debian: sudo apt update && sudo apt install python3 python3-pip python3-venv"
     echo "  CentOS/RHEL:   sudo yum install python3 python3-pip"
     echo "  macOS:         brew install python3"

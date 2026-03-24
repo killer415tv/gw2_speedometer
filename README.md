@@ -1,4 +1,4 @@
-# 🏁 Beetlerank Speed Suite v2.06.28
+# 🏁 Beetlerank Speed Suite v6.00.00
 
 <div align="center">
 
@@ -7,7 +7,7 @@
 **Professional racing tools for beetle races in Guild Wars 2**
 
 [![Website](https://img.shields.io/badge/Website-beetlerank.com-red?style=for-the-badge)](https://beetlerank.com)
-[![Python](https://img.shields.io/badge/Python-3.9+-blue?style=for-the-badge&logo=python)](https://python.org)
+[![Python](https://img.shields.io/badge/Python-3.12+-blue?style=for-the-badge&logo=python)](https://python.org)
 [![License](https://img.shields.io/badge/License-Open_Source-green?style=for-the-badge)](LICENSE)
 
 </div>
@@ -126,7 +126,7 @@ After installation, you have multiple options:
 
 ### Prerequisites
 - **Guild Wars 2** - Game must be running to use speedometer
-- **Python 3.10.9** - Automatically installed by `install.bat`
+- **Python 3.12.1** - Automatically installed by `install.bat`
 - **Windows/Linux/Mac** - Cross-platform support
 
 ### First Launch
@@ -166,7 +166,7 @@ The launcher provides access to all tools:
 ## 🔧 Technical Information
 
 ### Requirements
-- **Python**: 3.9 or higher (automatically handled by installer)
+- **Python**: 3.12 or higher (automatically handled by installer)
 - **Memory**: ~100MB RAM usage
 - **Storage**: ~200MB for full installation
 - **Network**: Optional for multiplayer and rankings

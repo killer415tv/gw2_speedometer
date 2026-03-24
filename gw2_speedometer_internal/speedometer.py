@@ -2472,7 +2472,7 @@ class Racer():
             # falta mostrar por pantalla el 3 2 1
         if received.get('option') == "321GO-3":
             #print("3!!")
-            self.thread_queue.put("3...")
+            self.thread_queue.put("3")
             countdowntxt = "3"
             
             self.timestamps = []
@@ -2481,16 +2481,16 @@ class Racer():
             # falta mostrar por pantalla el 3 2 1
         if received.get('option') == "321GO-2":
             #print("2!!")
-            self.thread_queue.put("2...")
-            countdowntxt = "2!"
+            self.thread_queue.put("2")
+            countdowntxt = "2"
             
 
             # limpiar ranking de partida
             # falta mostrar por pantalla el 3 2 1
         if received.get('option') == "321GO-1":
             #print("1!!")
-            self.thread_queue.put("1...")
-            countdowntxt = "1!!"
+            self.thread_queue.put("1")
+            countdowntxt = "1"
             
 
             # limpiar ranking de partida
@@ -2877,7 +2877,7 @@ class Racer():
                     response = requests.get('https://www.beetlerank.com/api/maps/'+value , headers)
                     resp_dict = response.json()
 
-                    print("Obtaining list of Maps from ",value, '....')
+                    print("Obtaining list of Maps from " + str(value))
                     
                     print(resp_dict["maps"])
             
@@ -3029,7 +3029,7 @@ class Racer():
 
             resp_dict["cups"].append("OWN MAPS FOLDER")
             
-            print("Obtaining list of CUPS ....")
+            print("Obtaining list of CUPS")
             print(resp_dict["cups"])
             self.cups = resp_dict['cups']
 

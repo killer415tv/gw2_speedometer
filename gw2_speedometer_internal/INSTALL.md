@@ -19,7 +19,7 @@
 ## 🔧 Manual Installation
 
 ### Prerequisites
-- **Python 3.9 or higher** ([Download here](https://www.python.org/downloads/))
+- **Python 3.12 or higher** ([Download here](https://www.python.org/downloads/))
 - **Git** (optional)
 
 ### Detailed Steps

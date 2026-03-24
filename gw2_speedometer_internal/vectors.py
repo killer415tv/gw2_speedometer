@@ -19,7 +19,6 @@ import pandas as pd
 
 import random
 
-import paho.mqtt.client as mqtt #import the client1
 import time
 from datetime import datetime
 
@@ -37,8 +36,6 @@ from pyqtgraph import Vector
 from pynput import keyboard
 
 import shlex, subprocess
-
-import paho.mqtt.client as mqtt #import the client1
 
 
 

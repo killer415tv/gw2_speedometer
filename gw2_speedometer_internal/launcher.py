@@ -536,7 +536,6 @@ class GW2SpeedometerLauncher:
             import numpy
             import scipy
             import pynput
-            import paho.mqtt.client
             import PySide6
             import pyqtgraph
             import requests

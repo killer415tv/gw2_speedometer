@@ -119,7 +119,6 @@ if [ $? -ne 0 ]; then
     python -m pip install scipy==1.7.1
     python -m pip install pynput==1.7.3
     python -m pip install requests==2.26.0
-    python -m pip install paho-mqtt==1.5.1
     python -m pip install websocket-client==1.3.3
     
     # Paquetes que pueden ser problemáticos - instalar sin versión específica

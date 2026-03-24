@@ -12,6 +12,13 @@ except ImportError:
     print("ERROR: websocket-client not installed correctly")
     print("Please run: pip install websocket-client")
     exit(1)
+
+try:
+    from telemetry_client import TelemetryListener
+except ImportError:
+    print("ERROR: telemetry_client not found")
+    print("Please ensure telemetry_client.py is in the same directory")
+    exit(1)
 from scipy.spatial import distance
 
 import os
@@ -328,31 +335,27 @@ class Ghost3d(object):
                 print("THERE IS NO LOG FILES YET")
 
     def getPlayerPositions(self):
-        def on_open(ws):
-            init_packet = {
-                "type": "init",
-                "client": "map",
-                "room": chosen_room
-            }
-            ws.send(json.dumps(init_packet))
-
-        def on_message(ws, message):
-            data = json.loads(message)
-
-            if data.get("type") == "position":
-                user = data.get('user')
-                if user not in self.current_users:
-                    self.current_users[user] = {}
-                self.current_users[user]["color"] = data.get('color')
-                self.current_users[user]["position"] = (data.get('x'), data.get('y'))
-                self.current_users[user]["timestamp"] = time.time()
-                if self.TEST_DELAY:
-                    self.timestamps_packet_sent[user] = data.get('timestamp')
-
-        print("+ connecting")
-        # websocket.enableTrace(True)
-        ws_app = WebSocketApp(f"ws://{WEBSOCKET_HOSTNAME}:{WEBSOCKET_PORT}", on_open=on_open, on_message=on_message)
-        ws_app.run_forever()
+        """Get player positions via UDP TelemetryListener"""
+        # Create a callback for position messages
+        def on_position(data):
+            user = data.get('user')
+            if user not in self.current_users:
+                self.current_users[user] = {}
+            self.current_users[user]["color"] = data.get('color')
+            self.current_users[user]["position"] = (data.get('x'), data.get('y'))
+            self.current_users[user]["timestamp"] = time.time()
+            if self.TEST_DELAY:
+                self.timestamps_packet_sent[user] = data.get('timestamp')
+        
+        print("+ connecting to UDP position stream")
+        # Create TelemetryListener for receiving position updates
+        # Filter by session_code and only receive position messages
+        listener = TelemetryListener(
+            session_code=chosen_room,
+            options=["position"]
+        )
+        listener.set_position_callback(on_position)
+        listener.start()
 
     def get_distinct_color(self, n):
         hue = (self.COLOR_BASE_VAL + n * GOLDEN_RATIO_CONJUGATE) % 1

@@ -51,7 +51,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 
 # Minimal installation (basic speedometer only)
-pip install numpy pandas scipy pynput requests paho-mqtt websocket-client
+pip install numpy pandas scipy pynput requests websocket-client
 ```
 
 #### 4. Run Applications

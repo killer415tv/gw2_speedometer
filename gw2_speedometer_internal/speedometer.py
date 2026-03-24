@@ -31,12 +31,14 @@ import pandas as pd
 
 import random
 
-import paho.mqtt.client as mqtt #import the client1
 import time
 
 import threading
 from threading import Thread
 import queue
+
+# Importar el módulo de telemetría UDP/TCP
+from telemetry_client import TelemetryClient, TelemetryListener, MultiplayerListener
 
 import requests
 
@@ -141,6 +143,8 @@ speed_color4 = "#ff5436"
 game_focus = 0
 
 client = ""
+telemetry_client = None
+telemetry_listener = None
 mapId = 0
 lastMapId = 0
 
@@ -2504,9 +2508,15 @@ class Racer():
             # falta mostrar por pantalla el 3 2 1
 
     def sendMQTT(self, data):
-        global client
-        if client != "":
-            client.publish(self.prefix_topic + self.session_id.get(), json.dumps(data))
+        """
+        Envía mensaje de telemetría usando UDP/TCP en lugar de MQTT.
+        El método determina automáticamente si usar UDP o TCP según el tipo de mensaje.
+        """
+        global telemetry_client
+        if telemetry_client is not None:
+            # El método send() de TelemetryClient automáticamente decide
+            # entre UDP (posición) y TCP (start, checkpoint, finish, countdown)
+            telemetry_client.send(data)
 
     def sendWebsocket(self, data):
         global websocket_client
@@ -2615,19 +2625,55 @@ class Racer():
         self.status.set("JOINED!")
         self.race_status.set("Waiting to start...")
         #print(self.username.get() + " JOINED RACE: " + self.session_id.get())
-        #subscribición al topico
-        broker_address="www.beetlerank.com"
-        #broker_address="iot.eclipse.org"
-        #print("creating new instance")
-        client = mqtt.Client(client_id=self.username.get() + str(random.random())) #create new instance
-        #client.tls_set("./chain.pem")
-        #client.tls_insecure_set(True)
-        client.on_message=self.on_message_MQTT #attach function to callback
-        #print("connecting to broker")
-        client.connect(broker_address) #connect to broker
-        client.loop_start() #start the loop
-        #print("Subscribing to topic",self.prefix_topic + str(self.session_id.get()))
-        client.subscribe(self.prefix_topic + str(self.session_id.get()))
+        
+        # Usar TelemetryClient (UDP/TCP) en lugar de MQTT
+        global telemetry_client
+        global telemetry_listener
+        
+        # Crear cliente de telemetría para enviar
+        if telemetry_client is not None:
+            telemetry_client.disconnect()
+        
+        telemetry_client = TelemetryClient()
+        telemetry_client.connect(self.username.get(), str(self.session_id.get()))
+        
+        # Crear listener de telemetría para recibir mensajes de otros jugadores por WebSocket
+        if telemetry_listener is not None:
+            telemetry_listener.stop()
+        
+        # Wrapper para convertir mensajes de TelemetryListener al formato de on_message_MQTT
+        # El método on_message_MQTT espera: (client, userdata, message)
+        # donde message.payload contiene el JSON
+        class MockMessage:
+            def __init__(self, payload):
+                self.payload = payload.encode('utf-8')
+        
+        def telemetry_to_mqtt_wrapper(data):
+            mock_msg = MockMessage(json.dumps(data))
+            self.on_message_MQTT(None, None, mock_msg)
+        
+        # Usar MultiplayerListener para recibir datos por WebSocket desde el servidor
+        # Esto se conecta a wss://www.beetlerank.com:3002 y recibe snapshots
+        session_code = self.session_id.get()
+        if session_code:
+            try:
+                telemetry_listener = MultiplayerListener(session_code=int(session_code))
+            except:
+                telemetry_listener = MultiplayerListener()
+        else:
+            telemetry_listener = MultiplayerListener()
+        
+        # Configurar callback para procesar snapshots de multijugador
+        def on_snapshot(snapshot):
+            # El snapshot contiene una lista de usuarios activos
+            # Convertir cada usuario individual al formato que espera on_message_MQTT
+            for user in snapshot.get('users', []):
+                # Crear un mensaje individual para cada jugador
+                mock_msg = MockMessage(json.dumps(user))
+                self.on_message_MQTT(None, None, mock_msg)
+        
+        telemetry_listener.set_snapshot_callback(on_snapshot)
+        telemetry_listener.start()
 
         #self.thread_queue.put('Waiting for start.')
         #else:
@@ -3660,13 +3706,19 @@ class Countdown():
 
     def checkCountdowntxt(self):
         global countdowntxt
+        current_txt = countdowntxt
         self.localcountdown.set(countdowntxt)
         countdowntxt = ""
 
-        if countdowntxt == "GOGOGO! FAEST!":
-            self.root.after(2500, self.checkCountdowntxt)
+        if current_txt == "GOGOGO! FAEST!":
+            self.root.after(500, self._force_clear_countdown)
         else:
             self.root.after(500, self.checkCountdowntxt)
+    
+    def _force_clear_countdown(self):
+        global countdowntxt
+        countdowntxt = ""
+        self.localcountdown.set("")
 
 class Message():
 

@@ -20,7 +20,6 @@ import hashlib
 
 import random
 
-import paho.mqtt.client as mqtt #import the client1
 import time
 from datetime import datetime
 

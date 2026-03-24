@@ -9,8 +9,11 @@
 [![Website](https://img.shields.io/badge/Website-beetlerank.com-red?style=for-the-badge)](https://beetlerank.com)
 [![Python](https://img.shields.io/badge/Python-3.12+-blue?style=for-the-badge&logo=python)](https://python.org)
 [![License](https://img.shields.io/badge/License-Open_Source-green?style=for-the-badge)](LICENSE)
+[![Discord](https://img.shields.io/badge/Discord-Join-purple?style=for-the-badge&logo=discord)](https://discord.gg/beetlerank)
 
 </div>
+
+---
 
 ## 🚀 Quick Start
 
@@ -41,7 +44,6 @@ After installation, you have multiple options:
 
 <img width="949" height="679" alt="image" src="https://github.com/user-attachments/assets/991a615a-15fd-499c-b353-1343c77cef9c" />
 
-
 ### Core Racing Tools
 - **📊 Advanced Speedometer** - Real-time speed, acceleration, and angle measurements
 - **👻 Ghost Mode** - Race against your best times with online rankings
@@ -63,7 +65,175 @@ After installation, you have multiple options:
 
 ---
 
-## 🗺️ Example maps
+## 🌐 Multiplayer Communication System
+
+The Speed Suite v6 uses a modern **TCP/UDP/WebSocket** communication architecture to connect players in real-time races. This replaces the legacy MQTT protocol for better performance and reliability.
+
+### Network Architecture
+
+```
+┌─────────────────┐      UDP       ┌─────────────────┐     WebSocket      ┌─────────────────┐
+│   Speedometer   │ ───────────────│     Server      │ ──────────────────│   Dashboard    │
+│ (TCP/UDP Client)│   41234/UDP    │beetlerank.com  │    3002/WSS       │ (Web Browser)  │
+└─────────────────┘                └─────────────────┘                   └─────────────────┘
+        │                              │                                    │
+        │ TCP 41235                    │                                    │
+        └──────────────────────────────┴────────────────────────────────────┘
+```
+
+### Connection Details
+
+| Protocol | Host | Port | Purpose |
+|----------|------|------|---------|
+| **UDP** | www.beetlerank.com | 41234 | High-frequency position updates (every 30ms) |
+| **TCP** | www.beetlerank.com | 41235 | Critical messages (start, checkpoint, finish, countdown) |
+| **WebSocket** | wss://www.beetlerank.com | 3002 | Receiving real-time snapshots of all players |
+
+### Message Types
+
+The system uses JSON messages for all communication. Here are the supported message types:
+
+#### 1. Position Messages (UDP - Port 41234)
+```json
+{
+    "option": "position",
+    "x": 26564.776,
+    "y": -737.263,
+    "z": -324.002,
+    "speed": 31.44,
+    "angle": 319.34,
+    "user": "Player1",
+    "sessionCode": 1234,
+    "map": "Rata River",
+    "color": "#FF5733",
+    "lap": 1,
+    "step": 0
+}
+```
+
+#### 2. Start Race Message (TCP - Port 41235)
+```json
+{
+    "option": "s",
+    "lap": 1,
+    "step": 0,
+    "time": 0,
+    "user": "Player1",
+    "sessionCode": 1234
+}
+```
+
+#### 3. Checkpoint Message (TCP - Port 41235)
+```json
+{
+    "option": "c",
+    "step": 5,
+    "lap": 1,
+    "time": 45.2,
+    "user": "Player1",
+    "sessionCode": 1234
+}
+```
+
+#### 4. Finish Message (TCP - Port 41235)
+```json
+{
+    "option": "f",
+    "lap": 1,
+    "step": 999,
+    "time": 125.5,
+    "user": "Player1",
+    "sessionCode": 1234
+}
+```
+
+#### 5. Countdown Messages (TCP - Port 41235)
+```json
+{"option": "321GO-3", "user": "Player1", "sessionCode": 1234}
+{"option": "321GO-2", "user": "Player1", "sessionCode": 1234}
+{"option": "321GO-1", "user": "Player1", "sessionCode": 1234}
+{"option": "321GO-GO", "user": "Player1", "sessionCode": 1234}
+```
+
+### Step Codes
+
+| Step Value | Meaning |
+|------------|---------|
+| 0 | Race Start / Lap Start |
+| 1-998 | Normal Checkpoint |
+| 999 | Lap Complete / Finish |
+| 998 | Abandon |
+| 1000 | Surrender |
+| 1001 | Ready |
+
+### Multiplayer Snapshot (WebSocket)
+
+When connected via WebSocket, you receive snapshots containing all active players:
+
+```json
+{
+    "type": "snapshot",
+    "serverTimeMs": 1774365377334,
+    "activeCount": 3,
+    "totalCount": 5,
+    "sessionCodes": [1234, 5678],
+    "users": [
+        {
+            "user": "Player1",
+            "sessionCode": 1234,
+            "x": 26564.776,
+            "y": -737.263,
+            "z": -324.002,
+            "speed": 31.44,
+            "angle": 319.34,
+            "option": "position",
+            "lap": 1,
+            "step": 5,
+            "time": 45.2,
+            "map": "Rata River",
+            "color": "#FF5733",
+            "active": true,
+            "ageMs": 42.42
+        }
+    ]
+}
+```
+
+---
+
+## 🎮 How Multiplayer Racing Works
+
+### Starting a Race
+
+1. **Open Speedometer** - Launch the speedometer from the main launcher
+2. **Configure Race** - Select your map, number of laps, and session ID (room code)
+3. **Start Multiplayer** - Click the multiplayer button to connect to the server
+4. **Wait for Players** - Other players join using the same session ID
+
+### Race Flow
+
+```
+[1. JOIN]     All players enter the same session code (e.g., "1234")
+     ↓
+[2. READY]   Each player clicks "Ready" when prepared
+     ↓
+[3. COUNTDOWN] Host clicks "Start Race" → 3... 2... 1... GO!
+     ↓
+[4. RACE]    Automatic timing starts at first checkpoint
+     ↓
+[5. FINISH]  Times recorded when completing final lap
+```
+
+### Real-time Features
+
+- **Live Position Tracking** - See all players on the map in real-time
+- **Checkpoint Notifications** - Watch friends hit checkpoints
+- **Leaderboard Updates** - Rankings update live during the race
+- **Countdown Sync** - Everyone sees the same start countdown
+
+---
+
+## 🗺️ Example Maps
 
 ### 🏛️ Guild Halls
 - **GWTC** - Guild Wars Tournaments Championship
@@ -138,7 +308,7 @@ After installation, you have multiple options:
 
 ### Multiplayer Racing
 1. Open speedometer and select your map/laps
-2. Enter the same room code as your friends (e.g., "1111")
+2. Enter the same room code as your friends (e.g., "1234")
 3. Click "Join" to connect to the multiplayer session
 4. Hit "Ready" to signal you're prepared to race  
 5. One person clicks "Start Race" to begin countdown
@@ -169,14 +339,14 @@ The launcher provides access to all tools:
 - **Python**: 3.12 or higher (automatically handled by installer)
 - **Memory**: ~100MB RAM usage
 - **Storage**: ~200MB for full installation
-- **Network**: Optional for multiplayer and rankings
+- **Network**: Required for multiplayer and rankings
 
 ### Dependencies
 All automatically installed by `install.bat`:
 - Data Processing: `numpy`, `pandas`, `scipy`
-- GUI: `tkinter`, `PySide2`, `pyqtgraph` 
+- GUI: `tkinter`, `PySide6`, `pyqtgraph` 
 - Input: `pynput` for keyboard/mouse handling
-- Networking: `websocket-client`, `paho-mqtt`, `requests`
+- Networking: `websocket-client`, `requests`
 - Game Integration: `mumblelink` API for Guild Wars 2
 
 ### File Structure
@@ -184,6 +354,7 @@ All automatically installed by `install.bat`:
 gw2_speedometer/
 ├── launcher.py              # Main application launcher
 ├── speedometer.py           # Primary speedometer tool
+├── telemetry_client.py     # TCP/UDP/WebSocket communication module
 ├── install.bat             # Windows installer
 ├── launch.bat              # Windows launcher  
 ├── quick_speedometer.bat   # Direct speedometer access
@@ -224,9 +395,18 @@ gw2_speedometer/
 - **Dependencies Missing**: Execute `update.bat` to reinstall packages
 - **Game Not Detected**: Ensure Guild Wars 2 is running before launching
 - **Performance Issues**: Close unnecessary applications while racing
+- **Multiplayer Connection Failed**: Check your internet connection and firewall settings
+
+### Network Troubleshooting
+The speedometer uses specific ports for multiplayer:
+- **UDP 41234** - Position updates (can be blocked by firewalls)
+- **TCP 41235** - Critical messages
+- **WebSocket 3002** - Player snapshots
+
+If you have connection issues, ensure these ports are not blocked.
 
 ### Getting Help
-1. Check the detailed [INSTALL.md](INSTALL.md) guide for comprehensive troubleshooting
+1. Check the detailed [INSTALL.md](gw2_speedometer_internal/INSTALL.md) guide for comprehensive troubleshooting
 2. Use "🔧 Check Dependencies" in the launcher for diagnostic information
 3. Visit [beetlerank.com](https://beetlerank.com) for community support
 4. Report issues on GitHub with system information and error messages
@@ -238,52 +418,17 @@ gw2_speedometer/
 **Racing Gameplay:**
 - [Beetle Racing Demo](https://www.youtube.com/watch?v=LxknXO3uT70)
 - [Advanced Techniques](https://www.youtube.com/watch?v=_npJtLIhm4U)
-- [Spanish Tutorial](https://www.youtube.com/watch?v=_6Pdw_SvgXc)
 
 ---
 
-## ⚖️ Legal & Safety
+## 📄 License
 
-**100% Legal and Safe**
-- Uses official Guild Wars 2 MumbleLink API
-- No game modifications or addons
-- Read-only access to position data
-- ArenaNet approved methodology
-
-**Privacy Focused**
-- No personal data collection
-- Optional online features
-- Local data storage by default
-- Transparent open-source code
+This project is open source. See LICENSE file for details.
 
 ---
 
-## 🤝 Contributing
+## 🙏 Acknowledgments
 
-This is an open-source project welcoming contributions:
-- 🐛 **Bug Reports** - Help improve stability
-- 🗺️ **Map Creation** - Design new racing tracks  
-- 🌍 **Translations** - Localize for your language
-- 💻 **Code Contributions** - Enhance features and performance
-
----
-
-## 🏆 Community & Rankings
-
-Join the racing community at **[beetlerank.com](https://beetlerank.com)**:
-- 📊 Global leaderboards and rankings
-- 🏁 Tournament announcements  
-- 🗺️ Custom map sharing
-- 💬 Racing community discussions
-- 📈 Personal progress tracking
-
----
-
-<div align="center">
-
-**Ready to race? Download now and join the Guild Wars 2 beetle racing community!**
-
-[🚀 Download Latest Release](https://github.com/killer415tv/gw2_speedometer/archive/refs/heads/main.zip) | [🌐 Visit Beetlerank.com](https://beetlerank.com) | [📋 Installation Guide](INSTALL.md)
-
-</div>
-
+- Guild Wars 2 community for track designs
+- Beetlerank.com for server infrastructure
+- All contributors and beta testers

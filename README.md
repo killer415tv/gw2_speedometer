@@ -21,8 +21,12 @@
 
 1. **Download** the project from [GitHub releases](https://github.com/killer415tv/gw2_speedometer/archive/refs/heads/main.zip)
 2. **Extract** the ZIP file to your desired location
-3. **Run** `install.bat` (Windows) or `install.sh` (Linux/Mac)
-4. **Launch** with `launch.bat` or `./launch.sh`
+3. **Install Python** (if not already installed):
+   - Use the installer in `python installer v3.12.1/` folder
+   - ⚠️ **Important**: Check "Add Python to PATH" during installation!
+   - See `python installer v3.12.1/INSTALL_PYTHON.md` for detailed help
+4. **Run** `install.bat` (Windows) or `install.sh` (Linux/Mac)
+5. **Launch** with `launch.bat` or `./launch.sh`
 
 That's it! The installer will:
 - ✅ Check Python installation

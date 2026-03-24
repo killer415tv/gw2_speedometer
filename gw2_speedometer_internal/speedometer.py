@@ -176,6 +176,9 @@ _lastVel = 0
 _lastTick = 0
 _lastTime = 0
 velocity = 0
+map_angle = 0
+last_valid_velocity = 0  # Última velocidad válida para filtro anti-0
+last_valid_velocity_time = 0  # Timestamp de la última velocidad válida
 slope = 0
 _time = 0
 _tick = 0
@@ -1435,17 +1438,30 @@ class Meterv2():
             _lastTick = _tick
 
 
-        if 'racer' in globals() and (client != "" or websocket_client):
-            if map_position_last_time_send != round(_time / 2):
-                map_position_last_time_send = round(_time / 2)
+        if 'racer' in globals() and racer.session_id.get() != "":
+            # Enviar posición cada 50ms (20 veces por segundo)
+            if map_position_last_time_send != round(_time * 20):
+                map_position_last_time_send = round(_time * 20)
                 if not (ml.data.fAvatarPosition[0] == 0 and ml.data.fAvatarPosition[1] == 0 and ml.data.fAvatarPosition[2] == 0):
-                    if client != "":
+                    # Filtro anti-0: usar última velocidad válida si la actual es 0
+                    # Usar globals() para evitar UnboundLocalError
+                    if velocity > 0:
+                        globals()['last_valid_velocity'] = velocity
+                        globals()['last_valid_velocity_time'] = time.time()
+                    
+                    last_valid = globals().get('last_valid_velocity', 0)
+                    last_time = globals().get('last_valid_velocity_time', 0)
+                    
+                    if velocity > 0 or (time.time() - last_time < 0.05 and last_valid > 0):
+                        speed_to_send = velocity if velocity > 0 else last_valid
                         racer.sendMQTT(
                             {
                                 "option": "position", 
                                 "x": ml.data.fAvatarPosition[0], 
                                 "y": ml.data.fAvatarPosition[1],
                                 "z": ml.data.fAvatarPosition[2], 
+                                "speed": round(speed_to_send * 99 / 7200),
+                                "angle": map_angle,
                                 "user": racer.username.get(), 
                                 "map": guildhall_name.get(),
                                 "color": player_color
@@ -2155,10 +2171,33 @@ class Meter():
             _pos = [ml.data.fAvatarPosition[0],ml.data.fAvatarPosition[2]]
 
         
-        if 'racer' in globals() and client != "":
-            if map_position_last_time_send != round(_time / 2):
-                map_position_last_time_send = round(_time / 2)
-                racer.sendMQTT({"option": "position", "x": ml.data.fAvatarPosition[0], "y": ml.data.fAvatarPosition[1], "z": ml.data.fAvatarPosition[2], "user": racer.username.get(), "map": guildhall_name.get(), "color": player_color})
+        if 'racer' in globals() and racer.session_id.get() != "":
+            # Enviar posición cada 50ms (20 veces por segundo)
+            if map_position_last_time_send != round(_time * 20):
+                map_position_last_time_send = round(_time * 20)
+                
+                # Filtro anti-0: usar última velocidad válida si la actual es 0
+                # Usar globals() para evitar UnboundLocalError
+                if velocity > 0:
+                    globals()['last_valid_velocity'] = velocity
+                    globals()['last_valid_velocity_time'] = time.time()
+                
+                last_valid = globals().get('last_valid_velocity', 0)
+                last_time = globals().get('last_valid_velocity_time', 0)
+                
+                if velocity > 0 or (time.time() - last_time < 0.05 and last_valid > 0):
+                    speed_to_send = velocity if velocity > 0 else last_valid
+                    racer.sendMQTT({
+                        "option": "position", 
+                        "x": ml.data.fAvatarPosition[0], 
+                        "y": ml.data.fAvatarPosition[1], 
+                        "z": ml.data.fAvatarPosition[2], 
+                        "speed": round(speed_to_send * 99 / 7200),
+                        "angle": map_angle,
+                    "user": racer.username.get(), 
+                    "map": guildhall_name.get(), 
+                    "color": player_color
+                })
         
 
         if show_checkpoints_window and 'racer' in globals():  
@@ -2234,7 +2273,7 @@ class Meter():
                     uc = unit_vector(b)
                     # calculamos el vector unitario del angulo de camara (avatarFront)
                     uaf = unit_vector(c)
-                    global map_angle
+# Removed global map_angle - now module level
                     map_angle = float(angle_between([0 , 1], uaf))+180
                     
                     #self.steps_txt.set("Angles :") 

@@ -4,6 +4,7 @@ from threading import Thread
 from tkinter import *
 import ctypes
 import datetime
+import time
 
 try:
     from websocket import WebSocketApp
@@ -81,6 +82,10 @@ INTERVAL_PURGE_OLD_USERS = 2000  # ms
 TIMESPAN_RETAIN_USERS = 10  # s
 
 GOLDEN_RATIO_CONJUGATE = 0.618033988749895
+
+# WebSocket configuration
+websocket_host = "www.beetlerank.com"
+websocket_port = 3002
 
 
 def get_best_online_time(map_name):
@@ -335,33 +340,76 @@ class Ghost3d(object):
                 print("THERE IS NO LOG FILES YET")
 
     def getPlayerPositions(self):
-        """Get player positions via UDP TelemetryListener"""
-        # Create a callback for position messages
-        def on_position(data):
-            user = data.get('user')
-            if user not in self.current_users:
-                self.current_users[user] = {}
-            self.current_users[user]["color"] = data.get('color')
-            self.current_users[user]["position"] = (data.get('x'), data.get('y'))
-            self.current_users[user]["timestamp"] = time.time()
-            if self.TEST_DELAY:
-                self.timestamps_packet_sent[user] = data.get('timestamp')
+        """Get player positions via WebSocket"""
+        # Create a callback for position messages from websocket
+        def on_message(ws, message):
+            try:
+                # print(f"Raw websocket message: {message}")
+                data = json.loads(message)
+                
+                # El formato del mensaje es: {"type":"snapshot", "users":[...]}
+                # Necesitamos extraer los usuarios del array "users"
+                users = data.get('users', [])
+                
+                for user_data in users:
+                    user = user_data.get('user')
+                    option = user_data.get('option', '')
+                    
+                    # Solo procesar mensajes de posición
+                    if option == 'position' and user:
+                        if user not in self.current_users:
+                            self.current_users[user] = {}
+                        self.current_users[user]["color"] = user_data.get('color', '#FFFFFF')
+                        # El mensaje tiene x, y, z - usamos x y z para posición 2D
+                        self.current_users[user]["position"] = (user_data.get('x'), user_data.get('z'))
+                        self.current_users[user]["timestamp"] = time.time()
+                        # print(f"Received position from {user}: {user_data.get('x')}, {user_data.get('z')}")
+                        
+            except Exception as e:
+                print(f"Error processing websocket message: {e}")
         
-        print("+ connecting to UDP position stream")
-        # Create TelemetryListener for receiving position updates
-        # Filter by session_code and only receive position messages
-        listener = TelemetryListener(
-            session_code=chosen_room,
-            options=["position"]
+        def on_error(ws, error):
+            print(f"WebSocket error: {error}")
+        
+        def on_close(ws, close_status_code, close_msg):
+            print("WebSocket connection closed")
+        
+        def on_open(ws):
+            print("WebSocket connected!")
+            # Subscribe to the room
+            subscribe_msg = {
+                "type": "subscribe",
+                "room": chosen_room
+            }
+            ws.send(json.dumps(subscribe_msg))
+        
+        print(f"+ connecting to WebSocket at wss://{websocket_host}:{websocket_port}")
+        
+        # Create WebSocket client
+        ws = WebSocketApp(
+            f"wss://{websocket_host}:{websocket_port}",
+            on_message=on_message,
+            on_error=on_error,
+            on_close=on_close,
+            on_open=on_open
         )
-        listener.set_position_callback(on_position)
-        listener.start()
+        
+        # Run websocket in a thread
+        ws_thread = Thread(target=ws.run_forever)
+        ws_thread.daemon = True
+        ws_thread.start()
+        
+        print("WebSocket thread started, waiting for position data...")
 
     def get_distinct_color(self, n):
         hue = (self.COLOR_BASE_VAL + n * GOLDEN_RATIO_CONJUGATE) % 1
         return hsv_to_rgb(hue, 0.65, 0.85)
 
     def drawPositions(self):
+        # Debug: print current users
+        if self.current_users:
+            print(f"Drawing {len(self.current_users)} players: {list(self.current_users.keys())}")
+        
         for user, data in self.current_users.copy().items():
             if "color" in self.current_users[user]:
                 color = self.current_users[user]["color"]

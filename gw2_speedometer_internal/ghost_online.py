@@ -92,6 +92,7 @@ FR_PRIVATE  = 0x10
 FR_NOT_ENUM = 0x20
 
 show3D = True
+print(f"show3D initialized to True at line 94")
 
 def loadfont(fontpath, private=True, enumerable=False):
     '''
@@ -902,7 +903,9 @@ class Ghost3d():
         self.create_top_section()
         
         #3d viewer
+        print(f"show3D value: {show3D}")
         if show3D:
+            print("Creating 3D viewer...")
             self.create_3d_viewer()
 
         #launch the ghost system
@@ -978,11 +981,13 @@ class Menu():
 
     def checkBoxChange(self, state):
         global show3D
+        print(f"checkBoxChange called with state: {state}, Qt.Checked: {Qt.Checked}")
 
-        if state == Qt.Checked:
+        if state == Qt.Checked or state == 2:
             show3D = True
         else:
             show3D = False
+        print(f"show3D set to: {show3D}")
 
     def __init__(self):
         
@@ -1072,7 +1077,7 @@ class Menu():
 
         check = QCheckBox("Show 3D ghost")
         check.stateChanged.connect(self.checkBoxChange)
-        check.toggle()
+        check.setChecked(True)
  
         layout.addWidget(check)
 

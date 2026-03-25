@@ -1,0 +1,22 @@
+Hi! I made the speedometer files as standalone executables, are the same version of the speedometer, checkpoint viewer and ghost viewer of python version
+buut these exes dont need python installed, they can run standalone without python, and that is the reason of the 
+heavy size of the files. 
+
+Each file has needed python installation files inside.
+
+
+Github does not allow me to upload such a big files so I put it on mega
+
+https://mega.nz/file/m5VnRACS#WfuFxBV73eIP254wuF_eDW0KDsm8L0jtX25JMy-Ec_c
+
+
+If someone want to make its own exe file from the source, IDK maybe you dont trust on executables without certificates. You can make this with pyinstaller
+
+source: https://pyinstaller.org/en/stable/
+
+just install python, install pyintstaller, and 
+
+pyinstaller -F speedometer_multilap.py
+
+
+I hope this will help ppl with python problems, and brr brr good luck! see ya

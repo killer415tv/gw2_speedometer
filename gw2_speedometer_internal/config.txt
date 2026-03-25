@@ -1,0 +1,36 @@
+[general]
+speed_in_3d = 1
+hud_slope = 1
+enable_livesplit_hotkey = 0
+live_start = l
+live_reset = k
+log = 1
+hud_altitude = 1
+hud_angles = 1
+hud_angles_bubbles = 1
+hud_angles_airboost = 1
+hud_max_speed = 1
+magic_angle = 58
+hud_acceleration = 1
+hud_gauge = 1
+hud_gauge_v1 = 0
+hud_speed = 1
+hud_distance = 1
+enable_ghost_keys = 1
+ghost_start = t
+recalculate_ghost = y
+show_checkpoints_window = 1
+hud_drift_hold = 1
+drift_key = c
+player_color = #ffffff
+use_websocket = 1
+websocket_host = beetlerank.com
+websocket_port = 1234
+speed_color0 = #999999
+speed_color1 = #7897ff
+speed_color2 = #c970cc
+speed_color3 = #ff8a36
+speed_color4 = #ff5436
+geometry_speedometer = 650x300+955+1090
+geometry_racer = 750x500+0+400
+

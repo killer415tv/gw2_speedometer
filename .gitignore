@@ -1,4 +1,6 @@
 logs/
-
+.cursor/
+.autopilot.json
 .idea/
 __pycache__/
+venv/

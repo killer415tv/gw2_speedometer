@@ -1,4 +1,4 @@
-# 🏁 Beetlerank Speed Suite v6.00.00
+# 🏁 Beetlerank Speed Suite v6.0.1
 
 <div align="center">
 

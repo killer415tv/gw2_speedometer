@@ -4112,7 +4112,7 @@ class Racer:
 
         self.t_1 = tk.Label(
             self.root,
-            text="""Race Assistant v6.3.23""",
+            text="""Race Assistant v6.0.1""",
             justify=tk.LEFT,
             padx=20,
             fg=self.fg.get(),

@@ -297,35 +297,35 @@ class Configuration:
 
         cfg.add_section("general")
 
-        cfg.set("general", "speed_in_3D", speed_in_3D)
-        cfg.set("general", "hud_slope", hud_slope)
-        cfg.set("general", "enable_livesplit_hotkey", enable_livesplit_hotkey)
+        cfg.set("general", "speed_in_3D", str(speed_in_3D))
+        cfg.set("general", "hud_slope", str(hud_slope))
+        cfg.set("general", "enable_livesplit_hotkey", str(enable_livesplit_hotkey))
         cfg.set("general", "live_start", live_start)
         cfg.set("general", "live_reset", live_reset)
-        cfg.set("general", "log", log)
-        cfg.set("general", "hud_altitude", hud_altitude)
-        cfg.set("general", "hud_angles", hud_angles)
-        cfg.set("general", "hud_angles_bubbles", hud_angles_bubbles)
-        cfg.set("general", "hud_angles_airboost", hud_angles_airboost)
-        cfg.set("general", "hud_max_speed", hud_max_speed)
-        cfg.set("general", "magic_angle", magic_angle)
-        cfg.set("general", "hud_acceleration", hud_acceleration)
-        cfg.set("general", "hud_gauge", hud_gauge)
-        cfg.set("general", "hud_gauge_v1", hud_gauge_v1)
-        cfg.set("general", "hud_speed", hud_speed)
-        cfg.set("general", "hud_distance", hud_distance)
-        cfg.set("general", "enable_ghost_keys", enable_ghost_keys)
+        cfg.set("general", "log", str(log))
+        cfg.set("general", "hud_altitude", str(hud_altitude))
+        cfg.set("general", "hud_angles", str(hud_angles))
+        cfg.set("general", "hud_angles_bubbles", str(hud_angles_bubbles))
+        cfg.set("general", "hud_angles_airboost", str(hud_angles_airboost))
+        cfg.set("general", "hud_max_speed", str(hud_max_speed))
+        cfg.set("general", "magic_angle", str(magic_angle))
+        cfg.set("general", "hud_acceleration", str(hud_acceleration))
+        cfg.set("general", "hud_gauge", str(hud_gauge))
+        cfg.set("general", "hud_gauge_v1", str(hud_gauge_v1))
+        cfg.set("general", "hud_speed", str(hud_speed))
+        cfg.set("general", "hud_distance", str(hud_distance))
+        cfg.set("general", "enable_ghost_keys", str(enable_ghost_keys))
         cfg.set("general", "ghost_start", ghost_start)
         cfg.set("general", "recalculate_ghost", recalculate_ghost)
-        cfg.set("general", "show_checkpoints_window", show_checkpoints_window)
-        cfg.set("general", "hud_drift_hold", hud_drift_hold)
+        cfg.set("general", "show_checkpoints_window", str(show_checkpoints_window))
+        cfg.set("general", "hud_drift_hold", str(hud_drift_hold))
         cfg.set("general", "drift_key", drift_key)
         if player_color == None:
             player_color = "#ffffff"
         cfg.set("general", "player_color", player_color)
-        cfg.set("general", "use_websocket", use_websocket)
+        cfg.set("general", "use_websocket", str(use_websocket))
         cfg.set("general", "websocket_host", websocket_host)
-        cfg.set("general", "websocket_port", websocket_port)
+        cfg.set("general", "websocket_port", str(websocket_port))
 
         cfg.set("general", "speed_color0", speed_color0)
         cfg.set("general", "speed_color1", speed_color1)
@@ -379,7 +379,7 @@ class Configuration:
         global speed_color3
         global speed_color4
 
-        if cfg.read([str(Path(sys.argv[0]).parent.parent / "config.txt")]):
+        if cfg.read([str(Path(sys.argv[0]).parent / "config.txt")]):
             if cfg.has_option("general", "speed_in_3D"):
                 speed_in_3D = int(cfg.get("general", "speed_in_3D"))
             if cfg.has_option("general", "hud_slope"):
@@ -4112,7 +4112,7 @@ class Racer:
 
         self.t_1 = tk.Label(
             self.root,
-            text="""Race Assistant v6.0.1""",
+            text="""Race Assistant v6.0.2""",
             justify=tk.LEFT,
             padx=20,
             fg=self.fg.get(),

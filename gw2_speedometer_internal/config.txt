@@ -1,17 +1,17 @@
 [general]
-speed_in_3d = 0
-hud_slope = 0
+speed_in_3d = 1
+hud_slope = 1
 enable_livesplit_hotkey = 0
 live_start = l
 live_reset = k
 log = 1
 hud_altitude = 1
-hud_angles = 0
-hud_angles_bubbles = 0
-hud_angles_airboost = 0
+hud_angles = 1
+hud_angles_bubbles = 1
+hud_angles_airboost = 1
 hud_max_speed = 1
 magic_angle = 58
-hud_acceleration = 0
+hud_acceleration = 1
 hud_gauge = 1
 hud_gauge_v1 = 0
 hud_speed = 1

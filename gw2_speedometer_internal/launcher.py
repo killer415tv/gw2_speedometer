@@ -25,7 +25,7 @@ import webbrowser
 class GW2SpeedometerLauncher:
     def __init__(self):
         self.root = tk.Tk()
-        self.root.title("Beetlerank Speed Suite v6.00.00")
+        self.root.title("Beetlerank Speed Suite v6.0.2")
         self.root.geometry("950x650")  # Reducir altura para que quepa todo
         self.root.configure(bg='#1a1a1a')
         
@@ -422,7 +422,7 @@ class GW2SpeedometerLauncher:
         info_frame.pack()
         
         info_label = tk.Label(info_frame,
-                            text="Beetlerank Speed Suite v6.00.00 | Powered by ",
+                            text="Beetlerank Speed Suite v6.0.2 | Powered by ",
                             bg=self.colors['footer_bg'],
                             fg=self.colors['text_secondary'],
                             font=('Segoe UI', 8))

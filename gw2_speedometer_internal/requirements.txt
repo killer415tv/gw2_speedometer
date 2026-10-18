@@ -25,9 +25,7 @@ pynput>=1.7.0,<2.0.0
 # Comunicaciones HTTP
 requests>=2.26.0,<3.0.0
 
-# Comunicación UDP/TCP para multijugador (reemplaza MQTT)
-# Ya no se necesita paho-mqtt - ahora usa sockets estándar de Python
-# paho-mqtt>=1.5.0,<2.0.0  # DEPRECATED - migrado a telemetry_client
+# Comunicación UDP/TCP para multijugador (sockets estándar de Python, ver telemetry_client.py)
 
 # WebSockets para comunicación en tiempo real
 websocket-client>=1.3.0,<2.0.0
@@ -53,8 +51,7 @@ PyOpenGL>=3.1.0,<4.0.0
 # Generación de ruido para efectos visuales
 opensimplex>=0.3,<1.0.0
 
-# Gráficos web interactivos - Solo para exportación
-plotly>=5.0.0,<6.0.0
+# plotly (solo web3DPlotter.py) está en requirements-optional.txt
 
 # Soporte adicional para websockets (alternativa más robusta)
 #websocket>=0.2.1  # Comentado para evitar conflictos con websocket-client
@@ -65,10 +62,10 @@ plotly>=5.0.0,<6.0.0
 # 1. PySide6 (paquete PySide6-Essentials) es la versión compatible con Python 3.12+ (reemplaza a PySide2)
 # 2. PyOpenGL puede requerir compilación - funciones 3D serán limitadas sin él
 # 3. opensimplex es opcional - solo afecta efectos visuales
-# 4. plotly es opcional - solo para exportación de gráficos web
+# 4. plotly es opcional (web3DPlotter.py): ver requirements-optional.txt
 #
 # Instalación mínima (solo funciones básicas):
-# pip install numpy pandas scipy pynput requests paho-mqtt websocket-client
+# pip install numpy pandas scipy pynput requests websocket-client
 #
 # Instalación completa (todas las funciones):
 # pip install -r requirements.txt 

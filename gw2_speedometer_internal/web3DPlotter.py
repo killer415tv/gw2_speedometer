@@ -1,15 +1,22 @@
+import sys
+
 import pandas as pd
-import plotly.express as px
-import plotly.express as px
-import plotly.graph_objects as go
-import sys, os
+
+try:
+    import plotly.express as px
+except ImportError:
+    sys.exit("plotly is not installed (optional). Install it with: "
+             "pip install -r requirements-optional.txt")
+
+import os
 import glob
-import pandas as pd
+from pathlib import Path
 
 
-path = os.path.dirname(os.path.abspath(sys.argv[0])) + "/"                  
-all_files = glob.glob(os.path.join(path, "*.csv")) 
-names = [os.path.basename(x) for x in glob.glob(path+'\*.csv')] 
+# CSV files placed next to this script (same folder as before)
+path = Path(__file__).resolve().parent
+all_files = glob.glob(os.path.join(path, "*.csv"))
+names = [os.path.basename(x) for x in all_files]
 
 #print(names)
 
@@ -30,4 +37,3 @@ fig = px.line_3d(df, x="X", y="Z", z="Y", color="file_name")
 
 
 fig.show()
-

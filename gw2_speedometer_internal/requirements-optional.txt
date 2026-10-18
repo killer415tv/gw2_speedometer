@@ -1,0 +1,8 @@
+# GW2 Speedometer Suite - Optional dependencies
+# ==============================================
+# NOT installed by launch.bat. Only needed for web3DPlotter.py (3D plot of the
+# CSV files in this folder). From the project folder run:
+#
+#   venv\Scripts\python.exe -m pip install -r gw2_speedometer_internal\requirements-optional.txt
+#
+plotly>=5.0.0,<6.0.0

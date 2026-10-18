@@ -20,6 +20,8 @@ import threading
 from pathlib import Path
 import json
 import webbrowser
+# Real (absolute) folder of this file; does not depend on the current directory.
+APP_DIR = Path(__file__).resolve().parent
 # PIL y cairosvg se importan dinámicamente en load_logo() para evitar errores si no están instaladas
 
 class GW2SpeedometerLauncher:
@@ -447,15 +449,15 @@ class GW2SpeedometerLauncher:
                 return
             
             # Check if file exists
-            app_path = Path(app['file'])
+            app_path = APP_DIR / app['file']
             if not app_path.exists():
                 messagebox.showerror("Error",
                                    f"File {app['file']} not found")
                 return
             
             # Launch application in separate process
-            process = subprocess.Popen([sys.executable, app['file']],
-                                     cwd=Path.cwd(),
+            process = subprocess.Popen([sys.executable, str(app_path)],
+                                     cwd=str(APP_DIR),
                                      creationflags=subprocess.CREATE_NEW_CONSOLE if os.name == 'nt' else 0)
             
             # Save process reference
@@ -550,7 +552,7 @@ class GW2SpeedometerLauncher:
 
     def open_logs_folder(self):
         """Open logs folder"""
-        logs_path = Path("logs")
+        logs_path = APP_DIR / "logs"
         if logs_path.exists():
             if os.name == 'nt':  # Windows
                 os.startfile(logs_path)
@@ -561,7 +563,9 @@ class GW2SpeedometerLauncher:
 
     def open_readme(self):
         """Open README file"""
-        readme_path = Path("README.md")
+        # README.md lives in the project root (parent of this folder)
+        readme_path = next((p for p in (APP_DIR / "README.md", APP_DIR.parent / "README.md")
+                            if p.exists()), APP_DIR.parent / "README.md")
         if readme_path.exists():
             if os.name == 'nt':  # Windows
                 os.startfile(readme_path)
@@ -625,7 +629,7 @@ def main():
     """Main function"""
     try:
         # Change to script directory
-        script_dir = Path(__file__).parent
+        script_dir = APP_DIR
         os.chdir(script_dir)
         
         # Create and run launcher

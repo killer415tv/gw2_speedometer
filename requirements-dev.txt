@@ -1,0 +1,4 @@
+# Development only (tests and lint) - NOT used by launch.bat / end users.
+# Run the tests from the project root:  python -m pytest
+pytest>=8.0
+ruff>=0.6

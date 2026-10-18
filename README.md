@@ -362,6 +362,8 @@ Installed automatically by `launch.bat` from `gw2_speedometer_internal/requireme
 - Input: `pynput` for keyboard/mouse handling
 - Networking: `websocket-client`, `requests`
 - Game Integration: `mumblelink` API for Guild Wars 2
+- Optional (not installed by default): `plotly` for `web3DPlotter.py`, see `gw2_speedometer_internal/requirements-optional.txt`
+- Development only: `requirements-dev.txt` (pytest, ruff); run the tests with `python -m pytest`
 
 ### File Structure
 ```
@@ -374,6 +376,7 @@ gw2_speedometer/
 │   ├── speedometer.py               # Primary speedometer tool
 │   ├── telemetry_client.py          # TCP/UDP/WebSocket communication module
 │   ├── requirements.txt             # Python dependencies
+│   ├── requirements-optional.txt    # Optional (plotly for web3DPlotter.py)
 │   ├── logs/                        # Race data and telemetry
 │   └── maps/                        # Custom track definitions
 ├── tools/                           # Created on first run: uv, Python 3.12, download cache

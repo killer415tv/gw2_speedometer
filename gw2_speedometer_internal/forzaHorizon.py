@@ -1,7 +1,5 @@
 import tkinter as tk
-from tkinter import simpledialog
 from tkinter import *
-from math import pi, cos, sin
 import ctypes
 import mmap
 import time
@@ -9,21 +7,14 @@ import datetime
 import math
 from scipy.spatial import distance
 from pynput.keyboard import Key, Controller
-import csv
 import sys, os
 import numpy as np
-from datetime import date
-import json
-import glob
+from mumblelink import get_identity_fov
 import pandas as pd
 
-import random
 
 import time
-from datetime import datetime
 
-import threading
-import queue
 
 
 import PySide6
@@ -37,7 +28,6 @@ from pynput import keyboard
 
 import requests 
 
-import shlex, subprocess
 
 
 
@@ -427,7 +417,9 @@ class Ghost3d(object):
         if ml.data.uiVersion == 0:
             return
 
-        fov = json.loads(ml.data.identity)["fov"]
+        fov = get_identity_fov(ml)
+        if fov is None:
+            return
         fAvatarPosition = [ml.data.fAvatarPosition[0],ml.data.fAvatarPosition[1],ml.data.fAvatarPosition[2]]
         fAvatarFront = [ml.data.fAvatarFront[0],ml.data.fAvatarFront[1],ml.data.fAvatarFront[2]]
         fAvatarTop = [ml.data.fAvatarTop[0],ml.data.fAvatarTop[1],ml.data.fAvatarTop[2]]

@@ -23,6 +23,7 @@ except ImportError:
 from scipy.spatial import distance
 
 import os
+import re
 import json
 import glob
 import pandas as pd
@@ -45,9 +46,9 @@ from pynput import keyboard
 
 import requests 
 
-from mumblelink import MumbleLink
+from mumblelink import MumbleLink, get_identity_name
+from pathutils import sanitize_map_name
 import io
-from urllib.request import urlopen  
 from urllib.parse import quote
 
 try:
@@ -73,6 +74,27 @@ forceFile = False
 chosen_room = None
 character_name = None
 
+# Command line: "map_realtime_multiplayer.py [--room CODE] [LOGFILE.csv]"
+#   --room CODE   multiplayer room code (otherwise it is asked on the console)
+#   LOGFILE.csv   force this log to draw the map (drag & drop a file on the script)
+HTTP_TIMEOUT = (5, 10)
+_HEX_COLOR = re.compile(r"^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$")
+
+
+def _parse_argv(argv):
+    """Return (room, forced_file) from sys.argv[1:]; --room is never taken as a file."""
+    args = list(argv)
+    room = None
+    if "--room" in args:
+        i = args.index("--room")
+        room = args[i + 1] if i + 1 < len(args) else None
+        del args[i:i + 2]
+    forced_file = args[0] if args else None
+    return room, forced_file
+
+
+ARG_ROOM, ARG_FORCE_FILE = _parse_argv(sys.argv[1:])
+
 WEBSOCKET_HOSTNAME = "beetlerank.com"
 WEBSOCKET_PORT = 1234
 
@@ -92,7 +114,7 @@ def get_best_online_time(map_name):
     """Obtiene automáticamente el mejor tiempo online del ranking"""
     try:
         url = "https://www.beetlerank.com/api/top3/" + quote(map_name)
-        response = requests.get(url, verify=True)
+        response = requests.get(url, verify=True, timeout=HTTP_TIMEOUT)
         data_json = json.loads(response.text)
         
         if data_json['ranking'] and len(data_json['ranking']) > 0:
@@ -199,9 +221,9 @@ class Ghost3d(object):
 
         forceFile = False
         # force file to the one you drag an drop on the script
-        if len(sys.argv) > 1:
+        if ARG_FORCE_FILE:
             forceFile = True
-            file_ = sys.argv[1]
+            file_ = ARG_FORCE_FILE
 
         if forceFile:
             self.df = pd.DataFrame()
@@ -231,7 +253,7 @@ class Ghost3d(object):
 
             # obtener los ficheros de replay
             path = os.path.dirname(os.path.abspath(sys.argv[0])) + "\\logs\\"
-            self.all_files = glob.glob(os.path.join(path, guildhall_name + "_log*.csv"))
+            self.all_files = glob.glob(os.path.join(path, glob.escape(sanitize_map_name(guildhall_name)) + "_log*.csv"))
 
             if cup_name == "OWN MAPS FOLDER":
                 self.checkpoints_file = os.path.dirname(os.path.abspath(sys.argv[0])) + "\\maps\\" + guildhall_name + ".csv"
@@ -254,7 +276,7 @@ class Ghost3d(object):
             if best_online_file:
                 # Cargar el archivo online
                 try:
-                    s = requests.get(best_online_file).content 
+                    s = requests.get(best_online_file, timeout=HTTP_TIMEOUT).content 
                     file_df = pd.read_csv(io.StringIO(s.decode('utf-8')))
                     file_df['file_name'] = best_online_file
                     
@@ -346,28 +368,50 @@ class Ghost3d(object):
             try:
                 # print(f"Raw websocket message: {message}")
                 data = json.loads(message)
-                
+                if not isinstance(data, dict):
+                    return
+
                 # El formato del mensaje es: {"type":"snapshot", "users":[...]}
                 # Necesitamos extraer los usuarios del array "users"
                 users = data.get('users', [])
-                
+                if not isinstance(users, list):
+                    return
+
                 for user_data in users:
+                    if not isinstance(user_data, dict):
+                        continue
                     user = user_data.get('user')
                     option = user_data.get('option', '')
-                    
-                    # Solo procesar mensajes de posición
-                    if option == 'position' and user:
-                        if user not in self.current_users:
-                            self.current_users[user] = {}
-                        self.current_users[user]["color"] = user_data.get('color', '#FFFFFF')
-                        # El mensaje tiene x, y, z - usamos x y z para posición 2D
-                        self.current_users[user]["position"] = (user_data.get('x'), user_data.get('z'))
-                        self.current_users[user]["timestamp"] = time.time()
-                        # print(f"Received position from {user}: {user_data.get('x')}, {user_data.get('z')}")
-                        
+                    x = user_data.get('x')
+                    z = user_data.get('z')
+
+                    # Solo procesar mensajes de posición válidos
+                    if option != 'position' or not user or not isinstance(user, str):
+                        continue
+                    if not all(isinstance(v, (int, float)) and not isinstance(v, bool)
+                               for v in (x, z)):
+                        continue
+                    color = user_data.get('color', '#FFFFFF')
+                    if not isinstance(color, str) or not _HEX_COLOR.match(color):
+                        color = '#FFFFFF'
+
+                    # Se reemplaza la entrada completa de una vez (el hilo de la UI
+                    # lee este dict: nunca debe ver una entrada a medias).
+                    # El mensaje tiene x, y, z - usamos x y z para posición 2D
+                    previous = self.current_users.get(user, {})
+                    entry = {
+                        "color": color,
+                        "position": (x, z),
+                        "timestamp": time.time(),
+                    }
+                    if "color_id" in previous:
+                        entry["color_id"] = previous["color_id"]
+                    self.current_users[user] = entry
+                    # print(f"Received position from {user}: {x}, {z}")
+
             except Exception as e:
                 print(f"Error processing websocket message: {e}")
-        
+
         def on_error(ws, error):
             print(f"WebSocket error: {error}")
         
@@ -406,37 +450,47 @@ class Ghost3d(object):
         return hsv_to_rgb(hue, 0.65, 0.85)
 
     def drawPositions(self):
-        # Debug: print current users
-        if self.current_users:
-            print(f"Drawing {len(self.current_users)} players: {list(self.current_users.keys())}")
-        
-        for user, data in self.current_users.copy().items():
-            if "color" in self.current_users[user]:
-                color = self.current_users[user]["color"]
-            else:
-                if len(self.free_color_ids) > 0:
-                    color_id = self.free_color_ids.pop(0)
+        try:
+            # Debug: print current users
+            if self.current_users:
+                print(f"Drawing {len(self.current_users)} players: {list(self.current_users.keys())}")
+
+            for user, data in self.current_users.copy().items():
+                if "color" in data:
+                    color = data["color"]
                 else:
-                    color_id = self.current_color_id
-                    self.current_color_id += 1
-                color = rgb_to_hex(self.get_distinct_color(color_id))
-                self.current_users[user]["color_id"] = color_id
-                self.current_users[user]["color"] = color
+                    if len(self.free_color_ids) > 0:
+                        color_id = self.free_color_ids.pop(0)
+                    else:
+                        color_id = self.current_color_id
+                        self.current_color_id += 1
+                    color = rgb_to_hex(self.get_distinct_color(color_id))
+                    self.current_users[user]["color_id"] = color_id
+                    self.current_users[user]["color"] = color
 
-            self.paintPlayer(user, data["position"][0], data["position"][1], color)
-
-        self.root.after(INTERVAL_DRAW_USERS, self.drawPositions)
+                self.paintPlayer(user, data["position"][0], data["position"][1], color)
+        except Exception as e:
+            print(f"Error drawing players: {e}")
+        finally:
+            self.root.after(INTERVAL_DRAW_USERS, self.drawPositions)
 
     def deleteOldPositions(self):
-        for user, data in self.current_users.copy().items():
-            if time.time() - data["timestamp"] >= TIMESPAN_RETAIN_USERS:
-                self.free_color_ids.append(data["color_id"])
-                del self.current_users[user]
-                if self.TEST_DELAY:
-                    del self.timestamps_packet_sent[user]
-                self.deletePlayer(self.generateNameMD5(user))
-
-        self.root.after(INTERVAL_PURGE_OLD_USERS, self.deleteOldPositions)
+        try:
+            for user, data in self.current_users.copy().items():
+                if time.time() - data["timestamp"] >= TIMESPAN_RETAIN_USERS:
+                    # color_id only exists for users whose color was generated here
+                    # (the server normally sends the color): never assume it.
+                    color_id = data.get("color_id")
+                    if color_id is not None:
+                        self.free_color_ids.append(color_id)
+                    self.current_users.pop(user, None)
+                    if self.TEST_DELAY:
+                        self.timestamps_packet_sent.pop(user, None)
+                    self.deletePlayer(self.generateNameMD5(user))
+        except Exception as e:
+            print(f"Error purging old players: {e}")
+        finally:
+            self.root.after(INTERVAL_PURGE_OLD_USERS, self.deleteOldPositions)
 
     def drawMap(self):
 
@@ -573,7 +627,7 @@ class Ghost3d(object):
             return
 
         fAvatarPosition2D = [ml.data.fAvatarPosition[0], ml.data.fAvatarPosition[2]]
-        character_name = json.loads(ml.data.identity)["name"]
+        character_name = get_identity_name(ml, "")
 
         self.paintPlayer(character_name, fAvatarPosition2D[0], fAvatarPosition2D[1], "red")
 
@@ -637,7 +691,7 @@ if __name__ == '__main__':
     print("*    IMPORTANT: write your multiplayer code and press enter     *")
     print("*****************************************************************")
 
-    chosen_room = input("Type your multiplayer code:")
+    chosen_room = ARG_ROOM if ARG_ROOM else input("Type your multiplayer code:")
     print("+ code: ", chosen_room, " chosen")
 
     ml = MumbleLink()

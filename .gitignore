@@ -5,3 +5,5 @@ logs/
 __pycache__/
 venv/
 tools/
+.pytest_cache/
+.ruff_cache/

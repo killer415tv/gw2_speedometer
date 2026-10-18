@@ -9,8 +9,39 @@ Este módulo reemplaza las comunicaciones MQTT por UDP/TCP:
 
 import socket
 import json
+import logging
+import random
 import threading
 import time
+
+try:
+    from websocket import WebSocketTimeoutException
+except ImportError:  # websocket-client missing: MultiplayerListener reports it on start()
+    WebSocketTimeoutException = socket.timeout
+
+log = logging.getLogger(__name__)
+
+# Reconnection backoff (seconds): doubles after every failed attempt up to the max.
+TCP_RECONNECT_MIN_DELAY = 2.0
+TCP_RECONNECT_MAX_DELAY = 30.0
+WS_RECONNECT_MIN_DELAY = 2.0
+WS_RECONNECT_MAX_DELAY = 60.0
+
+
+def _backoff_delay(failures, min_delay, max_delay):
+    """Exponential backoff: min_delay * 2**(failures-1), capped at max_delay."""
+    failures = max(1, int(failures))
+    return min(max_delay, min_delay * (2 ** min(failures - 1, 30)))
+
+
+def _safe_close(sock, what):
+    """Close a socket-like object; a failure is logged, never raised."""
+    if sock is None:
+        return
+    try:
+        sock.close()
+    except Exception as exc:
+        log.debug("Error closing %s: %s", what, exc)
 
 
 # Configuración del servidor (valores fijos)
@@ -70,6 +101,11 @@ class TelemetryClient:
         # Hilo para recibir mensajes TCP
         self.receive_thread = None
         self.running = False
+
+        # Reconexión TCP con backoff (monotonic timestamp del próximo intento)
+        self._tcp_failures = 0
+        self._tcp_next_attempt = 0.0
+        self._tcp_lock = threading.Lock()
     
     def connect(self, username, session_code):
         """
@@ -92,64 +128,103 @@ class TelemetryClient:
     
     def _connect_tcp(self):
         """Establece la conexión TCP con el servidor."""
+        with self._tcp_lock:
+            if self.tcp_connected and self.tcp_socket:
+                return  # otro hilo ya reconectó
+            self._connect_tcp_locked()
+
+    def _connect_tcp_locked(self):
+        _safe_close(self.tcp_socket, "TCP socket")
+        self.tcp_socket = None
         try:
-            self.tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.tcp_socket.settimeout(5.0)
-            self.tcp_socket.connect((self.host, self.tcp_port))
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.tcp_socket = sock
+            sock.settimeout(5.0)
+            sock.connect((self.host, self.tcp_port))
             self.tcp_connected = True
+            self._tcp_failures = 0
+            self._tcp_next_attempt = 0.0
             print(f"TCP connected to {self.host}:{self.tcp_port}")
         except Exception as e:
-            print(f"TCP connection failed: {e}")
             self.tcp_connected = False
-    
-    def _receive_tcp_loop(self):
-        """Hilo para recibir mensajes del servidor por TCP."""
-        buffer = b""
-        
-        while self.running:
+            _safe_close(self.tcp_socket, "TCP socket")
+            self.tcp_socket = None
+            self._tcp_failures += 1
+            delay = _backoff_delay(
+                self._tcp_failures, TCP_RECONNECT_MIN_DELAY, TCP_RECONNECT_MAX_DELAY
+            )
+            self._tcp_next_attempt = time.monotonic() + delay
+            log.warning(
+                "TCP connection failed (attempt %d): %s - retrying in %.0fs",
+                self._tcp_failures, e, delay,
+            )
+
+    def _mark_tcp_disconnected(self, reason):
+        """Marca la conexión TCP como caída y programa un reintento con backoff."""
+        log.warning("TCP connection lost: %s", reason)
+        self.tcp_connected = False
+        _safe_close(self.tcp_socket, "TCP socket")
+        self.tcp_socket = None
+        # Primer reintento rápido; si falla, _connect_tcp aplica el backoff.
+        self._tcp_next_attempt = time.monotonic() + TCP_RECONNECT_MIN_DELAY
+
+    def _dispatch_line(self, line):
+        """Decodifica una línea JSON recibida y llama al callback sin propagar errores."""
+        try:
+            message = json.loads(line.decode("utf-8"))
+        except (UnicodeDecodeError, ValueError) as e:
+            log.warning("Ignoring malformed TCP message: %s", e)
+            return
+        if not isinstance(message, dict):
+            log.warning("Ignoring TCP message that is not a JSON object")
+            return
+        if self.on_message_callback:
             try:
-                if self.tcp_socket and self.tcp_connected:
-                    # Usar select para timeout
-                    self.tcp_socket.setblocking(False)
-                    try:
-                        data = self.tcp_socket.recv(4096)
-                        if data:
-                            buffer += data
-                            
-                            # Procesar mensajes completos (separados por newline)
-                            while b"\n" in buffer:
-                                line, buffer = buffer.split(b"\n", 1)
-                                try:
-                                    message = json.loads(line.decode("utf-8"))
-                                    if self.on_message_callback:
-                                        self.on_message_callback(message)
-                                except json.JSONDecodeError:
-                                    pass
-                    except BlockingIOError:
-                        pass
+                self.on_message_callback(message)
+            except Exception:
+                log.exception("Error in TCP message callback")
+
+    def _receive_tcp_loop(self):
+        """Hilo para recibir mensajes del servidor por TCP (y reconectar si cae)."""
+        buffer = b""
+
+        while self.running:
+            if not (self.tcp_socket and self.tcp_connected):
+                # Reintento en este hilo (no bloquea la UI), respetando el backoff.
+                if time.monotonic() >= self._tcp_next_attempt:
+                    buffer = b""
+                    self._connect_tcp()
                 time.sleep(0.1)
+                continue
+
+            try:
+                self.tcp_socket.setblocking(False)
+                data = self.tcp_socket.recv(4096)
+            except BlockingIOError:
+                data = None
             except Exception as e:
                 if self.running:
-                    print(f"TCP receive error: {e}")
-                    time.sleep(1)
-                    # Reintentar conexión
-                    self._connect_tcp()
-    
+                    self._mark_tcp_disconnected(e)
+                continue
+
+            if data == b"":
+                if self.running:
+                    self._mark_tcp_disconnected("closed by server")
+                continue
+            if data:
+                buffer += data
+                # Procesar mensajes completos (separados por newline)
+                while b"\n" in buffer:
+                    line, buffer = buffer.split(b"\n", 1)
+                    self._dispatch_line(line)
+            time.sleep(0.1)
+
     def disconnect(self):
         """Cierra las conexiones y detiene los hilos."""
         self.running = False
         
-        if self.tcp_socket:
-            try:
-                self.tcp_socket.close()
-            except:
-                pass
-        
-        if self.udp_socket:
-            try:
-                self.udp_socket.close()
-            except:
-                pass
+        _safe_close(self.tcp_socket, "TCP socket")
+        _safe_close(self.udp_socket, "UDP socket")
     
     def _should_use_tcp(self, option):
         """Determina si el mensaje debe enviarse por TCP."""
@@ -200,7 +275,7 @@ class TelemetryClient:
     
     def _send_tcp(self, data):
         """Envía datos por TCP con ACK."""
-        if not self.tcp_connected:
+        if not self.tcp_connected and time.monotonic() >= self._tcp_next_attempt:
             self._connect_tcp()
         
         if self.tcp_socket and self.tcp_connected:
@@ -208,8 +283,9 @@ class TelemetryClient:
                 # Enviar datos con newline como delimitador
                 self.tcp_socket.sendall(data + b"\n")
             except Exception as e:
-                print(f"TCP send error: {e}")
-                self.tcp_connected = False
+                self._mark_tcp_disconnected(f"send error: {e}")
+        else:
+            log.debug("TCP not connected: message dropped (reconnect pending)")
     
     # Métodos de conveniencia para tipos específicos de mensajes
     
@@ -366,17 +442,8 @@ class TelemetryListener:
         """Detiene los servidores."""
         self.running = False
         
-        if self.udp_socket:
-            try:
-                self.udp_socket.close()
-            except:
-                pass
-        
-        if self.tcp_server:
-            try:
-                self.tcp_server.close()
-            except:
-                pass
+        _safe_close(self.udp_socket, "UDP listener socket")
+        _safe_close(self.tcp_server, "TCP listener socket")
     
     def _udp_loop(self):
         """Bucle de recepción UDP."""
@@ -439,8 +506,10 @@ class TelemetryListener:
                         try:
                             message = json.loads(line.decode("utf-8"))
                             self._handle_message(message)
-                        except json.JSONDecodeError:
-                            pass
+                        except (UnicodeDecodeError, ValueError) as e:
+                            log.warning("Ignoring malformed TCP message: %s", e)
+                        except Exception:
+                            log.exception("Error handling TCP message")
                 except socket.timeout:
                     break
         except Exception as e:
@@ -450,6 +519,9 @@ class TelemetryListener:
     
     def _handle_message(self, message):
         """Procesa un mensaje recibido."""
+        if not isinstance(message, dict):
+            log.warning("Ignoring message that is not a JSON object")
+            return
         # Verificar si el mensaje debe ser procesado
         if not self._should_process_message(message):
             return
@@ -531,60 +603,111 @@ class MultiplayerListener:
         
         # Callbacks
         self.snapshot_callback = None
+
+        # Reconexión con backoff
+        self._lock = threading.Lock()
+        self._retry_timer = None
+        self._failures = 0
     
     def start(self):
-        """Inicia la conexión WebSocket."""
+        """Inicia la conexión WebSocket (sin bloquear: conecta en segundo plano)."""
         if self.running:
             return
             
         self.running = True
-        
+        self._failures = 0
+        self._schedule_connect(0)
+
+    def _open_connection(self):
+        """Abre la conexión WebSocket (separado para poder sustituirlo en tests)."""
         # Importar aquí para evitar problemas si no está instalado
-        try:
-            from websocket import create_connection, WebSocketException
-            self._connect()
-        except ImportError:
-            print("ERROR: websocket-client not installed")
-            print("Please run: pip install websocket-client")
-            self.running = False
-    
+        from websocket import create_connection
+        return create_connection(self.ws_url, timeout=5)
+
+    def _schedule_connect(self, delay):
+        """Programa un intento de conexión en un hilo temporizador (no bloquea)."""
+        with self._lock:
+            if not self.running:
+                return
+            timer = threading.Timer(delay, self._connect)
+            timer.daemon = True
+            self._retry_timer = timer
+            timer.start()
+
+    def _next_retry_delay(self):
+        """Backoff exponencial acotado, con algo de jitter para no sincronizar clientes."""
+        delay = _backoff_delay(
+            self._failures, WS_RECONNECT_MIN_DELAY, WS_RECONNECT_MAX_DELAY
+        )
+        return delay + random.uniform(0, delay * 0.2)
+
     def _connect(self):
-        """Conecta al servidor WebSocket."""
+        """Conecta al servidor WebSocket; si falla, reintenta con backoff."""
+        if not self.running:
+            return
         try:
-            from websocket import create_connection, WebSocketException
-            self.ws_client = create_connection(self.ws_url, timeout=5)
-            print(f"WebSocket connected to {self.ws_url}")
-            
-            # Iniciar hilo de recepción
-            self.ws_thread = threading.Thread(target=self._receive_loop, daemon=True)
-            self.ws_thread.start()
-            
-        except Exception as e:
-            print(f"WebSocket connection error: {e}")
+            ws = self._open_connection()
+        except ImportError:
+            log.error("websocket-client not installed (pip install websocket-client)")
             self.running = False
-            # Reintentar en 5 segundos
-            threading.Timer(5, self._retry_connection).start()
+            return
+        except Exception as e:
+            self._failures += 1
+            delay = self._next_retry_delay()
+            # No spamear: aviso en el 1er fallo y luego cada 10; el resto a nivel debug
+            level = logging.WARNING if self._failures % 10 == 1 else logging.DEBUG
+            log.log(
+                level,
+                "WebSocket connection error (attempt %d): %s - retrying in %.0fs",
+                self._failures, e, delay,
+            )
+            self._schedule_connect(delay)
+            return
+
+        with self._lock:
+            if not self.running:  # stop() llegó mientras conectábamos
+                _safe_close(ws, "WebSocket")
+                return
+            self.ws_client = ws
+            self._failures = 0
+            self.ws_thread = threading.Thread(
+                target=self._receive_loop, args=(ws,), daemon=True
+            )
+            self.ws_thread.start()
+        print(f"WebSocket connected to {self.ws_url}")
     
-    def _retry_connection(self):
-        """Reintenta la conexión WebSocket."""
-        if self.running:
-            self._connect()
-    
-    def _receive_loop(self):
+    def _receive_loop(self, ws):
         """Bucle de recepción de mensajes WebSocket."""
-        while self.running and self.ws_client:
+        while self.running:
             try:
-                message = self.ws_client.recv()
-                if message:
-                    data = json.loads(message)
-                    self._handle_message(data)
+                message = ws.recv()
+            except WebSocketTimeoutException:
+                continue  # sin mensajes en este intervalo: no es un fallo
             except Exception as e:
                 if self.running:
-                    print(f"WebSocket receive error: {e}")
-                    # Reintentar conexión
-                    self.ws_client = None
-                    threading.Timer(5, self._retry_connection).start()
-                    break
+                    _safe_close(ws, "WebSocket")
+                    with self._lock:
+                        current = self.ws_client is ws
+                        if current:
+                            self.ws_client = None
+                    if current:  # a stale loop (replaced by a newer connection) must not reconnect
+                        log.warning("WebSocket receive error: %s - reconnecting", e)
+                        self._failures = 1
+                        self._schedule_connect(self._next_retry_delay())
+                break
+
+            if not message:
+                continue
+            try:
+                data = json.loads(message)
+                if isinstance(data, dict):
+                    self._handle_message(data)
+                else:
+                    log.warning("Ignoring WebSocket message that is not a JSON object")
+            except ValueError as e:
+                log.warning("Ignoring malformed WebSocket message: %s", e)
+            except Exception:
+                log.exception("Error handling WebSocket message")
                 
     def _handle_message(self, message):
         """Procesa un mensaje recibido del servidor."""
@@ -594,6 +717,8 @@ class MultiplayerListener:
             # Filtrar por session_code si está configurado
             if self.session_code:
                 session_codes = message.get("sessionCodes", [])
+                if not isinstance(session_codes, (list, tuple, set)):
+                    return
                 if self.session_code not in session_codes:
                     return
             
@@ -601,15 +726,14 @@ class MultiplayerListener:
                 self.snapshot_callback(message)
     
     def stop(self):
-        """Detiene la conexión WebSocket."""
-        self.running = False
-        
-        if self.ws_client:
-            try:
-                self.ws_client.close()
-            except:
-                pass
-            self.ws_client = None
+        """Detiene la conexión WebSocket y cancela reintentos pendientes."""
+        with self._lock:
+            self.running = False
+            if self._retry_timer:
+                self._retry_timer.cancel()
+                self._retry_timer = None
+            ws, self.ws_client = self.ws_client, None
+        _safe_close(ws, "WebSocket")
     
     def set_snapshot_callback(self, callback):
         """

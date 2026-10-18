@@ -1,5 +1,40 @@
 import ctypes
+import json
+import logging
 import mmap
+
+log = logging.getLogger(__name__)
+
+
+def parse_identity(raw):
+    """Parse the MumbleLink ``identity`` string into a dict.
+
+    GW2 leaves ``identity`` empty while the game is closed, on the character
+    select screen, or before the first update, so ``json.loads`` on the raw
+    value can fail. Returns ``{}`` for empty/invalid/non-object content instead
+    of raising.
+    """
+    if not raw or not isinstance(raw, str):
+        return {}
+    try:
+        value = json.loads(raw)
+    except (ValueError, TypeError):
+        return {}
+    return value if isinstance(value, dict) else {}
+
+
+def get_identity_name(ml, default=""):
+    """Character name from ``ml.data.identity`` or ``default`` if unavailable."""
+    data = getattr(ml, "data", None)
+    name = parse_identity(getattr(data, "identity", "")).get("name")
+    return name if isinstance(name, str) and name else default
+
+
+def get_identity_fov(ml, default=None):
+    """Field of view from ``ml.data.identity`` or ``default`` if unavailable."""
+    data = getattr(ml, "data", None)
+    fov = parse_identity(getattr(data, "identity", "")).get("fov")
+    return fov if isinstance(fov, (int, float)) else default
 
 
 class Link(ctypes.Structure):
@@ -85,11 +120,27 @@ class MumbleLink:
 
         self.memfile = mmap.mmap(fileno=-1, length=memfile_length, tagname="MumbleLink")
 
-    def read(self):
-        self.memfile.seek(0)
+        # Zeroed data (what GW2 exposes while it is closed) so that ``ml.data``
+        # and ``ml.context`` always exist, even before the first read().
+        self.data = Link()
+        self.context = Context()
+        self._read_failed = False
 
-        self.data = self.unpack(Link, self.memfile.read(self.size_link))
-        self.context = self.unpack(Context, self.memfile.read(self.size_context))
+    def read(self):
+        try:
+            self.memfile.seek(0)
+
+            data = self.unpack(Link, self.memfile.read(self.size_link))
+            context = self.unpack(Context, self.memfile.read(self.size_context))
+        except (ValueError, OSError) as exc:
+            # e.g. the shared memory was closed: keep the last known values.
+            if not self._read_failed:
+                log.warning("MumbleLink read failed: %s", exc)
+            self._read_failed = True
+            return
+        self._read_failed = False
+        self.data = data
+        self.context = context
 
     def close(self):
         self.memfile.close()

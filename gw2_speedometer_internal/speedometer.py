@@ -1,10 +1,8 @@
 import tkinter as tk
-from tkinter import simpledialog
 from tkinter import *
 from tkinter import colorchooser
 from math import pi, cos, sin
 import ctypes
-import mmap
 import time
 import datetime
 import math
@@ -22,19 +20,15 @@ import pynput.keyboard._win32
 import pynput.mouse._win32
 from pynput.keyboard import Key, Controller
 from pynput import keyboard
-import csv
 import sys
 from pathlib import Path
 import numpy as np
-from datetime import date
 import json
 import pandas as pd
 
-import random
 
 import time
 
-import threading
 from threading import Thread
 import queue
 
@@ -44,11 +38,21 @@ from telemetry_client import TelemetryClient, TelemetryListener, MultiplayerList
 import requests
 
 from configparser import RawConfigParser
-import shlex, subprocess
+import subprocess
 
 from websocket._exceptions import WebSocketConnectionClosedException
 
-from mumblelink import MumbleLink
+from mumblelink import MumbleLink, get_identity_name
+from pathutils import sanitize_map_name
+import netmsg
+import logging
+
+# Real folder of this file (absolute): independent of the cwd and of how it was launched.
+APP_DIR = Path(__file__).resolve().parent
+
+# (connect, read) timeouts in seconds for every HTTP request to beetlerank.com
+HTTP_TIMEOUT = (5, 10)
+UPLOAD_TIMEOUT = (5, 30)
 
 np.seterr(divide="ignore", invalid="ignore")
 
@@ -249,8 +253,8 @@ def loadfont(fontpath: str, private=True, enumerable=False):
     return bool(numFontsAdded)
 
 
-loadfont(str(Path(sys.argv[0]).parent.parent / "font.ttf"))
-loadfont(str(Path(sys.argv[0]).parent.parent / "fonts/Montserrat-Regular.ttf"))
+loadfont(str(APP_DIR / "font.ttf"))
+loadfont(str(APP_DIR / "fonts/Montserrat-Regular.ttf"))
 
 
 class Configuration:
@@ -338,7 +342,7 @@ class Configuration:
         if "meter" in globals():
             cfg.set("general", "geometry_racer", racer.root.geometry())
 
-        f = open(Path(sys.argv[0]).parent / "config.txt", "w")
+        f = open(APP_DIR / "config.txt", "w")
         cfg.write(f)
         f.close()
 
@@ -379,7 +383,7 @@ class Configuration:
         global speed_color3
         global speed_color4
 
-        if cfg.read([str(Path(sys.argv[0]).parent / "config.txt")]):
+        if cfg.read([str(APP_DIR / "config.txt")]):
             if cfg.has_option("general", "speed_in_3D"):
                 speed_in_3D = int(cfg.get("general", "speed_in_3D"))
             if cfg.has_option("general", "hud_slope"):
@@ -484,14 +488,24 @@ class Meterv2:
 
     def uploadLog(self, guildhall, old_filename, ml):
         headers = {"Origin": "null", "Referer": "null"}
-        response = requests.post(
-            "https://www.beetlerank.com/upload-log",
-            data={"user": json.loads(ml.data.identity)["name"], "guildhall": guildhall},
-            files={
-                "file": open(Path(sys.argv[0]).parent / "logs" / old_filename, "rb")
-            },
-            headers=headers,
-        )
+        user = get_identity_name(ml)
+        if not user:
+            print("Log NOT uploaded: character name unavailable (is GW2 running?)")
+            return ""
+        try:
+            # Same multipart fields as before (user, guildhall, file); the file
+            # is now closed deterministically and the request has a timeout.
+            with open(APP_DIR / "logs" / old_filename, "rb") as log_file:
+                response = requests.post(
+                    "https://www.beetlerank.com/upload-log",
+                    data={"user": user, "guildhall": guildhall},
+                    files={"file": log_file},
+                    headers=headers,
+                    timeout=UPLOAD_TIMEOUT,
+                )
+        except (requests.RequestException, OSError) as e:
+            print("Log NOT uploaded:", e)
+            return ""
         print("Log uploaded to web")
 
         print(response.text)
@@ -1230,18 +1244,18 @@ class Meterv2:
                             # esta línea es la clave
 
                             # paso 1 - comprobar que existe la carpeta /logs
-                            if not (Path(sys.argv[0]).parent / "logs").exists():
-                                (Path(sys.argv[0]).parent / "logs").mkdir()
+                            if not (APP_DIR / "logs").exists():
+                                (APP_DIR / "logs").mkdir()
 
                             filename = (
-                                guildhall_name.get() + "_log_" + str(_time) + ".csv"
+                                sanitize_map_name(guildhall_name.get()) + "_log_" + str(_time) + ".csv"
                             )
                             if log:
                                 # print("----------------------------------")
                                 # print("NEW LOG FILE - " + filename)
                                 # print("----------------------------------")
                                 writer = open(
-                                    Path(sys.argv[0]).parent / "logs" / filename,
+                                    APP_DIR / "logs" / filename,
                                     "a",
                                     newline="",
                                     encoding="utf-8",
@@ -1293,14 +1307,14 @@ class Meterv2:
                             )
 
                             filename = (
-                                guildhall_name.get() + "_log_" + str(_time) + ".csv"
+                                sanitize_map_name(guildhall_name.get()) + "_log_" + str(_time) + ".csv"
                             )
                             if log:
                                 # print("----------------------------------")
                                 # print("NEW LOG FILE - " + filename)
                                 # print("----------------------------------")
                                 writer = open(
-                                    Path(sys.argv[0]).parent / "logs" / filename,
+                                    APP_DIR / "logs" / filename,
                                     "a",
                                     newline="",
                                     encoding="utf-8",
@@ -1365,7 +1379,7 @@ class Meterv2:
                             if int(lap) == int(total_laps):
                                 last_filename_df = pd.DataFrame()
                                 file_df = pd.read_csv(
-                                    Path(sys.argv[0]).parent / "logs" / old_filename
+                                    APP_DIR / "logs" / old_filename
                                 )
                                 last_filename_df = pd.concat(
                                     [last_filename_df, file_df], ignore_index=True
@@ -1402,7 +1416,8 @@ class Meterv2:
                                     now = datetime.datetime.now()
                                     today_date = now.strftime("%d/%m/%Y %H:%M:%S")
                                     folder = str(
-                                        Path(sys.argv[0]).parent / guildhall_name.get()
+                                        APP_DIR
+                                        / sanitize_map_name(guildhall_name.get())
                                     )
                                     writer = open(
                                         folder + "_records.csv",
@@ -1417,7 +1432,7 @@ class Meterv2:
                                             [
                                                 datefinish,
                                                 today_date,
-                                                json.loads(ml.data.identity)["name"],
+                                                get_identity_name(ml, "anon"),
                                             ]
                                         )
                                     )
@@ -1481,14 +1496,14 @@ class Meterv2:
 
                             """ 
                             #stores in counterDone.txt number of total laps done
-                            file = open(Path(sys.argv[0]).parent / "counterDone.txt")
+                            file = open(APP_DIR / "counterDone.txt")
                             global numero_contador
                             line = file.read()
                             if line == '':
                                 line = "1"
                             numero_contador = int(line.strip()) + 1
                             file.close()
-                            file = open(Path(sys.argv[0]).parent / "counterDone.txt", "w")
+                            file = open(APP_DIR / "counterDone.txt", "w")
                             file.write(str(numero_contador))
                             file.close()
                             """
@@ -1590,10 +1605,7 @@ class Meterv2:
             _pos = [ml.data.fAvatarPosition[0], ml.data.fAvatarPosition[2]]
 
         if show_checkpoints_window and "racer" in globals():
-            if ml.data.identity != "":
-                racer.username.set(json.loads(ml.data.identity).get("name"))
-            else:
-                racer.username.set("anon")
+            racer.username.set(get_identity_name(ml, "anon"))
 
         if _lastTime + timer <= _time:
             pressedQ = max(pressedQ - timer, 0)
@@ -1855,7 +1867,7 @@ class Meterv2:
                         self.distance.set(str(round(total_distance)) + "m.")
                     if log and velocity > 0:
                         writer = open(
-                            Path(sys.argv[0]).parent / "logs" / filename,
+                            APP_DIR / "logs" / filename,
                             "a",
                             newline="",
                             encoding="utf-8",
@@ -1976,14 +1988,24 @@ class Meterv2:
 class Meter:
     def uploadLog(self, guildhall, old_filename, ml):
         headers = {"Origin": "null", "Referer": "null"}
-        response = requests.post(
-            "https://www.beetlerank.com/upload-log",
-            data={"user": json.loads(ml.data.identity)["name"], "guildhall": guildhall},
-            files={
-                "file": open(Path(sys.argv[0]).parent / "logs" / old_filename, "rb")
-            },
-            headers=headers,
-        )
+        user = get_identity_name(ml)
+        if not user:
+            print("Log NOT uploaded: character name unavailable (is GW2 running?)")
+            return ""
+        try:
+            # Same multipart fields as before (user, guildhall, file); the file
+            # is now closed deterministically and the request has a timeout.
+            with open(APP_DIR / "logs" / old_filename, "rb") as log_file:
+                response = requests.post(
+                    "https://www.beetlerank.com/upload-log",
+                    data={"user": user, "guildhall": guildhall},
+                    files={"file": log_file},
+                    headers=headers,
+                    timeout=UPLOAD_TIMEOUT,
+                )
+        except (requests.RequestException, OSError) as e:
+            print("Log NOT uploaded:", e)
+            return ""
         print("Log uploaded to web")
 
         print(response.text)
@@ -2696,18 +2718,18 @@ class Meter:
                             # esta línea es la clave
 
                             # paso 1 - comprobar que existe la carpeta /logs
-                            if not (Path(sys.argv[0]).parent / "logs").exists():
-                                (Path(sys.argv[0]).parent / "logs").mkdir()
+                            if not (APP_DIR / "logs").exists():
+                                (APP_DIR / "logs").mkdir()
 
                             filename = (
-                                guildhall_name.get() + "_log_" + str(_time) + ".csv"
+                                sanitize_map_name(guildhall_name.get()) + "_log_" + str(_time) + ".csv"
                             )
                             if log:
                                 # print("----------------------------------")
                                 # print("NEW LOG FILE - " + filename)
                                 # print("----------------------------------")
                                 writer = open(
-                                    Path(sys.argv[0]).parent / "logs" / filename,
+                                    APP_DIR / "logs" / filename,
                                     "a",
                                     newline="",
                                     encoding="utf-8",
@@ -2759,14 +2781,14 @@ class Meter:
                             )
 
                             filename = (
-                                guildhall_name.get() + "_log_" + str(_time) + ".csv"
+                                sanitize_map_name(guildhall_name.get()) + "_log_" + str(_time) + ".csv"
                             )
                             if log:
                                 # print("----------------------------------")
                                 # print("NEW LOG FILE - " + filename)
                                 # print("----------------------------------")
                                 writer = open(
-                                    Path(sys.argv[0]).parent / "logs" / filename,
+                                    APP_DIR / "logs" / filename,
                                     "a",
                                     newline="",
                                     encoding="utf-8",
@@ -2831,7 +2853,7 @@ class Meter:
                             if int(lap) == int(total_laps):
                                 last_filename_df = pd.DataFrame()
                                 file_df = pd.read_csv(
-                                    Path(sys.argv[0]).parent / "logs" / old_filename
+                                    APP_DIR / "logs" / old_filename
                                 )
                                 last_filename_df = pd.concat(
                                     [last_filename_df, file_df], ignore_index=True
@@ -2868,7 +2890,8 @@ class Meter:
                                     now = datetime.datetime.now()
                                     today_date = now.strftime("%d/%m/%Y %H:%M:%S")
                                     folder = str(
-                                        Path(sys.argv[0]).parent / guildhall_name.get()
+                                        APP_DIR
+                                        / sanitize_map_name(guildhall_name.get())
                                     )
                                     writer = open(
                                         folder + "_records.csv",
@@ -2883,7 +2906,7 @@ class Meter:
                                             [
                                                 datefinish,
                                                 today_date,
-                                                json.loads(ml.data.identity)["name"],
+                                                get_identity_name(ml, "anon"),
                                             ]
                                         )
                                     )
@@ -2947,14 +2970,14 @@ class Meter:
 
                             """ 
                             #stores in counterDone.txt number of total laps done
-                            file = open(Path(sys.argv[0]).parent / "counterDone.txt")
+                            file = open(APP_DIR / "counterDone.txt")
                             global numero_contador
                             line = file.read()
                             if line == '':
                                 line = "1"
                             numero_contador = int(line.strip()) + 1
                             file.close()
-                            file = open(Path(sys.argv[0]).parent / "counterDone.txt", "w")
+                            file = open(APP_DIR / "counterDone.txt", "w")
                             file.write(str(numero_contador))
                             file.close()
                             """
@@ -3086,10 +3109,7 @@ class Meter:
                     )
 
         if show_checkpoints_window and "racer" in globals():
-            if ml.data.identity != "":
-                racer.username.set(json.loads(ml.data.identity).get("name"))
-            else:
-                racer.username.set("anon")
+            racer.username.set(get_identity_name(ml, "anon"))
 
         if _lastTime + timer <= _time:
             pressedQ = max(pressedQ - timer, 0)
@@ -3344,7 +3364,7 @@ class Meter:
                         self.distance.set(str(round(total_distance)) + "m.")
                     if log and velocity > 0:
                         writer = open(
-                            Path(sys.argv[0]).parent / "logs" / filename,
+                            APP_DIR / "logs" / filename,
                             "a",
                             newline="",
                             encoding="utf-8",
@@ -3414,98 +3434,89 @@ class Racer:
         pass
 
     def on_message_MQTT(self, client, userdata, message):
+        """Handle a race message. Runs on a network thread: it only touches
+        plain data and the thread-safe queue (the Tk thread reads them), and it
+        never raises."""
+        try:
+            self._handle_race_message(message)
+        except Exception:
+            logging.getLogger(__name__).exception(
+                "Error handling multiplayer message"
+            )
+
+    def _handle_race_message(self, message):
         global countdowntxt
 
-        # print("message received " ,json.loads(str(message.payload.decode("utf-8"))))
-        received = json.loads(str(message.payload.decode("utf-8")))
+        received = netmsg.parse_payload(getattr(message, "payload", None))
+        if received is None:
+            return
+        received = netmsg.validate_race_message(received)
+        if received is None:
+            return
+        option = received.get("option")
 
-        if received.get("option") == "s":
-            # print("first checkpoint for!!", received.get('user'))
-            user = received.get("user")
-            time = received.get("time")
-            lap = received.get("lap")
-
+        if option == "s":
+            # first checkpoint for user
             countdowntxt = ""
 
-            self.timestamps.append({"user": user, "time": time, "step": 0, "lap": lap})
-            self.thread_queue.put("Race positions")
-            # guardar tiempo de user para inicio
-            # falta mostrar por pantalla el ranking de partida
-        if received.get("option") == "f":
-            # print("finish!!", received.get('user'))
-
-            user = received.get("user")
-            time = received.get("time")
-            step = received.get("step")
-            lap = received.get("lap")
-
             self.timestamps.append(
-                {"user": user, "time": time, "step": step, "lap": lap}
+                {
+                    "user": received["user"],
+                    "time": received["time"],
+                    "step": 0,
+                    "lap": received["lap"],
+                }
+            )
+            self.thread_queue.put("Race positions")
+        elif option == "f":
+            step = received["step"]
+            self.timestamps.append(
+                {
+                    "user": received["user"],
+                    "time": received["time"],
+                    "step": step,
+                    "lap": received["lap"],
+                }
             )
             if str(step) == "999":
                 self.thread_queue.put("Race finished\nPositions:")
-
-            # guardar tiempo de user de fin de carrera
-            # falta mostrar por pantalla el ranking de partida
-        if received.get("option") == "c":
-            # print("checkpoint ", received.get('step') ," for!!", received.get('user'))
-
-            user = received.get("user")
-            time = received.get("time")
-            step = received.get("step")
-            lap = received.get("lap")
-
-            # self.thread_queue.put("checkpoint " + str(step))
+        elif option == "c":
+            step = received["step"]
             if step >= 1000:
                 self.timestamps = list(
-                    filter(lambda x: x["user"] not in [str(user)], self.timestamps)
+                    filter(
+                        lambda x: x["user"] not in [str(received["user"])],
+                        self.timestamps,
+                    )
                 )
 
             self.timestamps.append(
-                {"user": user, "time": time, "step": step, "lap": lap}
+                {
+                    "user": received["user"],
+                    "time": received["time"],
+                    "step": step,
+                    "lap": received["lap"],
+                }
             )
-
-            # guardar tiempo de checkpoint
-            # falta mostrar por pantalla el ranking de partida
-        if received.get("option") == "321GO-custom":
-            # print("3!!")
-            self.thread_queue.put(received.get("message"))
-            countdowntxt = received.get("message")
+        elif option == "321GO-custom":
+            self.thread_queue.put(received["message"])
+            countdowntxt = received["message"]
 
             self.timestamps = []
-
-            # limpiar ranking de partida
-            # falta mostrar por pantalla el 3 2 1
-        if received.get("option") == "321GO-3":
-            # print("3!!")
+        elif option == "321GO-3":
             self.thread_queue.put("3")
             countdowntxt = "3"
 
             self.timestamps = []
-
-            # limpiar ranking de partida
-            # falta mostrar por pantalla el 3 2 1
-        if received.get("option") == "321GO-2":
-            # print("2!!")
+        elif option == "321GO-2":
             self.thread_queue.put("2")
             countdowntxt = "2"
-
-            # limpiar ranking de partida
-            # falta mostrar por pantalla el 3 2 1
-        if received.get("option") == "321GO-1":
-            # print("1!!")
+        elif option == "321GO-1":
             self.thread_queue.put("1")
             countdowntxt = "1"
-
-            # limpiar ranking de partida
-            # falta mostrar por pantalla el 3 2 1
-        if received.get("option") == "321GO-GO":
-            # print("GO GO GO!!")
+        elif option == "321GO-GO":
             self.thread_queue.put("GOGOGOGO")
             countdowntxt = "GOGOGO! FAEST!"
-
-            # limpiar ranking de partida
-            # falta mostrar por pantalla el 3 2 1
 
     def sendMQTT(self, data):
         """
@@ -3586,14 +3597,23 @@ class Racer:
 
     def open_multiplayer_map(self):
         if not self.mapOpen:
-            self.session_id.get()
-            subprocess.Popen(
-                [
-                    "python",
-                    Path(sys.argv[0]).parent.parent / "map_realtime_multiplayer.py",
-                    self.session_id.get(),
-                ]
-            )
+            script = APP_DIR / "map_realtime_multiplayer.py"
+            try:
+                # Same interpreter (venv) that runs this app, absolute script
+                # path and cwd = app folder. The room code goes after --room so
+                # the map script does not mistake it for a log file to load.
+                subprocess.Popen(
+                    [
+                        sys.executable,
+                        str(script),
+                        "--room",
+                        str(self.session_id.get()),
+                    ],
+                    cwd=str(APP_DIR),
+                )
+            except OSError as e:
+                print("Could not open the multiplayer map:", e)
+                return
             self.mapOpen = True
 
     def websocket_countdown_watcher(self):
@@ -3682,7 +3702,7 @@ class Racer:
         if session_code:
             try:
                 telemetry_listener = MultiplayerListener(session_code=int(session_code))
-            except:
+            except (TypeError, ValueError):
                 telemetry_listener = MultiplayerListener()
         else:
             telemetry_listener = MultiplayerListener()
@@ -3691,10 +3711,19 @@ class Racer:
         def on_snapshot(snapshot):
             # El snapshot contiene una lista de usuarios activos
             # Convertir cada usuario individual al formato que espera on_message_MQTT
-            for user in snapshot.get("users", []):
-                # Crear un mensaje individual para cada jugador
-                mock_msg = MockMessage(json.dumps(user))
-                self.on_message_MQTT(None, None, mock_msg)
+            # (network thread: validate types and never raise)
+            try:
+                users = snapshot.get("users", []) if isinstance(snapshot, dict) else []
+                if not isinstance(users, list):
+                    return
+                for user in users:
+                    if not isinstance(user, dict):
+                        continue
+                    # Crear un mensaje individual para cada jugador
+                    mock_msg = MockMessage(json.dumps(user))
+                    self.on_message_MQTT(None, None, mock_msg)
+            except Exception:
+                logging.getLogger(__name__).exception("Error handling snapshot")
 
         telemetry_listener.set_snapshot_callback(on_snapshot)
         telemetry_listener.start()
@@ -3712,13 +3741,17 @@ class Racer:
             websocket_client_thread.join()
 
         def on_message(ws, message):
-            data = json.loads(message)
-
+            # Network thread: only sets the plain flags that the Tk thread polls
+            # (websocket_countdown_watcher); never raises.
             global websocket_countdown_ends_on
             global websocket_countdown_received
-            if data.get("type") == "countdown_start":
-                websocket_countdown_ends_on = data.get("ends_on")
-                websocket_countdown_received = True
+            try:
+                ends_on = netmsg.parse_countdown_start(message)
+                if ends_on is not None:
+                    websocket_countdown_ends_on = ends_on
+                    websocket_countdown_received = True
+            except Exception:
+                logging.getLogger(__name__).exception("Error in websocket on_message")
 
         websocket_host = self.conf_websocket_host_entry.get()
         websocket_port = self.conf_websocket_port_entry.get()
@@ -3924,7 +3957,7 @@ class Racer:
         self.move = not self.move
 
     def saveCheckpoint(self, value):
-        file = open(Path(sys.argv[0]).parent / "checkpoint.txt", "w")
+        file = open(APP_DIR / "checkpoint.txt", "w")
         file.write(str(value))
         file.close()
 
@@ -3935,7 +3968,7 @@ class Racer:
 
         cup_name.set(value)
 
-        file = open(Path(sys.argv[0]).parent / "cup.txt", "w")
+        file = open(APP_DIR / "cup.txt", "w")
         file.write(str(cup_name.get()))
         file.close()
 
@@ -3944,7 +3977,7 @@ class Racer:
 
         if value == "OWN MAPS FOLDER":
             # Insert list of new options (tk._setit hooks them up to var)
-            path = Path(sys.argv[0]).parent.parent / "maps"
+            path = APP_DIR / "maps"
 
             # get map list
 
@@ -3965,7 +3998,9 @@ class Racer:
                         "Accept": "application/json",
                     }
                     response = requests.get(
-                        "https://www.beetlerank.com/api/maps/" + value, headers
+                        "https://www.beetlerank.com/api/maps/" + value,
+                        headers=headers,
+                        timeout=HTTP_TIMEOUT,
                     )
                     resp_dict = response.json()
 
@@ -4008,7 +4043,9 @@ class Racer:
 
         if cup_name.get() == "OWN MAPS FOLDER":
             self.checkpoints_file = (
-                Path(sys.argv[0]).parent / "maps" / (guildhall_name.get() + ".csv")
+                APP_DIR
+                / "maps"
+                / (sanitize_map_name(guildhall_name.get()) + ".csv")
             )
         else:
             self.checkpoints_file = requests.utils.requote_uri(
@@ -4032,7 +4069,7 @@ class Racer:
 
         print("-----------------------------------------------")
 
-        file = open(Path(sys.argv[0]).parent / "guildhall.txt", "w", encoding="utf-8")
+        file = open(APP_DIR / "guildhall.txt", "w", encoding="utf-8")
         file.write(str(guildhall_name.get()))
         file.close()
         if enable_ghost_keys:
@@ -4051,7 +4088,8 @@ class Racer:
                     + str(guildhall_name.get())
                     + "/"
                     + self.username.get(),
-                    headers,
+                    headers=headers,
+                    timeout=HTTP_TIMEOUT,
                 )
 
                 self.map_ranking_var.set(response.text)
@@ -4132,7 +4170,7 @@ class Racer:
         self.t_2.place(x=1, y=40)
 
         # get all list of maps from the maps folder
-        path = Path(sys.argv[0]).parent.parent / "maps"
+        path = APP_DIR / "maps"
 
         # obtain list of cups
 
@@ -4142,7 +4180,11 @@ class Racer:
                 "Referer": "null",
                 "Accept": "application/json",
             }
-            response = requests.get("https://www.beetlerank.com/api/cups", headers)
+            response = requests.get(
+                "https://www.beetlerank.com/api/cups",
+                headers=headers,
+                timeout=HTTP_TIMEOUT,
+            )
             resp_dict = response.json()
 
             resp_dict["cups"].append("OWN MAPS FOLDER")
@@ -4155,7 +4197,7 @@ class Racer:
         except:
             print("Error obtaining CUPS")
             offline_mode = True
-            path = Path(sys.argv[0]).parent.parent / "maps"
+            path = APP_DIR / "maps"
 
             self.cups = [
                 directory.stem for directory in path.iterdir() if directory.is_dir()
@@ -4270,25 +4312,18 @@ class Racer:
 
             conf.saveConf()
 
-            # Arreglar restart para que funcione correctamente con venv
-            import os
-
-            script_path = os.path.abspath(sys.argv[0])
-            script_dir = os.path.dirname(script_path)
-
-            venv_python = os.path.join(
-                script_dir, "..", "venv", "Scripts", "python.exe"
-            )
-            if os.path.exists(venv_python):
-                # Ejecutar usando el python del venv
+            # Restart with the same interpreter (venv) and the real script path,
+            # independent of the current working directory.
+            script_path = Path(__file__).resolve()
+            try:
                 subprocess.Popen(
-                    [venv_python, script_path], cwd=script_dir, shell=False
+                    [sys.executable, str(script_path)],
+                    cwd=str(script_path.parent),
+                    shell=False,
                 )
-            else:
-                # Sin venv conocido: reutilizar el mismo Python que ejecuta este script
-                subprocess.Popen(
-                    [sys.executable, script_path], cwd=script_dir, shell=False
-                )
+            except OSError as e:
+                print("Could not restart the speedometer:", e)
+                return
             sys.exit()
 
         def toggleAll():
@@ -5329,7 +5364,11 @@ if __name__ == "__main__":
         try:
             headers = {"Origin": "null", "Referer": "null"}
 
-            response = requests.get("https://www.beetlerank.com/api/info", headers)
+            response = requests.get(
+                "https://www.beetlerank.com/api/info",
+                headers=headers,
+                timeout=HTTP_TIMEOUT,
+            )
 
             # "Welcome:\nNew event MMO B&T will start\non October 5th\nvisit beetlerank.com\nfor more details"
             if len(response.text):

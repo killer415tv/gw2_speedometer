@@ -614,6 +614,8 @@ class Scenario:
         map_name="Test Race",
         laps_label=None,
         identity="Beetle Boy",
+        racer_factory=None,
+        namespace_hook=None,
     ):
         self.name = name
         self.meter = meter
@@ -628,6 +630,9 @@ class Scenario:
         self.map_name = map_name
         self.laps_label = laps_label or f"{laps} lap{'' if laps == 1 else 's'}"
         self.identity = identity
+        # optional: build the racer / tweak the namespace (non-golden tests)
+        self.racer_factory = racer_factory
+        self.namespace_hook = namespace_hook
 
 
 def _settle(ns):
@@ -674,7 +679,11 @@ def run_scenario(sc, workdir):
     ns["requests"] = FakeRequests(rec)
     ns["keyboard_"] = FakeKeyboard(rec)
     ns["ml"] = ml = FakeMumble(sc.identity)
-    ns["racer"] = FakeRacer(rec, sc.session_id)
+    ns["racer"] = (
+        sc.racer_factory(ns, rec, workdir)
+        if sc.racer_factory
+        else FakeRacer(rec, sc.session_id)
+    )
     ns["tmhud"] = FakeMessage(rec, "tmhud")
     ns["message"] = FakeMessage(rec, "message")
     ns["upload"] = Var(rec, "upload", sc.upload, "upload_var")
@@ -696,6 +705,8 @@ def run_scenario(sc, workdir):
         ns["_lastPos"] = [0, 0]
     ns["pressedQ"] = 0
 
+    if sc.namespace_hook:
+        sc.namespace_hook(ns, rec, workdir)
     meter = ns[sc.meter].__new__(ns[sc.meter])
     FakeSelf.__init__(meter, rec)
     # the methods come from the real class; only the Tk attributes are fake

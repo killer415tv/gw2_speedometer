@@ -45,6 +45,7 @@ from websocket._exceptions import WebSocketConnectionClosedException
 from mumblelink import MumbleLink, get_identity_name
 from pathutils import sanitize_map_name
 import netmsg
+import background
 import checkpoint_cache
 import loop_probe
 from telemetry_log import csv_log
@@ -1092,6 +1093,7 @@ class Meterv2:
         global hud_slope
 
         _probe_t0 = loop_probe.begin()  # optional diagnostics, no-op unless enabled
+        background.pump()  # results of upload/ranking/map downloads (UI thread work)
 
         if hud_drift_hold:
             i = self.canvas.find_withtag("drift_meter")
@@ -1361,19 +1363,27 @@ class Meterv2:
 
                             if upload.get() == 1:
                                 if log:
-                                    twrv = ThreadWithReturnValue(
-                                        target=self.uploadLog,
-                                        args=(
-                                            guildhall_name.get(),
-                                            old_filename,
-                                            ml,
+                                    # The upload runs on the background worker (it used
+                                    # to be join()ed here, blocking the sampling loop for
+                                    # up to 35 s on a 1-lap race). Same POST, same
+                                    # fields; the result text is shown when it arrives.
+                                    background.jobs.submit(
+                                        self.uploadLog,
+                                        guildhall_name.get(),
+                                        old_filename,
+                                        ml,
+                                        on_done=(
+                                            message.write
+                                            if int(total_laps) == 1
+                                            else None
                                         ),
                                     )
-                                    twrv.start()
-                                    if int(total_laps) == 1:
-                                        message.write(twrv.join())
 
-                                    racer.saveGuildhall(guildhall_name.get())
+                                    # queued after the upload (same worker): the ranking
+                                    # request still comes after the POST
+                                    racer.saveGuildhall(
+                                        guildhall_name.get(), in_background=True
+                                    )
 
                             if int(lap) == int(total_laps):
                                 last_filename_df = pd.DataFrame()
@@ -2553,6 +2563,7 @@ class Meter:
         global hud_slope
 
         _probe_t0 = loop_probe.begin()  # optional diagnostics, no-op unless enabled
+        background.pump()  # results of upload/ranking/map downloads (UI thread work)
 
         if hud_drift_hold:
             i = self.canvas.find_withtag("drift_meter")
@@ -2822,19 +2833,27 @@ class Meter:
 
                             if upload.get() == 1:
                                 if log:
-                                    twrv = ThreadWithReturnValue(
-                                        target=self.uploadLog,
-                                        args=(
-                                            guildhall_name.get(),
-                                            old_filename,
-                                            ml,
+                                    # The upload runs on the background worker (it used
+                                    # to be join()ed here, blocking the sampling loop for
+                                    # up to 35 s on a 1-lap race). Same POST, same
+                                    # fields; the result text is shown when it arrives.
+                                    background.jobs.submit(
+                                        self.uploadLog,
+                                        guildhall_name.get(),
+                                        old_filename,
+                                        ml,
+                                        on_done=(
+                                            message.write
+                                            if int(total_laps) == 1
+                                            else None
                                         ),
                                     )
-                                    twrv.start()
-                                    if int(total_laps) == 1:
-                                        message.write(twrv.join())
 
-                                    racer.saveGuildhall(guildhall_name.get())
+                                    # queued after the upload (same worker): the ranking
+                                    # request still comes after the POST
+                                    racer.saveGuildhall(
+                                        guildhall_name.get(), in_background=True
+                                    )
 
                             if int(lap) == int(total_laps):
                                 last_filename_df = pd.DataFrame()
@@ -4000,7 +4019,13 @@ class Racer:
                 except:
                     print("Error obtaining CUPS")
 
-    def saveGuildhall(self, value):
+    def saveGuildhall(self, value, in_background=False):
+        """Select a map: load its checkpoints, write guildhall.txt, fetch ranking.
+
+        ``in_background=True`` (used at the end of a race, from the measurement loop)
+        does the network parts (checkpoint CSV download, ranking request) on the
+        background worker and applies the results on the Tk thread; the default
+        keeps the synchronous behaviour used by the map menu."""
 
         global guildhall_name
         global checkpoints_list
@@ -4029,14 +4054,47 @@ class Racer:
             self.checkpoints_file = requests.utils.requote_uri(
                 "https://www.beetlerank.com/uploads/checkpoints/" + value + ".csv"
             )
+
+        if in_background:
+            background.jobs.submit(
+                self._load_checkpoints_task,
+                self.checkpoints_file,
+                on_done=lambda loaded: self._finish_saveGuildhall(value, loaded),
+            )
+            return
+
         try:
             checkpoints_list = pd.DataFrame()
-            file_df = pd.read_csv(self.checkpoints_file)
+            file_df = checkpoint_cache.fetch_checkpoint_frame(self.checkpoints_file)
             checkpoints_list = pd.concat([checkpoints_list, file_df], ignore_index=True)
 
         except:
             print("Checkpoint file not found")
 
+        self._after_checkpoints_loaded()
+
+        # get ranking from web
+
+        if guildhall_name.get() == "None, im free!":
+            self.map_ranking_var.set("")
+        else:
+            try:
+                self.map_ranking_var.set(
+                    self._fetch_ranking_text(
+                        str(guildhall_name.get()), self.username.get()
+                    )
+                )
+            except:
+                self.map_ranking_var.set("")
+
+    def _load_checkpoints_task(self, source):
+        """Worker thread: download/parse the checkpoint CSV (no UI access)."""
+        try:
+            return ("ok", checkpoint_cache.fetch_checkpoint_frame(source))
+        except Exception:  # noqa: BLE001 - same catch-all as the synchronous path
+            return ("error", None)
+
+    def _after_checkpoints_loaded(self):
         self.checkpoints_file = guildhall_name.get() + ".csv"
 
         print("-----------------------------------------------")
@@ -4054,26 +4112,48 @@ class Racer:
             keyboard_.press(recalculate_ghost)
             keyboard_.release(recalculate_ghost)
 
-        # get ranking from web
+    def _fetch_ranking_text(self, name, username):
+        headers = {"Origin": "null", "Referer": "null"}
+        response = requests.get(
+            "https://www.beetlerank.com/rank/api/" + name + "/" + username,
+            headers=headers,
+            timeout=HTTP_TIMEOUT,
+        )
+        return response.text
+
+    def _rank_task(self, name, username):
+        """Worker thread: same GET as the synchronous path (no UI access)."""
+        try:
+            return self._fetch_ranking_text(name, username)
+        except Exception:  # noqa: BLE001 - same catch-all as the synchronous path
+            return ""
+
+    def _finish_saveGuildhall(self, value, loaded):
+        """Tk thread: apply a background map load (second half of saveGuildhall)."""
+        global checkpoints_list
+
+        if guildhall_name.get() != value:
+            # the user picked another map while this was loading: its own
+            # saveGuildhall already did everything, do not overwrite it
+            return
+        status, file_df = loaded if loaded else ("error", None)
+        checkpoints_list = pd.DataFrame()
+        if status == "ok":
+            checkpoints_list = pd.concat([checkpoints_list, file_df], ignore_index=True)
+        else:
+            print("Checkpoint file not found")
+
+        self._after_checkpoints_loaded()
 
         if guildhall_name.get() == "None, im free!":
             self.map_ranking_var.set("")
         else:
-            try:
-                headers = {"Origin": "null", "Referer": "null"}
-                response = requests.get(
-                    "https://www.beetlerank.com/rank/api/"
-                    + str(guildhall_name.get())
-                    + "/"
-                    + self.username.get(),
-                    headers=headers,
-                    timeout=HTTP_TIMEOUT,
-                )
-
-                self.map_ranking_var.set(response.text)
-
-            except:
-                self.map_ranking_var.set("")
+            background.jobs.submit(
+                self._rank_task,
+                str(guildhall_name.get()),
+                self.username.get(),
+                on_done=lambda text: self.map_ranking_var.set(text if text else ""),
+            )
 
     def __init__(self):
         global guildhall_name

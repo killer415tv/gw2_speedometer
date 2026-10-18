@@ -18,6 +18,14 @@ DataFrame object (and its length), and ``saveGuildhall`` always replaces the
 DataFrame, so a map change rebuilds it.
 """
 
+import io
+import urllib.request
+
+import pandas as pd
+
+# seconds; pandas' own read_csv(<url>) had no timeout at all
+FETCH_TIMEOUT = 10
+
 _cached_frame = None
 _cached_len = -1
 _cached_rows = ()
@@ -54,3 +62,23 @@ def rows_for(frame):
         _cached_frame = frame
         _cached_len = len(frame)
     return _cached_rows
+
+
+def fetch_checkpoint_frame(source, timeout=FETCH_TIMEOUT):
+    """``pd.read_csv(source)``, but a URL is fetched with a timeout.
+
+    For a URL this performs the same request pandas does (``urllib`` with a bare
+    ``Request``: same User-Agent and headers, no extra ones), honours
+    ``Content-Encoding: gzip`` as pandas does and parses the same bytes with
+    ``pd.read_csv``; the only difference is that it can no longer hang forever.
+    Anything else (a local ``Path``) goes straight to ``pd.read_csv``.
+    """
+    if isinstance(source, str) and source.startswith(("http://", "https://")):
+        request = urllib.request.Request(source)
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            compression = "infer"
+            if response.headers.get("Content-Encoding", None) == "gzip":
+                compression = {"method": "gzip"}
+            data = io.BytesIO(response.read())
+        return pd.read_csv(data, compression=compression)
+    return pd.read_csv(source)

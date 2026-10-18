@@ -45,6 +45,7 @@ from websocket._exceptions import WebSocketConnectionClosedException
 from mumblelink import MumbleLink, get_identity_name
 from pathutils import sanitize_map_name
 import netmsg
+import checkpoint_cache
 import loop_probe
 from telemetry_log import csv_log
 import logging
@@ -1611,22 +1612,14 @@ class Meterv2:
             if show_checkpoints_window:
                 # check checkpoints
                 if len(checkpoints_list):
-                    for index, checkpoint_data in checkpoints_list.iterrows():
-                        if "RADIUS" in checkpoint_data:
-                            radius = checkpoint_data["RADIUS"]
-                        else:
-                            radius = 0
-                        # print(checkpoint_data['STEP'], checkpoint_data['STEPNAME'], [checkpoint_data['X'],checkpoint_data['Y'],checkpoint_data['Z']] )
-                        checkpoint(
-                            checkpoint_data["STEP"],
-                            checkpoint_data["STEPNAME"],
-                            [
-                                checkpoint_data["X"],
-                                checkpoint_data["Y"],
-                                checkpoint_data["Z"],
-                            ],
-                            radius,
-                        )
+                    for cp_step, cp_name, cp_coords, cp_radius in checkpoint_cache.rows_for(
+                        checkpoints_list
+                    ):
+                        # checkpoint() only acts on the reset row (-1) and on the
+                        # next expected step; every other row is a no-op, so it is
+                        # not even called (next_step may change inside the loop).
+                        if cp_step == -1 or cp_step == next_step:
+                            checkpoint(cp_step, cp_name, cp_coords, cp_radius)
 
             # DEBUG
             # print(list(_pos) , flush=True)
@@ -3110,22 +3103,14 @@ class Meter:
             if show_checkpoints_window:
                 # check checkpoints
                 if len(checkpoints_list):
-                    for index, checkpoint_data in checkpoints_list.iterrows():
-                        if "RADIUS" in checkpoint_data:
-                            radius = checkpoint_data["RADIUS"]
-                        else:
-                            radius = 0
-                        # print(checkpoint_data['STEP'], checkpoint_data['STEPNAME'], [checkpoint_data['X'],checkpoint_data['Y'],checkpoint_data['Z']] )
-                        checkpoint(
-                            checkpoint_data["STEP"],
-                            checkpoint_data["STEPNAME"],
-                            [
-                                checkpoint_data["X"],
-                                checkpoint_data["Y"],
-                                checkpoint_data["Z"],
-                            ],
-                            radius,
-                        )
+                    for cp_step, cp_name, cp_coords, cp_radius in checkpoint_cache.rows_for(
+                        checkpoints_list
+                    ):
+                        # checkpoint() only acts on the reset row (-1) and on the
+                        # next expected step; every other row is a no-op, so it is
+                        # not even called (next_step may change inside the loop).
+                        if cp_step == -1 or cp_step == next_step:
+                            checkpoint(cp_step, cp_name, cp_coords, cp_radius)
 
             # DEBUG
             # print(list(_pos) , flush=True)

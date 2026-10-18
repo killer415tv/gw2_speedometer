@@ -515,6 +515,14 @@ class Meterv2:
         print(response.text)
         return response.text
 
+    @staticmethod
+    def _send_websocket_event(client, event):
+        """Runs on the net_out worker (it used to run inside the Tk loop)."""
+        try:
+            client.send(json.dumps(event))
+        except WebSocketConnectionClosedException:
+            pass
+
     def setOnTopfullscreen(self):
         self.root.attributes("-topmost", 1)
         self.root.after(500, self.setOnTopfullscreen)
@@ -1976,10 +1984,10 @@ class Meterv2:
                             "timestamp": time.time(),
                             "color": player_color,
                         }
-                        try:
-                            websocket_client.send(json.dumps(event))
-                        except WebSocketConnectionClosedException:
-                            pass
+                        # same JSON, same order; sent from the "net_out" worker
+                        background.net_out.submit(
+                            self._send_websocket_event, websocket_client, event
+                        )
 
         loop_probe.end(_probe_t0)
         self.root.after(10, self.updateMeterTimer)
@@ -3523,7 +3531,9 @@ class Racer:
         if telemetry_client is not None:
             # El método send() de TelemetryClient automáticamente decide
             # entre UDP (posición) y TCP (start, checkpoint, finish, countdown)
-            telemetry_client.send(data)
+            # It now runs on the "net_out" worker: same messages, same order, but a
+            # slow TCP connect/sendall can no longer stall the sampling loop.
+            background.net_out.submit(telemetry_client.send, data)
 
     def sendWebsocket(self, data):
         global websocket_client

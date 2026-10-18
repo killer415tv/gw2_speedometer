@@ -9,3 +9,6 @@ tools/
 .ruff_cache/
 !tests/golden/**/logs/
 diagnostics/
+.venv/
+.venv_*/
+gw2_speedometer_internal/*_records.csv

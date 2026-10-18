@@ -1,3 +1,4 @@
+import platform_compat
 import tkinter as tk
 from colorsys import hsv_to_rgb
 from threading import Thread
@@ -51,10 +52,7 @@ from pathutils import sanitize_map_name
 import io
 from urllib.parse import quote
 
-try:
-    ctypes.windll.shcore.SetProcessDpiAwareness(2)  # if your windows version >= 8.1
-except:
-    ctypes.windll.user32.SetProcessDPIAware()  # win 8.0 or less
+platform_compat.set_dpi_aware()
 
 np.seterr(divide='ignore', invalid='ignore')
 
@@ -149,7 +147,7 @@ class Ghost3d(object):
         self.root.title("Map")
         self.root.geometry("1000x1000+20+20")  # Whatever size
         self.root.overrideredirect(1)  # Remove border
-        self.root.wm_attributes("-transparentcolor", "#666666")
+        platform_compat.set_transparent_color(self.root, "#666666")
         self.root.attributes('-topmost', 1)
         self.root.configure(bg='#f0f0f0')
         """
@@ -242,21 +240,21 @@ class Ghost3d(object):
                 self.df = pd.DataFrame()
 
             # actualizamos el nombre del guildhall o mapa
-            file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "guildhall.txt", "r", encoding="utf-8")
+            file = open(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])), "guildhall.txt"), "r", encoding="utf-8")
             guildhall_name = file.read()
 
-            file = open(os.path.dirname(os.path.abspath(sys.argv[0])) + "\\" + "cup.txt")
+            file = open(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])), "cup.txt"))
             cup_name = file.read()
 
             print("-----------------------------------------------")
             print("---------- ZONE:", guildhall_name, "------------")
 
             # obtener los ficheros de replay
-            path = os.path.dirname(os.path.abspath(sys.argv[0])) + "\\logs\\"
+            path = os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])), "logs") + os.sep
             self.all_files = glob.glob(os.path.join(path, glob.escape(sanitize_map_name(guildhall_name)) + "_log*.csv"))
 
             if cup_name == "OWN MAPS FOLDER":
-                self.checkpoints_file = os.path.dirname(os.path.abspath(sys.argv[0])) + "\\maps\\" + guildhall_name + ".csv"
+                self.checkpoints_file = os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])), "maps", guildhall_name + ".csv")
             else:
                 self.checkpoints_file = requests.utils.requote_uri('https://www.beetlerank.com/uploads/checkpoints/'+guildhall_name+'.csv')
             

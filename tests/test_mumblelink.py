@@ -37,7 +37,8 @@ class FakeMem:
 
 
 def make_ml(monkeypatch, mem):
-    monkeypatch.setattr(mumblelink.mmap, "mmap", lambda **kw: mem)
+    # works on Windows and Linux: bypass the platform specific shared-memory opening
+    monkeypatch.setattr(mumblelink, "open_mumble_memfile", lambda length: mem)
     return MumbleLink()
 
 

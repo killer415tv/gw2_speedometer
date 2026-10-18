@@ -1,3 +1,5 @@
+import platform_compat
+import sys
 import tkinter as tk
 from tkinter import *
 from tkinter import colorchooser
@@ -16,8 +18,10 @@ except ImportError:
     print("Please run: pip install websocket-client")
     exit(1)
 from scipy.spatial import distance
-import pynput.keyboard._win32
-import pynput.mouse._win32
+if sys.platform == "win32":
+    # hidden imports for the frozen Windows build
+    import pynput.keyboard._win32
+    import pynput.mouse._win32
 from pynput.keyboard import Key, Controller
 from pynput import keyboard
 import sys
@@ -73,7 +77,7 @@ offline_mode = False
 
 root = tk.Tk()
 root.overrideredirect(1)
-root.wm_attributes("-transparentcolor", "#666666")
+platform_compat.set_transparent_color(root, "#666666")
 root.configure(bg="#666666")
 
 windowWidth = 650
@@ -222,7 +226,12 @@ checkpoints_list = []
 #  END CONFIGURATION VARIABLES
 # -----------------------------
 
-from ctypes import windll, byref, create_unicode_buffer, create_string_buffer
+from ctypes import byref, create_unicode_buffer, create_string_buffer
+
+try:
+    from ctypes import windll
+except ImportError:  # not Windows
+    windll = None
 
 FR_PRIVATE = 0x10
 FR_NOT_ENUM = 0x20
@@ -243,6 +252,8 @@ def loadfont(fontpath: str, private=True, enumerable=False):
     # https://github.com/ifwe/digsby/blob/f5fe00244744aa131e07f09348d10563f3d8fa99/digsby/src/gui/native/win/winfonts.py#L15
     # This function is written for Python 2.x. For 3.x, you
     # have to convert the isinstance checks to bytes and str
+    if sys.platform != "win32":
+        return platform_compat.loadfont_nonwin(fontpath)
     if isinstance(fontpath, bytes):
         pathbuf = create_string_buffer(fontpath)
         AddFontResourceEx = windll.gdi32.AddFontResourceExA
@@ -589,7 +600,7 @@ class Meterv2:
 
         self.root.geometry(geometry_speedometer)  # Whatever size
         self.root.overrideredirect(1)  # Remove border
-        self.root.wm_attributes("-transparentcolor", "#666666")
+        platform_compat.set_transparent_color(self.root, "#666666")
         self.root.attributes("-topmost", 1)
         self.root.configure(bg="#f0f0f0")
         # Forzar visibilidad de la ventana
@@ -2084,7 +2095,7 @@ class Meter:
 
         self.root.geometry(geometry_speedometer)  # Whatever size
         self.root.overrideredirect(1)  # Remove border
-        self.root.wm_attributes("-transparentcolor", "#666666")
+        platform_compat.set_transparent_color(self.root, "#666666")
         self.root.attributes("-topmost", 1)
         self.root.configure(bg="#f0f0f0")
 
@@ -4186,7 +4197,7 @@ class Racer:
         self.root.call("wm", "attributes", ".", "-topmost", "1")
         self.root.title("Guildhall logs & challenger")
         self.root.geometry(geometry_racer)
-        self.root.wm_attributes("-transparentcolor", "#666666")
+        platform_compat.set_transparent_color(self.root, "#666666")
         self.root.configure(bg="#f0f0f0")
 
         def disable_event():
@@ -5129,7 +5140,7 @@ class Countdown:
             "{}x{}+{}+{}".format(windowWidth, windowHeight, positionRight, positionDown)
         )  # Whatever size
 
-        self.root.wm_attributes("-transparentcolor", "#666666")
+        platform_compat.set_transparent_color(self.root, "#666666")
         self.root.configure(bg="#666666")
 
         self.localcountdown = tk.StringVar(self.root, "")
@@ -5212,7 +5223,7 @@ class Message:
             "{}x{}+{}+{}".format(windowWidth, windowHeight, positionRight, positionDown)
         )  # Whatever size
 
-        self.root.wm_attributes("-transparentcolor", "#666666")
+        platform_compat.set_transparent_color(self.root, "#666666")
         self.root.configure(bg="#666666")
 
         self.localcountdown = tk.StringVar(self.root, "")
@@ -5335,7 +5346,7 @@ class TrackManiaHud:
             "{}x{}+{}+{}".format(windowWidth, windowHeight, positionRight, positionDown)
         )  # Whatever size
 
-        self.root.wm_attributes("-transparentcolor", "#666666")
+        platform_compat.set_transparent_color(self.root, "#666666")
         self.root.configure(bg="#666666")
 
         self.localcountdown = tk.StringVar(self.root, "")
@@ -5404,7 +5415,7 @@ if __name__ == "__main__":
     root.title("Move Speedometer windows")
     root.geometry("170x50+{}+{}".format(windowWidth - 470, 0))  # Whatever size
     root.overrideredirect(1)  # Remove border
-    root.wm_attributes("-transparentcolor", "#666666")
+    platform_compat.set_transparent_color(root, "#666666")
     root.attributes("-topmost", 1)
     root.configure(bg="#666666")
 
@@ -5471,6 +5482,23 @@ if __name__ == "__main__":
     t_11 = tk.Button(root, text='Move Speedometer windows', command=lambda:toggleAll() ,fg="white", bg="#222222", relief='flat')
     t_11.pack(anchor="ne")
     """
+
+    if platform_compat.simulate_requested() and show_checkpoints_window:
+        # --simulate: preselect the synthetic circuit (maps/SIM_CIRCUIT.csv, see
+        # mumblelink_linux.py --write-circuit) so the demo needs no clicks/network.
+        def _select_sim_circuit():
+            try:
+                if not (APP_DIR / "maps" / "SIM_CIRCUIT.csv").exists():
+                    from mumblelink_linux import write_circuit_csv
+
+                    write_circuit_csv(APP_DIR / "maps" / "SIM_CIRCUIT.csv")
+                racer.changeCup("OWN MAPS FOLDER")
+                racer.saveGuildhall("SIM_CIRCUIT")
+                guildhall_laps.set("3 laps")
+            except Exception as exc:
+                print("simulate: could not select SIM_CIRCUIT:", exc)
+
+        root.after(1500, _select_sim_circuit)
 
     meter.updateMeterTimer()
 

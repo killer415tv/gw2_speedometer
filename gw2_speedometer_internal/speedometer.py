@@ -46,6 +46,7 @@ from mumblelink import MumbleLink, get_identity_name
 from pathutils import sanitize_map_name
 import netmsg
 import loop_probe
+from telemetry_log import csv_log
 import logging
 
 # Real folder of this file (absolute): independent of the cwd and of how it was launched.
@@ -1179,6 +1180,7 @@ class Meterv2:
                         keyboard_.release(live_reset)
                     pressedQ = 0.5
                     # cerrar fichero si hubiera una sesión anterior
+                    csv_log.close()
                     filename = ""
                     total_timer = _time
                     lap_timer = _time
@@ -1257,14 +1259,9 @@ class Meterv2:
                                 # print("----------------------------------")
                                 # print("NEW LOG FILE - " + filename)
                                 # print("----------------------------------")
-                                writer = open(
-                                    APP_DIR / "logs" / filename,
-                                    "a",
-                                    newline="",
-                                    encoding="utf-8",
-                                )
-                                writer.seek(0, 2)
-                                writer.writelines(
+                                csv_log.append(
+                                    APP_DIR / "logs",
+                                    filename,
                                     (",").join(
                                         [
                                             "X",
@@ -1277,7 +1274,7 @@ class Meterv2:
                                             "ACCELERATION",
                                             "MAP_ANGLE",
                                         ]
-                                    )
+                                    ),
                                 )
                             if show_checkpoints_window and racer.session_id.get() != "":
                                 # mqtt se manda el tiempo como inicio
@@ -1316,14 +1313,9 @@ class Meterv2:
                                 # print("----------------------------------")
                                 # print("NEW LOG FILE - " + filename)
                                 # print("----------------------------------")
-                                writer = open(
-                                    APP_DIR / "logs" / filename,
-                                    "a",
-                                    newline="",
-                                    encoding="utf-8",
-                                )
-                                writer.seek(0, 2)
-                                writer.writelines(
+                                csv_log.append(
+                                    APP_DIR / "logs",
+                                    filename,
                                     (",").join(
                                         [
                                             "X",
@@ -1336,7 +1328,7 @@ class Meterv2:
                                             "ACCELERATION",
                                             "MAP_ANGLE",
                                         ]
-                                    )
+                                    ),
                                 )
                             if show_checkpoints_window and racer.session_id.get() != "":
                                 # mqtt se manda el tiempo como inicio
@@ -1361,6 +1353,9 @@ class Meterv2:
                             # upload log to
 
                             old_filename = filename
+                            # the lap file must be complete and closed before it is
+                            # read (pandas) and uploaded
+                            csv_log.close()
                             filename = ""
 
                             if upload.get() == 1:
@@ -1869,16 +1864,11 @@ class Meterv2:
                     if hud_distance:
                         self.distance.set(str(round(total_distance)) + "m.")
                     if log and velocity > 0:
-                        writer = open(
-                            APP_DIR / "logs" / filename,
-                            "a",
-                            newline="",
-                            encoding="utf-8",
-                        )
-                        writer.seek(0, 2)
-                        writer.writelines("\r")
-                        writer.writelines(
-                            (",").join(
+                        csv_log.append(
+                            APP_DIR / "logs",
+                            filename,
+                            "\r"
+                            + (",").join(
                                 [
                                     roundstr(_3Dpos[0]),
                                     roundstr(_3Dpos[1]),
@@ -1890,7 +1880,7 @@ class Meterv2:
                                     roundstr(acceleration),
                                     roundstr(map_angle),
                                 ]
-                            )
+                            ),
                         )
 
                 if velocity > 0:
@@ -1920,6 +1910,9 @@ class Meterv2:
                             i = self.canvas.find_withtag("arc")
                             self.canvas.itemconfig(i, outline=color)
                             _lastVel = velocity
+
+            if filename == "":
+                csv_log.close()  # safety net: no lap file may stay open
 
             _lastTime = _time
             _lastPos = _pos
@@ -2656,6 +2649,7 @@ class Meter:
                         keyboard_.release(live_reset)
                     pressedQ = 0.5
                     # cerrar fichero si hubiera una sesión anterior
+                    csv_log.close()
                     filename = ""
                     total_timer = _time
                     lap_timer = _time
@@ -2734,14 +2728,9 @@ class Meter:
                                 # print("----------------------------------")
                                 # print("NEW LOG FILE - " + filename)
                                 # print("----------------------------------")
-                                writer = open(
-                                    APP_DIR / "logs" / filename,
-                                    "a",
-                                    newline="",
-                                    encoding="utf-8",
-                                )
-                                writer.seek(0, 2)
-                                writer.writelines(
+                                csv_log.append(
+                                    APP_DIR / "logs",
+                                    filename,
                                     (",").join(
                                         [
                                             "X",
@@ -2754,7 +2743,7 @@ class Meter:
                                             "ACCELERATION",
                                             "MAP_ANGLE",
                                         ]
-                                    )
+                                    ),
                                 )
                             if show_checkpoints_window and racer.session_id.get() != "":
                                 # mqtt se manda el tiempo como inicio
@@ -2793,14 +2782,9 @@ class Meter:
                                 # print("----------------------------------")
                                 # print("NEW LOG FILE - " + filename)
                                 # print("----------------------------------")
-                                writer = open(
-                                    APP_DIR / "logs" / filename,
-                                    "a",
-                                    newline="",
-                                    encoding="utf-8",
-                                )
-                                writer.seek(0, 2)
-                                writer.writelines(
+                                csv_log.append(
+                                    APP_DIR / "logs",
+                                    filename,
                                     (",").join(
                                         [
                                             "X",
@@ -2813,7 +2797,7 @@ class Meter:
                                             "ACCELERATION",
                                             "MAP_ANGLE",
                                         ]
-                                    )
+                                    ),
                                 )
                             if show_checkpoints_window and racer.session_id.get() != "":
                                 # mqtt se manda el tiempo como inicio
@@ -2838,6 +2822,9 @@ class Meter:
                             # upload log to
 
                             old_filename = filename
+                            # the lap file must be complete and closed before it is
+                            # read (pandas) and uploaded
+                            csv_log.close()
                             filename = ""
 
                             if upload.get() == 1:
@@ -3369,16 +3356,11 @@ class Meter:
                     if hud_distance:
                         self.distance.set(str(round(total_distance)) + "m.")
                     if log and velocity > 0:
-                        writer = open(
-                            APP_DIR / "logs" / filename,
-                            "a",
-                            newline="",
-                            encoding="utf-8",
-                        )
-                        writer.seek(0, 2)
-                        writer.writelines("\r")
-                        writer.writelines(
-                            (",").join(
+                        csv_log.append(
+                            APP_DIR / "logs",
+                            filename,
+                            "\r"
+                            + (",").join(
                                 [
                                     roundstr(_3Dpos[0]),
                                     roundstr(_3Dpos[1]),
@@ -3390,7 +3372,7 @@ class Meter:
                                     roundstr(acceleration),
                                     roundstr(map_angle),
                                 ]
-                            )
+                            ),
                         )
 
                 if velocity > 0:
@@ -3420,6 +3402,9 @@ class Meter:
                             i = self.canvas.find_withtag("arc")
                             self.canvas.itemconfig(i, outline=color)
                             _lastVel = velocity
+
+            if filename == "":
+                csv_log.close()  # safety net: no lap file may stay open
 
             _lastTime = _time
             _lastPos = _pos
@@ -3826,6 +3811,7 @@ class Racer:
             keyboard_.press(recalculate_ghost)
             keyboard_.release(recalculate_ghost)
         # cerrar fichero si hubiera una sesión anterior
+        csv_log.close()
         filename = ""
         total_timer = _time
         lap_timer = _time

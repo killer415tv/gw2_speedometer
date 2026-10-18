@@ -740,6 +740,12 @@ def run_scenario(sc, workdir):
         if p.is_file():
             files[str(p.relative_to(workdir))] = p.read_bytes()
 
+    # all files were read exactly as they were on disk while the writer was
+    # still alive; only now release any handle the code under test keeps open
+    tl = sys.modules.get("telemetry_log")
+    if tl is not None:
+        tl.csv_log.close()
+
     rows_summary = {}
     for rel, data in files.items():
         if rel.startswith("logs/") and rel.endswith(".csv"):

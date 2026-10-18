@@ -1,2 +1,5 @@
 # Batch files must keep CRLF line endings (cmd.exe breaks with LF-only labels)
 *.bat text eol=crlf
+
+# Golden test data: exact bytes (CR-only separators), never normalise
+tests/golden/** -text

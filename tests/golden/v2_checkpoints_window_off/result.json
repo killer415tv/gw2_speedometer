@@ -1,0 +1,162 @@
+{
+ "channels_full": {
+  "keys": [],
+  "message": [],
+  "save_checkpoint": [],
+  "save_guildhall": [],
+  "steps": [],
+  "uploads": []
+ },
+ "csv_summary": {},
+ "digests": {
+  "hud_stream": {
+   "count": 687,
+   "head": [
+    [
+     "accelvar",
+     0
+    ],
+    [
+     "accelvar",
+     0
+    ],
+    [
+     "accelvar",
+     0
+    ]
+   ],
+   "sha256": "8cbdf37d0b158fa0d5b3cb776da519745e6d046ffea3e84b9ce55164deb4bdb4",
+   "tail": [
+    [
+     "accelvar",
+     0
+    ],
+    [
+     "var",
+     12
+    ],
+    [
+     "var100",
+     16
+    ]
+   ]
+  },
+  "racer_vars": {
+   "count": 0,
+   "head": [],
+   "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+   "tail": []
+  },
+  "tmhud": {
+   "count": 0,
+   "head": [],
+   "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+   "tail": []
+  },
+  "username_sets": {
+   "count": 0,
+   "head": [],
+   "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+   "tail": []
+  }
+ },
+ "disk_progress": [
+  [
+   0,
+   []
+  ]
+ ],
+ "exceptions": [],
+ "files": {},
+ "final_globals": {
+  "_lastTime": "1760790131.15625",
+  "_lastVel": "1181.0883458909175",
+  "filename": "''",
+  "lap": "1",
+  "lap_timer": "0",
+  "last_checkpoint_position": "[0, 0, 0]",
+  "map_angle": "180.0",
+  "map_position_last_time_send": "0",
+  "next_step": "0",
+  "pressedQ": "0",
+  "total_distance": "435.96016722489566",
+  "total_timer": "0",
+  "velocity": "1181.0883458909175"
+ },
+ "meter": "Meterv2",
+ "ml_reads": 500,
+ "mqtt_non_position": [],
+ "mqtt_position": {
+  "count": 0,
+  "head": [],
+  "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+  "tail": []
+ },
+ "n_ticks": 500,
+ "scenario": "v2_checkpoints_window_off",
+ "state_trace": {
+  "count": 500,
+  "keys": [
+   "velocity",
+   "_lastVel",
+   "_lastTime",
+   "pressedQ",
+   "next_step",
+   "lap",
+   "total_distance",
+   "map_angle",
+   "total_timer",
+   "lap_timer",
+   "filename"
+  ],
+  "sample": [
+   [
+    "0.0",
+    "4724.409898631791",
+    "1760790124.625",
+    "0",
+    "0",
+    "1",
+    "163.045507137273",
+    "101.30993230658143",
+    "0",
+    "0",
+    "''"
+   ],
+   [
+    "0.0",
+    "0.0",
+    "1760790124.640625",
+    "0",
+    "0",
+    "1",
+    "163.045507137273",
+    "101.30993230658143",
+    "0",
+    "0",
+    "''"
+   ],
+   [
+    "0.0",
+    "0.0",
+    "1760790124.65625",
+    "0",
+    "0",
+    "1",
+    "163.045507137273",
+    "101.30993230658143",
+    "0",
+    "0",
+    "''"
+   ]
+  ],
+  "sha256": "381c9908009ab1c8f392e0014eca4e4655731d49fd8db29a04c3ef97203b7928"
+ },
+ "time_calls": 1450,
+ "websocket": {
+  "count": 0,
+  "head": [],
+  "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+  "tail": []
+ }
+}

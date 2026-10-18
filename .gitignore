@@ -7,3 +7,4 @@ venv/
 tools/
 .pytest_cache/
 .ruff_cache/
+!tests/golden/**/logs/

@@ -1,0 +1,238 @@
+{
+ "channels_full": {
+  "keys": [],
+  "message": [],
+  "save_checkpoint": [],
+  "save_guildhall": [],
+  "steps": [],
+  "uploads": []
+ },
+ "csv_summary": {},
+ "digests": {
+  "hud_stream": {
+   "count": 1474,
+   "head": [
+    [
+     "accelvar",
+     0
+    ],
+    [
+     "accelvar",
+     0
+    ],
+    [
+     "accelvar",
+     0
+    ]
+   ],
+   "sha256": "a7e4c277983a86abfde47c97631a406321c83b5f77dd57ea5f8564bed42e6364",
+   "tail": [
+    [
+     "accelvar",
+     0
+    ],
+    [
+     "var",
+     0
+    ],
+    [
+     "var100",
+     0
+    ]
+   ]
+  },
+  "racer_vars": {
+   "count": 0,
+   "head": [],
+   "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+   "tail": []
+  },
+  "tmhud": {
+   "count": 0,
+   "head": [],
+   "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+   "tail": []
+  },
+  "username_sets": {
+   "count": 933,
+   "head": [
+    [
+     "username",
+     "Beetle Boy"
+    ],
+    [
+     "username",
+     "Beetle Boy"
+    ],
+    [
+     "username",
+     "Beetle Boy"
+    ]
+   ],
+   "sha256": "8fdc9d71113d9334e0563649d26ab5609c82bdb21f131d2fb11f486ce17fe607",
+   "tail": [
+    [
+     "username",
+     "Beetle Boy"
+    ],
+    [
+     "username",
+     "Beetle Boy"
+    ],
+    [
+     "username",
+     "Beetle Boy"
+    ]
+   ]
+  }
+ },
+ "disk_progress": [
+  [
+   0,
+   []
+  ]
+ ],
+ "exceptions": [],
+ "files": {},
+ "final_globals": {
+  "_lastTime": "1760790138.098809",
+  "_lastVel": "0.0",
+  "filename": "''",
+  "lap": "1",
+  "lap_timer": "0",
+  "last_checkpoint_position": "[0, 0, 0]",
+  "map_angle": "126.86989832886292",
+  "map_position_last_time_send": "35215802762",
+  "next_step": "0",
+  "pressedQ": "0",
+  "total_distance": "602.46950766497",
+  "total_timer": "0",
+  "velocity": "0.0"
+ },
+ "meter": "Meterv2",
+ "ml_reads": 933,
+ "mqtt_non_position": [],
+ "mqtt_position": {
+  "count": 119,
+  "head": [
+   {
+    "angle": 126.86989832886292,
+    "color": "#ffffff",
+    "map": "Test Race",
+    "option": "position",
+    "speed": 5547,
+    "user": "Beetle Boy",
+    "x": -100.0,
+    "y": 10.0,
+    "z": -20.0
+   },
+   {
+    "angle": 126.86989832886292,
+    "color": "#ffffff",
+    "map": "Test Race",
+    "option": "position",
+    "speed": 99,
+    "user": "Beetle Boy",
+    "x": -98.53695678710938,
+    "y": 10.0,
+    "z": -18.902719497680664
+   }
+  ],
+  "sha256": "8b29d7d981dfa0fa3f3490f27a9507edb93fe0ba4830f49f23d54bf4dd8f29b2",
+  "tail": [
+   {
+    "angle": 126.86989832886292,
+    "color": "#ffffff",
+    "map": "Test Race",
+    "option": "position",
+    "speed": 99,
+    "user": "Beetle Boy",
+    "x": 297.6991882324219,
+    "y": 10.0,
+    "z": 278.2744140625
+   },
+   {
+    "angle": 126.86989832886292,
+    "color": "#ffffff",
+    "map": "Test Race",
+    "option": "position",
+    "speed": 99,
+    "user": "Beetle Boy",
+    "x": 299.1622314453125,
+    "y": 10.0,
+    "z": 279.3716735839844
+   }
+  ]
+ },
+ "n_ticks": 933,
+ "scenario": "v2_speed_edge_cases_no_race",
+ "state_trace": {
+  "count": 933,
+  "keys": [
+   "velocity",
+   "_lastVel",
+   "_lastTime",
+   "pressedQ",
+   "next_step",
+   "lap",
+   "total_distance",
+   "map_angle",
+   "total_timer",
+   "lap_timer",
+   "filename"
+  ],
+  "sample": [
+   [
+    "0.0",
+    "4724.407191226982",
+    "1760790124.62432",
+    "0",
+    "0",
+    "1",
+    "163.04550787325184",
+    "126.86989832886292",
+    "0",
+    "0",
+    "''"
+   ],
+   [
+    "0.0",
+    "0.0",
+    "1760790124.72203",
+    "0",
+    "0",
+    "1",
+    "163.04550787325184",
+    "126.86989832886292",
+    "0",
+    "0",
+    "''"
+   ],
+   [
+    "0.0",
+    "0.0",
+    "1760790124.741449",
+    "0",
+    "0",
+    "1",
+    "163.04550787325184",
+    "126.86989832886292",
+    "0",
+    "0",
+    "''"
+   ]
+  ],
+  "sha256": "f46aa6d99374c5c92a3a1d5e7d967f9d9f3d51aff0949aa6fcf73b5a0a1780ea"
+ },
+ "time_calls": 3403,
+ "websocket": {
+  "count": 302,
+  "head": [
+   "{\"type\": \"position\", \"option\": \"position\", \"map\": \"Test Race\", \"x\": -100.0, \"y\": -20.0, \"z\": 10.0, \"angle\": \"233.13\", \"user\": \"Beetle Boy\", \"timestamp\": 1760790123.0, \"color\": \"#ffffff\"}"
+  ],
+  "sha256": "18f8d2410e72a803a191fd78de5107cc2660eabec35eebe0ffd35f84d3c3326a",
+  "tail": [
+   "{\"type\": \"position\", \"option\": \"position\", \"map\": \"Test Race\", \"x\": 300.0, \"y\": 280.0, \"z\": 10.0, \"angle\": \"233.13\", \"user\": \"Beetle Boy\", \"timestamp\": 1760790138.084144, \"color\": \"#ffffff\"}"
+  ]
+ }
+}

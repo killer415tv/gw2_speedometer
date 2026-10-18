@@ -1,0 +1,250 @@
+{
+ "channels_full": {
+  "keys": [
+   [
+    "press",
+    "t"
+   ],
+   [
+    "release",
+    "t"
+   ]
+  ],
+  "message": [],
+  "save_checkpoint": [
+   1,
+   2,
+   3,
+   4,
+   0
+  ],
+  "save_guildhall": [],
+  "steps": [
+   [
+    "steps_txt",
+    "Test Race"
+   ],
+   [
+    "step1_txt",
+    "1/1 T0 00:00:000"
+   ],
+   [
+    "steps_txt",
+    "Test Race"
+   ],
+   [
+    "step1_txt",
+    "1/1 T1 00:02:890"
+   ],
+   [
+    "steps_txt",
+    "Test Race"
+   ],
+   [
+    "step1_txt",
+    "1/1 T2 00:08:437"
+   ],
+   [
+    "steps_txt",
+    "Test Race"
+   ],
+   [
+    "step1_txt",
+    "1/1 T3 00:13:187"
+   ]
+  ],
+  "uploads": []
+ },
+ "csv_summary": {},
+ "digests": {
+  "hud_stream": {
+   "count": 4285,
+   "head": [
+    [
+     "accelvar",
+     0
+    ],
+    [
+     "accelvar",
+     0
+    ],
+    [
+     "var",
+     72
+    ]
+   ],
+   "sha256": "c3206a04b8b8964546eec4c2ac4a7347065f98351de96a50cb4c9a1bccdc7b44",
+   "tail": [
+    [
+     "accelvar",
+     0
+    ],
+    [
+     "var",
+     0
+    ],
+    [
+     "var100",
+     0
+    ]
+   ]
+  },
+  "racer_vars": {
+   "count": 0,
+   "head": [],
+   "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+   "tail": []
+  },
+  "tmhud": {
+   "count": 1075,
+   "head": [
+    "",
+    "00:00:000",
+    "00:00:015"
+   ],
+   "sha256": "6d702ba5a3a91cbcb7a8a9a2bfe1b63e6ad8dc01f3ff14154fffbb02d0df27a5",
+   "tail": [
+    "00:18:390",
+    "00:18:406",
+    "00:18:421"
+   ]
+  },
+  "username_sets": {
+   "count": 1488,
+   "head": [
+    [
+     "username",
+     "Beetle Boy"
+    ],
+    [
+     "username",
+     "Beetle Boy"
+    ],
+    [
+     "username",
+     "Beetle Boy"
+    ]
+   ],
+   "sha256": "092afa3ab819f4c4687eb32da27e37513efac67d74c0b6dea6ed817e100dc8a1",
+   "tail": [
+    [
+     "username",
+     "Beetle Boy"
+    ],
+    [
+     "username",
+     "Beetle Boy"
+    ],
+    [
+     "username",
+     "Beetle Boy"
+    ]
+   ]
+  }
+ },
+ "disk_progress": [
+  [
+   0,
+   []
+  ]
+ ],
+ "exceptions": [
+  [
+   1314,
+   "FileNotFoundError",
+   "[Errno 2] No such file or directory: '<APP>/logs/Test Race_log_1760790125.984375.csv'"
+  ]
+ ],
+ "files": {},
+ "final_globals": {
+  "_lastTime": "1760790147.203125",
+  "_lastVel": "0.0",
+  "filename": "''",
+  "lap": "1",
+  "lap_timer": "1760790125.984375",
+  "last_checkpoint_position": "[-50.0, 25.0, 60.0]",
+  "map_angle": "0.0",
+  "map_position_last_time_send": "0",
+  "next_step": "0",
+  "pressedQ": "0",
+  "total_distance": "828.5437037309249",
+  "total_timer": "1760790125.984375",
+  "velocity": "0.0"
+ },
+ "meter": "Meterv2",
+ "ml_reads": 1488,
+ "mqtt_non_position": [],
+ "mqtt_position": {
+  "count": 0,
+  "head": [],
+  "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+  "tail": []
+ },
+ "n_ticks": 1488,
+ "scenario": "v2_log_disabled",
+ "state_trace": {
+  "count": 1488,
+  "keys": [
+   "velocity",
+   "_lastVel",
+   "_lastTime",
+   "pressedQ",
+   "next_step",
+   "lap",
+   "total_distance",
+   "map_angle",
+   "total_timer",
+   "lap_timer",
+   "filename"
+  ],
+  "sample": [
+   [
+    "0.0",
+    "4724.409898631791",
+    "1760790124.609375",
+    "0",
+    "0",
+    "1",
+    "163.045507137273",
+    "101.30993230658143",
+    "0",
+    "0",
+    "''"
+   ],
+   [
+    "0.0",
+    "4724.409898631791",
+    "1760790124.609375",
+    "0",
+    "0",
+    "1",
+    "163.045507137273",
+    "101.30993230658143",
+    "0",
+    "0",
+    "''"
+   ],
+   [
+    "0.0",
+    "4724.409898631791",
+    "1760790124.640625",
+    "0",
+    "0",
+    "1",
+    "163.045507137273",
+    "101.30993230658143",
+    "0",
+    "0",
+    "''"
+   ]
+  ],
+  "sha256": "f5cda5b959d5b047f71aaf58e6ae7abdff7cb0c701f896e78d56cf82f18009a8"
+ },
+ "time_calls": 4354,
+ "websocket": {
+  "count": 0,
+  "head": [],
+  "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+  "tail": []
+ }
+}

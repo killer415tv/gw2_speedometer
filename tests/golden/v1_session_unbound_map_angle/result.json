@@ -1,0 +1,2205 @@
+{
+ "channels_full": {
+  "keys": [
+   [
+    "press",
+    "t"
+   ],
+   [
+    "release",
+    "t"
+   ]
+  ],
+  "message": [],
+  "save_checkpoint": [
+   1,
+   2
+  ],
+  "save_guildhall": [],
+  "steps": [
+   [
+    "steps_txt",
+    "Test Race"
+   ],
+   [
+    "step1_txt",
+    "1/1 T0 00:00:000"
+   ],
+   [
+    "steps_txt",
+    "Test Race"
+   ],
+   [
+    "step1_txt",
+    "1/1 T1 00:02:875"
+   ]
+  ],
+  "uploads": []
+ },
+ "csv_summary": {
+  "logs/Test Race_log_1760790125.984375.csv": {
+   "ends_with_cr_or_lf": false,
+   "has_lf": false,
+   "header": "X,Y,Z,SPEED,ANGLE_CAM,ANGLE_BEETLE,TIME,ACCELERATION,MAP_ANGLE",
+   "last_TIME_col": "6.75",
+   "rows": 153
+  }
+ },
+ "digests": {
+  "hud_stream": {
+   "count": 1410,
+   "head": [
+    [
+     "accelvar",
+     0
+    ],
+    [
+     "accelvar",
+     0
+    ],
+    [
+     "var",
+     72
+    ]
+   ],
+   "sha256": "b565e3fb5163acd439d6a7297c82e8f9d55bdd51a35afdd023ccbb89080b8f86",
+   "tail": [
+    [
+     "distance",
+     "281m."
+    ],
+    [
+     "vartime",
+     "00:06:781"
+    ],
+    [
+     "distance",
+     "281m."
+    ]
+   ]
+  },
+  "racer_vars": {
+   "count": 0,
+   "head": [],
+   "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+   "tail": []
+  },
+  "tmhud": {
+   "count": 307,
+   "head": [
+    "",
+    "00:00:000",
+    "00:00:015"
+   ],
+   "sha256": "928fab7e536102e835352647213bcad9fe3e45de9336a6a5fdc732e4f6d965b0",
+   "tail": [
+    "00:06:750",
+    "00:06:765",
+    "00:06:781"
+   ]
+  },
+  "username_sets": {
+   "count": 485,
+   "head": [
+    [
+     "username",
+     "Beetle Boy"
+    ],
+    [
+     "username",
+     "Beetle Boy"
+    ],
+    [
+     "username",
+     "Beetle Boy"
+    ]
+   ],
+   "sha256": "1bf82d5909055f41a0e68f9e62f0a5cc7ad77b302ef1058bb7b55e3e5e9e0a51",
+   "tail": [
+    [
+     "username",
+     "Beetle Boy"
+    ],
+    [
+     "username",
+     "Beetle Boy"
+    ],
+    [
+     "username",
+     "Beetle Boy"
+    ]
+   ]
+  }
+ },
+ "disk_progress": [
+  [
+   0,
+   []
+  ],
+  [
+   186,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     115
+    ]
+   ]
+  ],
+  [
+   188,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     172
+    ]
+   ]
+  ],
+  [
+   191,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     230
+    ]
+   ]
+  ],
+  [
+   193,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     287
+    ]
+   ]
+  ],
+  [
+   196,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     343
+    ]
+   ]
+  ],
+  [
+   198,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     398
+    ]
+   ]
+  ],
+  [
+   206,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     459
+    ]
+   ]
+  ],
+  [
+   208,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     513
+    ]
+   ]
+  ],
+  [
+   211,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     567
+    ]
+   ]
+  ],
+  [
+   213,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     618
+    ]
+   ]
+  ],
+  [
+   216,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     672
+    ]
+   ]
+  ],
+  [
+   219,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     725
+    ]
+   ]
+  ],
+  [
+   221,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     778
+    ]
+   ]
+  ],
+  [
+   224,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     830
+    ]
+   ]
+  ],
+  [
+   225,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     889
+    ]
+   ]
+  ],
+  [
+   228,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     946
+    ]
+   ]
+  ],
+  [
+   230,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     1004
+    ]
+   ]
+  ],
+  [
+   233,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     1060
+    ]
+   ]
+  ],
+  [
+   235,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     1119
+    ]
+   ]
+  ],
+  [
+   238,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     1177
+    ]
+   ]
+  ],
+  [
+   240,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     1233
+    ]
+   ]
+  ],
+  [
+   242,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     1291
+    ]
+   ]
+  ],
+  [
+   245,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     1350
+    ]
+   ]
+  ],
+  [
+   248,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     1404
+    ]
+   ]
+  ],
+  [
+   250,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     1461
+    ]
+   ]
+  ],
+  [
+   253,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     1520
+    ]
+   ]
+  ],
+  [
+   255,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     1576
+    ]
+   ]
+  ],
+  [
+   257,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     1634
+    ]
+   ]
+  ],
+  [
+   260,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     1692
+    ]
+   ]
+  ],
+  [
+   262,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     1750
+    ]
+   ]
+  ],
+  [
+   265,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     1805
+    ]
+   ]
+  ],
+  [
+   267,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     1863
+    ]
+   ]
+  ],
+  [
+   269,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     1920
+    ]
+   ]
+  ],
+  [
+   272,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     1977
+    ]
+   ]
+  ],
+  [
+   274,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     2033
+    ]
+   ]
+  ],
+  [
+   276,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     2090
+    ]
+   ]
+  ],
+  [
+   279,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     2147
+    ]
+   ]
+  ],
+  [
+   281,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     2203
+    ]
+   ]
+  ],
+  [
+   284,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     2259
+    ]
+   ]
+  ],
+  [
+   285,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     2314
+    ]
+   ]
+  ],
+  [
+   288,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     2369
+    ]
+   ]
+  ],
+  [
+   290,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     2426
+    ]
+   ]
+  ],
+  [
+   293,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     2481
+    ]
+   ]
+  ],
+  [
+   295,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     2536
+    ]
+   ]
+  ],
+  [
+   329,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     2601
+    ]
+   ]
+  ],
+  [
+   331,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     2662
+    ]
+   ]
+  ],
+  [
+   333,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     2723
+    ]
+   ]
+  ],
+  [
+   336,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     2784
+    ]
+   ]
+  ],
+  [
+   338,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     2844
+    ]
+   ]
+  ],
+  [
+   340,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     2904
+    ]
+   ]
+  ],
+  [
+   343,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     2963
+    ]
+   ]
+  ],
+  [
+   346,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     3023
+    ]
+   ]
+  ],
+  [
+   349,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     3083
+    ]
+   ]
+  ],
+  [
+   351,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     3141
+    ]
+   ]
+  ],
+  [
+   354,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     3201
+    ]
+   ]
+  ],
+  [
+   355,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     3256
+    ]
+   ]
+  ],
+  [
+   357,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     3315
+    ]
+   ]
+  ],
+  [
+   360,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     3373
+    ]
+   ]
+  ],
+  [
+   362,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     3428
+    ]
+   ]
+  ],
+  [
+   365,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     3488
+    ]
+   ]
+  ],
+  [
+   367,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     3548
+    ]
+   ]
+  ],
+  [
+   370,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     3608
+    ]
+   ]
+  ],
+  [
+   372,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     3664
+    ]
+   ]
+  ],
+  [
+   375,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     3719
+    ]
+   ]
+  ],
+  [
+   377,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     3776
+    ]
+   ]
+  ],
+  [
+   380,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     3837
+    ]
+   ]
+  ],
+  [
+   383,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     3900
+    ]
+   ]
+  ],
+  [
+   385,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     3952
+    ]
+   ]
+  ],
+  [
+   388,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     4001
+    ]
+   ]
+  ],
+  [
+   390,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     4049
+    ]
+   ]
+  ],
+  [
+   393,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     4099
+    ]
+   ]
+  ],
+  [
+   395,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     4149
+    ]
+   ]
+  ],
+  [
+   397,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     4197
+    ]
+   ]
+  ],
+  [
+   400,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     4247
+    ]
+   ]
+  ],
+  [
+   402,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     4297
+    ]
+   ]
+  ],
+  [
+   405,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     4344
+    ]
+   ]
+  ],
+  [
+   407,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     4393
+    ]
+   ]
+  ],
+  [
+   410,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     4443
+    ]
+   ]
+  ],
+  [
+   412,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     4493
+    ]
+   ]
+  ],
+  [
+   415,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     4542
+    ]
+   ]
+  ],
+  [
+   417,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     4589
+    ]
+   ]
+  ],
+  [
+   420,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     4639
+    ]
+   ]
+  ],
+  [
+   423,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     4689
+    ]
+   ]
+  ],
+  [
+   426,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     4734
+    ]
+   ]
+  ],
+  [
+   428,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     4783
+    ]
+   ]
+  ],
+  [
+   431,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     4833
+    ]
+   ]
+  ],
+  [
+   433,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     4883
+    ]
+   ]
+  ],
+  [
+   436,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     4932
+    ]
+   ]
+  ],
+  [
+   438,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     4979
+    ]
+   ]
+  ],
+  [
+   442,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     5028
+    ]
+   ]
+  ],
+  [
+   444,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     5076
+    ]
+   ]
+  ],
+  [
+   446,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     5123
+    ]
+   ]
+  ],
+  [
+   449,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     5173
+    ]
+   ]
+  ],
+  [
+   451,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     5222
+    ]
+   ]
+  ],
+  [
+   454,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     5272
+    ]
+   ]
+  ],
+  [
+   456,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     5322
+    ]
+   ]
+  ],
+  [
+   458,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     5372
+    ]
+   ]
+  ],
+  [
+   461,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     5420
+    ]
+   ]
+  ],
+  [
+   463,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     5469
+    ]
+   ]
+  ],
+  [
+   466,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     5519
+    ]
+   ]
+  ],
+  [
+   468,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     5569
+    ]
+   ]
+  ],
+  [
+   471,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     5618
+    ]
+   ]
+  ],
+  [
+   473,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     5664
+    ]
+   ]
+  ],
+  [
+   476,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     5714
+    ]
+   ]
+  ],
+  [
+   479,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     5762
+    ]
+   ]
+  ],
+  [
+   481,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     5809
+    ]
+   ]
+  ],
+  [
+   483,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     5858
+    ]
+   ]
+  ],
+  [
+   486,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     5907
+    ]
+   ]
+  ],
+  [
+   488,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     5952
+    ]
+   ]
+  ],
+  [
+   491,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     6006
+    ]
+   ]
+  ],
+  [
+   493,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     6056
+    ]
+   ]
+  ],
+  [
+   496,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     6102
+    ]
+   ]
+  ],
+  [
+   498,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     6151
+    ]
+   ]
+  ],
+  [
+   501,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     6201
+    ]
+   ]
+  ],
+  [
+   503,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     6251
+    ]
+   ]
+  ],
+  [
+   506,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     6300
+    ]
+   ]
+  ],
+  [
+   508,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     6350
+    ]
+   ]
+  ],
+  [
+   510,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     6401
+    ]
+   ]
+  ],
+  [
+   513,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     6448
+    ]
+   ]
+  ],
+  [
+   515,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     6497
+    ]
+   ]
+  ],
+  [
+   518,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     6547
+    ]
+   ]
+  ],
+  [
+   520,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     6598
+    ]
+   ]
+  ],
+  [
+   523,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     6646
+    ]
+   ]
+  ],
+  [
+   525,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     6696
+    ]
+   ]
+  ],
+  [
+   528,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     6747
+    ]
+   ]
+  ],
+  [
+   531,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     6795
+    ]
+   ]
+  ],
+  [
+   533,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     6845
+    ]
+   ]
+  ],
+  [
+   535,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     6896
+    ]
+   ]
+  ],
+  [
+   537,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     6947
+    ]
+   ]
+  ],
+  [
+   540,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     6997
+    ]
+   ]
+  ],
+  [
+   542,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     7045
+    ]
+   ]
+  ],
+  [
+   545,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     7096
+    ]
+   ]
+  ],
+  [
+   547,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     7147
+    ]
+   ]
+  ],
+  [
+   550,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     7193
+    ]
+   ]
+  ],
+  [
+   552,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     7243
+    ]
+   ]
+  ],
+  [
+   555,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     7294
+    ]
+   ]
+  ],
+  [
+   557,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     7342
+    ]
+   ]
+  ],
+  [
+   560,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     7393
+    ]
+   ]
+  ],
+  [
+   562,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     7443
+    ]
+   ]
+  ],
+  [
+   564,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     7496
+    ]
+   ]
+  ],
+  [
+   567,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     7545
+    ]
+   ]
+  ],
+  [
+   569,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     7594
+    ]
+   ]
+  ],
+  [
+   572,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     7645
+    ]
+   ]
+  ],
+  [
+   574,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     7696
+    ]
+   ]
+  ],
+  [
+   577,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     7745
+    ]
+   ]
+  ],
+  [
+   579,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     7795
+    ]
+   ]
+  ],
+  [
+   582,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     7845
+    ]
+   ]
+  ],
+  [
+   584,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     7896
+    ]
+   ]
+  ],
+  [
+   587,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     7946
+    ]
+   ]
+  ],
+  [
+   590,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     7997
+    ]
+   ]
+  ],
+  [
+   592,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     8048
+    ]
+   ]
+  ],
+  [
+   595,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     8098
+    ]
+   ]
+  ],
+  [
+   597,
+   [
+    [
+     "Test Race_log_1760790125.984375.csv",
+     8145
+    ]
+   ]
+  ]
+ ],
+ "exceptions": [
+  [
+   3,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   5,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   9,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   12,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   15,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   18,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   21,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   30,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   33,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   40,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   43,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   46,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   49,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   65,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   68,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   80,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   83,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   86,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   90,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   93,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   96,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   152,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   158,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   161,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   165,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   168,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   171,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   189,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   192,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   199,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   202,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   205,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   207,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   210,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   214,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   217,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   220,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   223,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   226,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   229,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   232,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   241,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   251,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   254,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   263,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   266,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   268,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   271,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   275,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   277,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   280,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   283,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   289,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   292,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   298,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   300,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   307,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   314,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   317,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   319,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   322,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   325,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   332,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   335,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   337,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   342,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   345,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   348,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   350,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   353,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   356,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   368,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   378,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   381,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   384,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   387,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   391,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   394,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   396,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   399,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   404,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   406,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   409,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   418,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   429,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   432,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   439,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   441,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   445,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   448,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   457,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   460,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   467,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   470,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   482,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   494,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   504,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   507,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   509,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   512,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   516,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   519,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   522,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   529,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   532,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   543,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   553,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   556,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   565,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   568,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   571,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   578,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   581,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   591,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ],
+  [
+   594,
+   "UnboundLocalError",
+   "cannot access local variable 'map_angle' where it is not associated with a value"
+  ]
+ ],
+ "files": {
+  "logs/Test Race_log_1760790125.984375.csv": {
+   "sha256": "9818941f8ab684c3e2ab48c4b549dd7338002f6fa414c2e30052ea2b37f8ee21",
+   "size": 8145
+  }
+ },
+ "final_globals": {
+  "_lastTime": "1760790132.765625",
+  "_lastVel": "7199.972658651397",
+  "filename": "'Test Race_log_1760790125.984375.csv'",
+  "lap": "1",
+  "lap_timer": "1760790125.984375",
+  "last_checkpoint_position": "[150.0, 30.0, 20.0]",
+  "map_angle": "0",
+  "map_position_last_time_send": "35215802655",
+  "next_step": "2",
+  "pressedQ": "0.03999999999999836",
+  "total_distance": "280.7146599948363",
+  "total_timer": "1760790125.984375",
+  "velocity": "0.0"
+ },
+ "meter": "Meter",
+ "ml_reads": 600,
+ "mqtt_non_position": [
+  {
+   "lap": 1,
+   "option": "s",
+   "time": 0,
+   "user": "Beetle Boy"
+  },
+  {
+   "lap": 1,
+   "option": "c",
+   "step": 1,
+   "time": 2.875,
+   "user": "Beetle Boy"
+  }
+ ],
+ "mqtt_position": {
+  "count": 0,
+  "head": [],
+  "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+  "tail": []
+ },
+ "n_ticks": 600,
+ "scenario": "v1_session_unbound_map_angle",
+ "state_trace": {
+  "count": 600,
+  "keys": [
+   "velocity",
+   "_lastVel",
+   "_lastTime",
+   "pressedQ",
+   "next_step",
+   "lap",
+   "total_distance",
+   "map_angle",
+   "total_timer",
+   "lap_timer",
+   "filename"
+  ],
+  "sample": [
+   [
+    "0.0",
+    "4724.409898631791",
+    "1760790124.59375",
+    "0",
+    "0",
+    "1",
+    "163.045507137273",
+    "0",
+    "0",
+    "0",
+    "''"
+   ],
+   [
+    "0.0",
+    "4724.409898631791",
+    "1760790124.609375",
+    "0",
+    "0",
+    "1",
+    "163.045507137273",
+    "0",
+    "0",
+    "0",
+    "''"
+   ],
+   [
+    "0.0",
+    "4724.409898631791",
+    "1760790124.625",
+    "0",
+    "0",
+    "1",
+    "163.045507137273",
+    "0",
+    "0",
+    "0",
+    "''"
+   ]
+  ],
+  "sha256": "dba08eef7bf27259903d3ec57a3708aea3758acb4c58a1697de86fdcd3451cd7"
+ },
+ "time_calls": 1743,
+ "websocket": {
+  "count": 0,
+  "head": [],
+  "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+  "tail": []
+ }
+}

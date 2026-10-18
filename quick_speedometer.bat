@@ -1,6 +1,5 @@
-@echo off 
-echo Starting Speedometer... 
-cd /d "%~dp0\gw2_speedometer_internal" 
-call ..\venv\Scripts\activate.bat 
-python speedometer.py 
-pause 
+@echo off
+rem Compatibility alias: starts the speedometer directly.
+rem Alias de compatibilidad: abre el speedometer directamente.
+call "%~dp0launch.bat" speedometer
+exit /b %ERRORLEVEL%

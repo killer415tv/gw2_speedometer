@@ -4285,7 +4285,10 @@ class Racer:
                     [venv_python, script_path], cwd=script_dir, shell=False
                 )
             else:
-                subprocess.Popen(["python", script_path], cwd=script_dir, shell=False)
+                # Sin venv conocido: reutilizar el mismo Python que ejecuta este script
+                subprocess.Popen(
+                    [sys.executable, script_path], cwd=script_dir, shell=False
+                )
             sys.exit()
 
         def toggleAll():

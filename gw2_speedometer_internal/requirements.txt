@@ -37,7 +37,9 @@ websocket-client>=1.3.0,<2.0.0
 
 # Framework GUI para aplicaciones 3D - Compatible con Python 3.12+
 # PySide2 fue reemplazado por PySide6 para compatibilidad con Python 3.12
-PySide6>=6.5.0,<7.0.0
+# Se usa PySide6-Essentials (QtCore/QtGui/QtWidgets/QtOpenGL, mismo modulo 'PySide6')
+# en lugar del meta-paquete PySide6, que ademas arrastra Addons+WebEngine (~600 MB extra).
+PySide6-Essentials>=6.5.0,<7.0.0
 
 # Gráficos y plotting - Alternativas disponibles si falla
 pyqtgraph>=0.12.0,<1.0.0
@@ -60,7 +62,7 @@ plotly>=5.0.0,<6.0.0
 # ---- NOTAS DE INSTALACIÓN ----
 # 
 # Si tienes problemas con algún paquete:
-# 1. PySide6 es la versión compatible con Python 3.12+ (reemplaza a PySide2)
+# 1. PySide6 (paquete PySide6-Essentials) es la versión compatible con Python 3.12+ (reemplaza a PySide2)
 # 2. PyOpenGL puede requerir compilación - funciones 3D serán limitadas sin él
 # 3. opensimplex es opcional - solo afecta efectos visuales
 # 4. plotly es opcional - solo para exportación de gráficos web

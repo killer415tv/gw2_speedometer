@@ -546,7 +546,7 @@ class GW2SpeedometerLauncher:
         except ImportError as e:
             messagebox.showerror("Missing Dependencies", 
                                f"❌ Missing dependencies: {str(e)}\n\n"
-                               f"Run 'install.bat' to install all dependencies.")
+                               f"Close this program and run 'launch.bat reinstall' to install all dependencies.")
 
     def open_logs_folder(self):
         """Open logs folder"""

@@ -45,6 +45,7 @@ from websocket._exceptions import WebSocketConnectionClosedException
 from mumblelink import MumbleLink, get_identity_name
 from pathutils import sanitize_map_name
 import netmsg
+import loop_probe
 import logging
 
 # Real folder of this file (absolute): independent of the cwd and of how it was launched.
@@ -1088,6 +1089,8 @@ class Meterv2:
         global game_focus
         global hud_slope
 
+        _probe_t0 = loop_probe.begin()  # optional diagnostics, no-op unless enabled
+
         if hud_drift_hold:
             i = self.canvas.find_withtag("drift_meter")
             b = self.canvas.find_withtag("drift_meter_border")
@@ -1982,6 +1985,7 @@ class Meterv2:
                         except WebSocketConnectionClosedException:
                             pass
 
+        loop_probe.end(_probe_t0)
         self.root.after(10, self.updateMeterTimer)
 
 
@@ -2561,6 +2565,8 @@ class Meter:
 
         global game_focus
         global hud_slope
+
+        _probe_t0 = loop_probe.begin()  # optional diagnostics, no-op unless enabled
 
         if hud_drift_hold:
             i = self.canvas.find_withtag("drift_meter")
@@ -3420,6 +3426,7 @@ class Meter:
             # _lastVel = velocity
             _lastTick = _tick
 
+        loop_probe.end(_probe_t0)
         self.root.after(10, self.updateMeterTimer)
 
 

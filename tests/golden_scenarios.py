@@ -235,6 +235,19 @@ def build():
         )
     )
 
+    # same circuit, but slow while crossing S at the end of lap 1 (arrival at the
+    # LAST waypoint of segment 4): the debounce (pressedQ) expires inside the sphere
+    arrive_s = Path(wp, [(0, 10**6, 1.0)]).seg[4][0] + Path(wp, [(0, 10**6, 1.0)]).seg[4][1]
+    prof2 = _slow_zone_profile(wp, arrive_s, 25.0, 0.45)
+    add(
+        Scenario(
+            "v2_end_equals_start_2laps_slow_at_start",
+            map_text=same_map,
+            laps=2,
+            settings=ACCEL_3D,
+            ticks=make_ticks(wp, profile=prof2, seed=22, clock="q64"),
+        )
+    )
     # livesplit keys + every HUD-only feature on + speed_in_3D flipped while racing
     def flip_2d(ns, rec):
         ns["speed_in_3D"] = 0

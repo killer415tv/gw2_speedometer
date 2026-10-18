@@ -10,6 +10,12 @@
 > - Base de código descrita: rama `easy-install-uv-launcher`, commit de fixes
 >   `de1dae7` (la fase 1 **no cambió** ninguna lógica de medición ni el formato;
 >   ver sección 12). Referencias `speedometer.py:NNN` = líneas de ese commit.
+> - **Fase 3** (optimización sin cambio observable del log, ver §12.1): el
+>   comportamiento descrito es el de `de1dae7`/`dddbafa`; lo que cambió
+>   internamente (CSV abierto por vuelta, checkpoints precalculados, red en
+>   segundo plano) está anotado en las secciones afectadas (§3.1, §5.2, §6) y los
+>   tests golden de `tests/golden/` garantizan los mismos bytes/orden. Bugs de
+>   medición hallados: `docs/PROBLEMAS_MEDICION.md`.
 > - Se leyó el código completo de la ruta de medición. **No hay Windows en el
 >   entorno de análisis**: nada de lo marcado `[INFERIDO]` o `[NO VERIFICADO]` se
 >   ha medido con GW2 real. Etiquetas usadas:
@@ -125,8 +131,8 @@ Orden de operaciones en cada llamada `[CÓDIGO]` (`speedometer.py:1040–1985`):
 
 - `after(10)` en Tk/Windows se programa con temporizadores del sistema: la
   cadencia real suele ser ≥ 10 ms, típicamente **~15,6 ms o múltiplos** más el
-  coste del propio callback (checkpoints con `iterrows`, canvas, apertura de
-  fichero).
+  coste del propio callback (checkpoints, canvas; hasta la fase 3 también
+  `iterrows` por muestra y apertura de fichero por fila).
 - Con la puerta `timer = 0.01`, **casi todas las llamadas pasan la puerta**: la
   frecuencia de muestreo = frecuencia del `after` (≈ 30–100 Hz según carga).
 - `time.time()` en Python 3.12/Windows puede estar cuantizado a 15,625 ms: en
@@ -266,8 +272,14 @@ Consecuencias `[CÓDIGO]`/`[INFERIDO]`:
   salto: el fichero completo es `cabecera \r fila1 \r fila2 … filaN` (**sin
   terminador final**). pandas lo lee bien (`\r` es terminador de línea); cualquier
   "mejora" a `\n` / `\r\n` / terminador final **cambia los bytes**.
-- Escritura por fila: `open(..., "a")` → `seek(0,2)` → `writelines("\r")` →
-  `writelines(",".join([...]))` → cierre (al salir de la función).
+- Escritura por fila (**fase 3**): `telemetry_log.LapCsvWriter` mantiene **un solo
+  fichero abierto por vuelta** (`open(..., "a", newline="", encoding="utf-8")`) y
+  hace `write("\r" + ",".join([...]))` + `flush()` por fila; se cierra al terminar
+  la vuelta (antes de leerlo con pandas y de subirlo), al resetear, al cambiar de
+  fichero y al salir. Hasta `dddbafa` era `open` → `seek(0,2)` → `writelines("\r")`
+  → `writelines(fila)` → cierre en **cada** fila. Los **bytes** y su estado en
+  disco tras cada fila son idénticos (test golden con el tamaño del fichero tras
+  cada tick).
 
 | # | Columna | Origen | Formato | Unidades / rango |
 |---|---|---|---|---|
@@ -326,10 +338,14 @@ Multipart:  user      = <identity.name del personaje (MumbleLink)>
 - El nombre de fichero del campo `file` es el del log (el `basename` del path) →
   contiene mapa sanitizado + `_log_<epoch>.csv`.
 - Respuesta: se muestra `response.text` en el mensaje del HUD solo si
-  `total_laps == 1` (en ese caso el hilo se **espera con `join()` en el hilo de
-  Tk**: bloquea el bucle de muestreo hasta que acabe la subida).
-- Tras subir se llama `racer.saveGuildhall(...)` que consulta el ranking
-  (`GET /rank/api/<mapa>/<usuario>`).
+  `total_laps == 1`. Hasta `dddbafa` el hilo se esperaba con `join()` **en el hilo
+  de Tk** (bloqueaba el bucle de muestreo hasta 35 s); desde la fase 3 la subida
+  corre en el worker `background.jobs` y el texto se muestra al llegar la
+  respuesta.
+- Tras subir se llama `racer.saveGuildhall(..., in_background=True)`: recarga el
+  CSV de checkpoints y consulta el ranking (`GET /rank/api/<mapa>/<usuario>`),
+  en el **mismo worker FIFO, después del POST** (orden POST → checkpoints →
+  ranking); los resultados se aplican en el hilo de Tk (`background.pump()`).
 - Fase 1 (sin cambiar campos ni contenido): `timeout=(5, 30)`, archivo cerrado con
   `with`, errores de red capturados (devuelve `""`), y **no se sube si no hay
   nombre de personaje** (antes: excepción). Verificado por test: el cuerpo
@@ -345,7 +361,7 @@ fase 1; **antes `headers` se enviaba como parámetros de la query**):
 | Endpoint | Uso |
 |---|---|
 | `GET /api/cups`, `/api/maps/<copa>`, `/api/info` | listas de copas/mapas, mensaje de bienvenida |
-| `GET /uploads/checkpoints/<mapa>.csv` | checkpoints del mapa (lo lee pandas con `read_csv(url)`, **sin timeout**, pendiente) |
+| `GET /uploads/checkpoints/<mapa>.csv` | checkpoints del mapa. Fase 3: misma petición `urllib` que hacía `pd.read_csv(url)` (mismas cabeceras) pero con **timeout de 10 s** (`checkpoint_cache.fetch_checkpoint_frame`); al terminar una carrera se descarga en segundo plano |
 | `GET /api/top3/<mapa>[/<usuario>]` | ranking: `ranking[*].{time,name,file,pos}`; `file` = URL del log ganador, que los *ghost* descargan |
 | `GET /rank/api/<mapa>/<usuario>` | texto de posición del jugador |
 
@@ -478,9 +494,13 @@ posición (0,0,0); (c) geometría y colores del gauge; (d) `hud_altitude`.
 
 **Cómo demostrarlo (propuesta, ver `ANALISIS_FASE2.md`):**
 
-- *Golden de formato*: extraer la lógica de escritura a funciones puras y
-  comparar **bytes** contra un flujo sintético (ya hay precedentes en `tests/`:
-  el cuerpo multipart se compara con/sin ruta absoluta).
+- *Golden de formato y medición (hecho en la fase 3)*: `tests/golden_harness.py`
+  extrae con `ast` las clases `Meter`/`Meterv2`/`Racer` (sin refactor), alimenta
+  el `updateMeterTimer` **real** con un flujo MumbleLink sintético determinista y
+  un reloj simulado, y compara con `tests/golden/` (generados con el código de
+  `dddbafa`, antes de optimizar): bytes del CSV, tamaño en disco tras cada tick,
+  estado por tick con precisión completa, subidas, mensajes multijugador, teclas.
+  Cualquier commit nuevo debe pasarlos **sin regenerarlos**.
 - *Golden de medición con repetición*: **grabar en Windows** el flujo crudo de
   MumbleLink (`uiTick`, posición, ffronts, `time.time()` real por muestra) mientras
   se corre la versión actual y se guarda el log; reproducir ese flujo contra el
@@ -504,7 +524,37 @@ Ninguno altera medición, `TIME`, columnas ni campos de subida. Resumen
   HTTP `Origin: null`, `Referer: null`, `Accept`) + timeouts.
 - `identity` robusto (`""` ⇒ `anon` en HUD/records; sin nombre no se sube).
 - Rutas absolutas desde `__file__`; cambio de `python` → `sys.executable`.
-- Pendiente (no tocado): `pd.read_csv(<url de checkpoints>)` sin timeout.
+- (`pd.read_csv(<url de checkpoints>)` sin timeout: resuelto en la fase 3, ver §12.1.)
+
+### 12.1 Cambios de fase 3 (optimización; ningún cambio observable en el log)
+
+Todos protegidos por los tests golden (`tests/golden/`, `tests/golden_harness.py`:
+ver §11) que ejecutan el código **real** de `Meter`/`Meterv2` con un flujo
+sintético y reloj simulado y exigen **bytes idénticos** del CSV, mismo tamaño en
+disco tras cada tick, mismas subidas, mensajes multijugador y teclas simuladas.
+
+1. `loop_probe.py` (**desactivado por defecto**): con `GW2_SPEEDOMETER_PROBE=1`
+   mide, con `perf_counter`, intervalo entre ticks (jitter), duración del tick y
+   huecos > 40 ms (actualizaciones de posición posiblemente perdidas); escribe en
+   `diagnostics/loop_probe_<epoch>.csv` (+ `.summary.txt`), **nunca** en `logs/`.
+2. `telemetry_log.LapCsvWriter`: un fichero abierto por vuelta + `flush` por fila
+   (§5.2). Cierre en fin de vuelta, reset (checkpoint `-1` y `Racer.reset`),
+   cambio de fichero y `atexit`. Si el proceso muere, lo ya escrito está en disco.
+3. `checkpoint_cache.rows_for`: `iterrows()` una vez por mapa (antes en cada
+   muestra) y solo se llama a `checkpoint()` para la fila `-1` y la de
+   `next_step` (las demás no hacen nada). El cuerpo de `checkpoint()` (float32,
+   `euclidean < radio`, antirrebote) no cambia. No se añadió filtro por caja
+   (AABB): ahorraría ≤ 2 llamadas a `euclidean` por tick con riesgo en el
+   redondeo float32.
+4. `background.py`: worker `jobs` (subida → CSV de checkpoints → ranking) y
+   worker `net_out` (telemetría UDP/TCP y posición por websocket), ambos FIFO ⇒
+   mismo contenido y orden; resultados a Tk vía `pump()`. Una recarga de mapa en
+   segundo plano se descarta si el usuario eligió otro mapa mientras tanto.
+
+No se tocaron: reloj (`time.time`), `timer = 0.01`, fórmulas de `SPEED`/`ACCELERATION`,
+umbrales (`velocity > 0`, `SPEED < 150`), columnas y orden del CSV, detección de
+cruce, orden de operaciones por muestra. Los bugs de medición encontrados están en
+`docs/PROBLEMAS_MEDICION.md` (no corregidos).
 
 ---
 

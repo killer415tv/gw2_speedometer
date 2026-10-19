@@ -30,7 +30,7 @@ def set_dpi_aware():
         return
     try:
         ctypes.windll.shcore.SetProcessDpiAwareness(2)  # Windows >= 8.1
-    except Exception:
+    except Exception:  # noqa: BLE001 - same fallback as the original code
         ctypes.windll.user32.SetProcessDPIAware()  # Windows 8.0 or less
 
 
@@ -62,7 +62,7 @@ def loadfont_nonwin(fontpath):
         ok = bool(fc.FcConfigAppFontAddFile(None, path))
         _add_font_aliases(fc)
         return ok
-    except Exception:
+    except Exception:  # noqa: BLE001 - fontconfig is optional
         return False
 
 
@@ -87,7 +87,7 @@ def _add_font_aliases(fc):
         cfg = fc.FcConfigGetCurrent()
         if cfg:
             fc.FcConfigParseAndLoadFromMemory(ctypes.c_void_p(cfg), _ALIAS_XML, 0)
-    except Exception:
+    except Exception:  # noqa: BLE001, S110 - font aliases are cosmetic
         pass
 
 
@@ -99,7 +99,7 @@ def mumble_shm_path():
     override = os.environ.get("GW2_MUMBLELINK_PATH")
     if override:
         return override
-    return "/dev/shm/%s.%d" % (MUMBLE_NAME, os.getuid())
+    return f"/dev/shm/{MUMBLE_NAME}.{os.getuid()}"
 
 
 def open_mumble_memfile(length):

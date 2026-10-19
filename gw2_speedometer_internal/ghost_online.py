@@ -1,8 +1,6 @@
 import platform_compat
 import ctypes
-import mmap
 import time
-import datetime
 import math
 from scipy.spatial import distance
 from pynput.keyboard import Key, Controller
@@ -15,7 +13,6 @@ import glob
 import pandas as pd
 
 
-import time
 from datetime import datetime
 
 
@@ -27,7 +24,6 @@ import pyqtgraph.opengl as gl
 from PySide6.QtWidgets import QApplication, QDialog, QLineEdit, QPushButton, QWidget, QVBoxLayout, QLabel, QFileDialog, QCheckBox
 from PySide6.QtCore import Qt
 
-import sys
 from opensimplex import OpenSimplex
 from pyqtgraph import Vector
 from pynput import keyboard
@@ -38,7 +34,6 @@ import requests
 # import urllib library
 from urllib.parse import quote
 # import json
-import json
 
 
 
@@ -124,7 +119,8 @@ def loadfont(fontpath, private=True, enumerable=False):
 
 loadfont(os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])), "font.ttf"))
 
-from mumblelink import Link, Context, MumbleLink  # shared implementation (Windows + Linux)
+from mumblelink import MumbleLink  # shared implementation (Windows + Linux)
+
 
 class Ghost3d():
 

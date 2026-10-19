@@ -72,8 +72,7 @@ def circuit_rows():
 def write_circuit_csv(path):
     with open(path, "w", encoding="utf-8", newline="") as fh:
         fh.write("STEP,STEPNAME,X,Y,Z,RADIUS\n")
-        for r in circuit_rows():
-            fh.write(",".join(str(v) for v in r) + "\n")
+        fh.writelines(",".join(str(v) for v in r) + "\n" for r in circuit_rows())
 
 
 def _wide(text, units=256):

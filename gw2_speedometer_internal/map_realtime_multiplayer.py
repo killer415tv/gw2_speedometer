@@ -4,7 +4,6 @@ from colorsys import hsv_to_rgb
 from threading import Thread
 from tkinter import *
 import ctypes
-import datetime
 import time
 
 try:
@@ -32,7 +31,6 @@ import hashlib
 
 import random
 
-import time
 from datetime import datetime
 
 import numpy as np

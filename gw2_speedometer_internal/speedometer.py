@@ -22,7 +22,7 @@ if sys.platform == "win32":
     # hidden imports for the frozen Windows build
     import pynput.keyboard._win32
     import pynput.mouse._win32
-from pynput.keyboard import Key, Controller
+from pynput.keyboard import Key, Controller  # noqa: I001
 from pynput import keyboard
 import sys
 from pathlib import Path
@@ -30,8 +30,6 @@ import numpy as np
 import json
 import pandas as pd
 
-
-import time
 
 from threading import Thread
 import queue
@@ -5495,7 +5493,7 @@ if __name__ == "__main__":
                 racer.changeCup("OWN MAPS FOLDER")
                 racer.saveGuildhall("SIM_CIRCUIT")
                 guildhall_laps.set("3 laps")
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001 - simulation extra, never fatal
                 print("simulate: could not select SIM_CIRCUIT:", exc)
 
         root.after(1500, _select_sim_circuit)

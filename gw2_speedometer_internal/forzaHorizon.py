@@ -1,8 +1,6 @@
 import platform_compat
 import tkinter as tk
 from tkinter import *
-import ctypes
-import mmap
 import time
 import datetime
 import math
@@ -14,7 +12,6 @@ from mumblelink import get_identity_fov
 import pandas as pd
 
 
-import time
 
 
 
@@ -22,7 +19,6 @@ import PySide6
 from pyqtgraph.Qt import QtCore, QtGui, QtWidgets
 import pyqtgraph.opengl as gl
 
-import sys
 from opensimplex import OpenSimplex
 from pyqtgraph import Vector
 from pynput import keyboard
@@ -86,7 +82,8 @@ difficultyFactor = 10
 gameovertime = 0
 
 
-from mumblelink import Link, Context, MumbleLink  # shared implementation (Windows + Linux)
+from mumblelink import MumbleLink  # shared implementation (Windows + Linux)
+
 
 class Ghost3d(object):
 

@@ -1,7 +1,6 @@
 import ctypes
 import json
 import logging
-import mmap
 
 from platform_compat import open_mumble_memfile
 

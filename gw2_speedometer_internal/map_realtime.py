@@ -2,9 +2,7 @@ import platform_compat
 import tkinter as tk
 from tkinter import *
 import ctypes
-import mmap
 import time
-import datetime
 from scipy.spatial import distance
 from pynput.keyboard import Key, Controller
 import sys, os
@@ -17,17 +15,14 @@ import pandas as pd
 import hashlib
 
 
-import time
 from datetime import datetime
 
 
 
-import numpy as np
 import PySide6
 from pyqtgraph.Qt import QtCore, QtGui
 import pyqtgraph.opengl as gl
 
-import sys
 from opensimplex import OpenSimplex
 from pyqtgraph import Vector
 from pynput import keyboard
@@ -61,7 +56,8 @@ tag_game_subscription = ''
 
 
 
-from mumblelink import Link, Context, MumbleLink  # shared implementation (Windows + Linux)
+from mumblelink import MumbleLink  # shared implementation (Windows + Linux)
+
 
 def get_best_online_time(map_name):
     """Obtiene automáticamente el mejor tiempo online del ranking"""

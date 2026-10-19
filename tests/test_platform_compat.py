@@ -1,11 +1,9 @@
 """Linux/offline compatibility helpers (run on every OS)."""
-import json
 import os
 
-import platform_compat
-import mumblelink
-from mumblelink import Link, Context, MumbleLink, get_identity_name, get_identity_fov
 import mumblelink_linux as ml_linux
+import platform_compat
+from mumblelink import Context, Link, MumbleLink, get_identity_fov, get_identity_name
 
 
 def test_simulate_requested_flag_and_env(monkeypatch):

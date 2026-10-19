@@ -1,5 +1,8 @@
 """Primitivas de pintado compartidas: panel translúcido con sombra suave, texto con sombra."""
 
+import math
+from collections import OrderedDict
+
 from PySide6.QtCore import QPointF, QRectF, Qt
 from PySide6.QtGui import QBrush, QColor, QLinearGradient, QPainter, QPen
 
@@ -91,7 +94,8 @@ def pt(x, y):
     return QPointF(x, y)
 
 
-def outlined_text(p, x, y, text, font, color, th, align="left", outline=1.0, glow=None, glow_strength=0.0):
+def _outlined_text_paths(p, x, y, text, font, color, th, align="left", outline=1.0, glow=None, glow_strength=0.0,
+                         _origin=None):
     """Texto sin fondo legible sobre cualquier escena: sombra suave + contorno fino + relleno.
 
     (x, y) = punto de anclaje; y es el centro visual (altura de mayúsculas). Devuelve el ancho.
@@ -102,6 +106,8 @@ def outlined_text(p, x, y, text, font, color, th, align="left", outline=1.0, glo
     w = fm.horizontalAdvance(text)
     x0 = x - w if align == "right" else x - w / 2 if align == "center" else x
     base = y + fm.capHeight() / 2
+    if _origin is not None:  # sprite rendering: baseline origin given directly
+        x0, base = _origin
     path = QPainterPath()
     path.addText(QPointF(x0, base), font, text)
     # Montserrat variable tiene contornos solapados: con OddEven quedarían "agujeros"
@@ -128,6 +134,80 @@ def outlined_text(p, x, y, text, font, color, th, align="left", outline=1.0, glo
     p.setPen(Qt.PenStyle.NoPen)
     p.setBrush(color)
     p.drawPath(path)
+    p.restore()
+    return w
+
+
+# Rendered-text cache: outlined_text() strokes the glyph outlines 4-6 times with
+# wide pens, the most expensive part of an overlay frame. Labels, split rows and
+# most numbers repeat from frame to frame, so each (text, font, colour, outline,
+# sub-pixel offset) is rendered once into an ARGB sprite and then blitted.
+_SPRITES = OrderedDict()
+_SPRITE_MAX = 768
+_SUBPX = 4  # sub-pixel positions kept (1/4 px), so cached text does not jitter
+
+
+def clear_text_cache():
+    _SPRITES.clear()
+
+
+def outlined_text(p, x, y, text, font, color, th, align="left", outline=1.0, glow=None, glow_strength=0.0):
+    """Texto sin fondo legible sobre cualquier escena: sombra suave + contorno fino + relleno.
+
+    (x, y) = punto de anclaje; y es el centro visual (altura de mayúsculas). Devuelve el ancho.
+    Sin glow y con transformación de sólo traslación usa una caché de sprites (mismo resultado;
+    con opacidad < 1 el texto se funde como una capa, sin que el contorno se transparente bajo el relleno).
+    """
+    from PySide6.QtGui import QFontMetricsF, QImage, QTransform
+
+    tr = p.transform()
+    if (glow is not None and glow_strength > 0.01) or tr.type().value > QTransform.TransformationType.TxTranslate.value:
+        return _outlined_text_paths(p, x, y, text, font, color, th, align, outline, glow, glow_strength)
+    fm = QFontMetricsF(font)
+    w = fm.horizontalAdvance(text)
+    x0 = x - w if align == "right" else x - w / 2 if align == "center" else x
+    base = y + fm.capHeight() / 2
+    dev = p.device()
+    dpr = dev.devicePixelRatioF() if dev is not None and hasattr(dev, "devicePixelRatioF") else 1.0
+    # position in device pixels: integer part blitted, fraction baked into the sprite
+    dx, dy = (x0 + tr.dx()) * dpr, (base + tr.dy()) * dpr
+    ix, iy = math.floor(dx), math.floor(dy)
+    fx, fy = round((dx - ix) * _SUBPX), round((dy - iy) * _SUBPX)
+    if fx == _SUBPX:
+        ix, fx = ix + 1, 0
+    if fy == _SUBPX:
+        iy, fy = iy + 1, 0
+    k = th.scale if th else 1.0
+    key = (text, font.key(), color.rgba(), round(outline, 3), round(k, 3), fx, fy, round(dpr, 3))
+    hit = _SPRITES.get(key)
+    if hit is None:
+        size = font.pixelSize() if font.pixelSize() > 0 else 12
+        pad = math.ceil(size * 0.35 + 4 * k) + 2
+        asc = math.ceil(fm.ascent()) + pad
+        wpx = math.ceil((w + 2 * pad) * dpr) + 2
+        hpx = math.ceil((fm.height() + 2 * pad) * dpr) + 2
+        img = QImage(max(1, wpx), max(1, hpx), QImage.Format.Format_ARGB32_Premultiplied)
+        img.fill(Qt.GlobalColor.transparent)
+        q = QPainter(img)
+        try:
+            setup(q)
+            q.scale(dpr, dpr)
+            ox, oy = pad + fx / _SUBPX / dpr, asc + fy / _SUBPX / dpr
+            _outlined_text_paths(q, 0.0, 0.0, text, font, color, th, "left", outline,
+                                 _origin=(ox, oy))
+        finally:
+            q.end()
+        img.setDevicePixelRatio(dpr)
+        hit = (img, pad, asc)
+        _SPRITES[key] = hit
+        if len(_SPRITES) > _SPRITE_MAX:
+            _SPRITES.popitem(last=False)
+    else:
+        _SPRITES.move_to_end(key)
+    img, pad, asc = hit
+    p.save()
+    p.resetTransform()
+    p.drawImage(QPointF((ix / dpr) - pad, (iy / dpr) - asc), img)
     p.restore()
     return w
 

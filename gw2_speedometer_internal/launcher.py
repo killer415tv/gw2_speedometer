@@ -28,7 +28,7 @@ class GW2SpeedometerLauncher:
     def __init__(self):
         self.root = tk.Tk()
         self.root.title("Beetlerank Speed Suite v6.0.2")
-        self.root.geometry("950x650")  # Reducir altura para que quepa todo
+        self.root.geometry("950x780")  # 3 rows of cards + footer
         self.root.configure(bg='#1a1a1a')
         
         # Crear gradiente de fondo
@@ -207,7 +207,19 @@ class GW2SpeedometerLauncher:
                 'description': 'Main speedometer with complete HUD, angle measurement, acceleration and checkpoint system',
                 'file': 'speedometer.py',
                 'category': 'Main',
-                'color': self.colors['success']
+                'color': self.colors['success'],
+                'group': 'speedometer'
+            },
+            {
+                'name': '🏎️ Speedometer (new HUD)',
+                'description': 'Same speedometer and measurement, with the new experimental Qt HUD '
+                               '(Ctrl+Shift+M = map selector). GW2 must be in Windowed or Windowed Fullscreen',
+                'file': 'speedometer.py',
+                'args': ['--qt-hud'],
+                'key': 'speedometer.py --qt-hud',
+                'category': 'Main',
+                'color': self.colors['success'],
+                'group': 'speedometer'
             },
             {
                 'name': '👁️ Checkpoint Viewer',
@@ -443,10 +455,18 @@ class GW2SpeedometerLauncher:
     def launch_app(self, app):
         """Launch a specific application"""
         try:
-            if app['file'] in self.running_processes:
+            if self._key(app) in self.running_processes:
                 messagebox.showwarning("Application Running",
                                      f"{app['name']} is already running.")
                 return
+            # Both speedometer variants share cup/map files and MumbleLink: one at a time
+            group = app.get('group')
+            if group:
+                for other in self.apps:
+                    if other is not app and other.get('group') == group and self._key(other) in self.running_processes:
+                        messagebox.showwarning("Application Running",
+                                               f"Close {other['name']} first.")
+                        return
             
             # Check if file exists
             app_path = APP_DIR / app['file']
@@ -456,12 +476,12 @@ class GW2SpeedometerLauncher:
                 return
             
             # Launch application in separate process
-            process = subprocess.Popen([sys.executable, str(app_path)],
+            process = subprocess.Popen([sys.executable, str(app_path), *app.get('args', [])],
                                      cwd=str(APP_DIR),
                                      creationflags=subprocess.CREATE_NEW_CONSOLE if os.name == 'nt' else 0)
             
             # Save process reference
-            self.running_processes[app['file']] = process
+            self.running_processes[self._key(app)] = process
             
             # Update visual status
             app['status_label'].config(text="● Running", fg=self.colors['success'])
@@ -479,15 +499,20 @@ class GW2SpeedometerLauncher:
         except Exception as e:
             messagebox.showerror("Error", f"Error launching {app['name']}: {str(e)}")
     
+    @staticmethod
+    def _key(app):
+        """Process key: the same file can be launched with different arguments."""
+        return app.get('key', app['file'])
+
     def close_app(self, app):
         """Close a specific application"""
         try:
-            if app['file'] not in self.running_processes:
+            if self._key(app) not in self.running_processes:
                 messagebox.showwarning("Not Running",
                                      f"{app['name']} is not running.")
                 return
             
-            process = self.running_processes[app['file']]
+            process = self.running_processes[self._key(app)]
             
             # Terminate the process
             try:
@@ -498,7 +523,7 @@ class GW2SpeedometerLauncher:
                 process.kill()
             
             # Remove from running processes
-            del self.running_processes[app['file']]
+            del self.running_processes[self._key(app)]
             
             # Update visual status
             app['status_label'].config(text="● Stopped", fg=self.colors['text_secondary'])
@@ -514,11 +539,11 @@ class GW2SpeedometerLauncher:
     def monitor_process(self, app):
         """Monitor process status"""
         def check_process():
-            if app['file'] in self.running_processes:
-                process = self.running_processes[app['file']]
+            if self._key(app) in self.running_processes:
+                process = self.running_processes[self._key(app)]
                 if process.poll() is not None:
                     # Process has terminated
-                    del self.running_processes[app['file']]
+                    del self.running_processes[self._key(app)]
                     app['status_label'].config(text="● Stopped", fg=self.colors['text_secondary'])
                     # Change button back to Launch
                     app['action_btn'].config(text="Launch",

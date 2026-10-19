@@ -6,6 +6,7 @@ rem
 rem  Usage / Uso:
 rem    launch.bat               start the launcher / abre el launcher
 rem    launch.bat speedometer   start the speedometer directly / abre solo el speedometer
+rem    launch.bat qt            speedometer with the new Qt HUD (experimental) / con el HUD nuevo
 rem    launch.bat reinstall     rebuild the environment / reconstruye el entorno
 rem
 rem  Everything is stored INSIDE this folder (no admin rights, no system
@@ -34,8 +35,11 @@ set "ROOT=%~dp0"
 
 rem ---- Arguments -------------------------------------------------------
 set "APP=launcher.py"
+set "APP_ARGS="
 set "FORCE=0"
 if /i "%~1"=="speedometer" set "APP=speedometer.py"
+if /i "%~1"=="qt" set "APP=speedometer.py"
+if /i "%~1"=="qt" set "APP_ARGS=--qt-hud"
 if /i "%~1"=="reinstall" set "FORCE=1"
 if /i "%~1"=="--reinstall" set "FORCE=1"
 
@@ -82,6 +86,9 @@ set "NEW_STAMP=py%PY_VERSION%-%REQ_HASH%"
 if not "%OLD_STAMP%"=="%NEW_STAMP%" goto :setup
 :fast_check
 "%VENV_PY%" -c "import tkinter, numpy" >nul 2>&1
+if errorlevel 1 goto :setup
+if not defined APP_ARGS goto :run
+"%VENV_PY%" -c "import PySide6.QtWidgets" >nul 2>&1
 if errorlevel 1 goto :setup
 goto :run
 
@@ -146,16 +153,22 @@ echo OK: installation finished / instalacion terminada.
 rem ======================================================================
 :run
 echo.
+if defined APP_ARGS goto :msg_qt
 if /i "%APP%"=="speedometer.py" goto :msg_speedometer
 echo Starting GW2 Speedometer Suite / Iniciando GW2 Speedometer Suite ...
 goto :msg_done
 :msg_speedometer
 echo Starting Speedometer / Iniciando Speedometer ...
+goto :msg_done
+:msg_qt
+echo Starting Speedometer with the new HUD / Iniciando Speedometer con el HUD nuevo ...
+echo GW2 must be in Windowed or Windowed Fullscreen / GW2 debe estar en Ventana o Ventana a pantalla completa.
+echo Ctrl+Shift+M = map selector / selector de mapas.  Ctrl+Shift+O = optional widgets / widgets opcionales.
 :msg_done
 echo Keep this window open while the program runs / No cierres esta ventana mientras uses el programa.
 cd /d "%ROOT%%APP_DIR%"
 if errorlevel 1 goto :err_cd
-"%VENV_PY%" %APP%
+"%VENV_PY%" %APP% %APP_ARGS%
 set "RC=%ERRORLEVEL%"
 if "%RC%"=="0" goto :end_ok
 echo.

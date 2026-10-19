@@ -616,6 +616,7 @@ class Scenario:
         identity="Beetle Boy",
         racer_factory=None,
         namespace_hook=None,
+        meter_hook=None,
     ):
         self.name = name
         self.meter = meter
@@ -633,6 +634,8 @@ class Scenario:
         # optional: build the racer / tweak the namespace (non-golden tests)
         self.racer_factory = racer_factory
         self.namespace_hook = namespace_hook
+        # optional: wrap the meter after it is built (e.g. the --qt-hud adapter)
+        self.meter_hook = meter_hook
 
 
 def _settle(ns):
@@ -711,6 +714,8 @@ def run_scenario(sc, workdir):
     FakeSelf.__init__(meter, rec)
     # the methods come from the real class; only the Tk attributes are fake
     ns["meter"] = meter
+    if sc.meter_hook:
+        sc.meter_hook(ns, rec, workdir, meter)
 
     ticks = sc.ticks
     progress = []

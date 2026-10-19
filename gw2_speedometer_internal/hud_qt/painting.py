@@ -89,3 +89,51 @@ def lerp(a, b, t):
 
 def pt(x, y):
     return QPointF(x, y)
+
+
+def outlined_text(p, x, y, text, font, color, th, align="left", outline=1.0, glow=None, glow_strength=0.0):
+    """Texto sin fondo legible sobre cualquier escena: sombra suave + contorno fino + relleno.
+
+    (x, y) = punto de anclaje; y es el centro visual (altura de mayúsculas). Devuelve el ancho.
+    """
+    from PySide6.QtGui import QFontMetricsF, QPainterPath
+
+    fm = QFontMetricsF(font)
+    w = fm.horizontalAdvance(text)
+    x0 = x - w if align == "right" else x - w / 2 if align == "center" else x
+    base = y + fm.capHeight() / 2
+    path = QPainterPath()
+    path.addText(QPointF(x0, base), font, text)
+    # Montserrat variable tiene contornos solapados: con OddEven quedarían "agujeros"
+    path.setFillRule(Qt.FillRule.WindingFill)
+    size = font.pixelSize() if font.pixelSize() > 0 else 12
+    k = th.scale if th else 1.0
+    p.save()
+    p.setBrush(Qt.BrushStyle.NoBrush)
+    if glow is not None and glow_strength > 0.01:
+        for wmul, a in ((0.42, 40), (0.24, 70)):
+            p.setPen(QPen(with_alpha(glow, a * glow_strength), size * wmul, Qt.PenStyle.SolidLine,
+                          Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin))
+            p.drawPath(path)
+    # sombra difusa (dos pasadas) desplazada hacia abajo
+    sh = path.translated(0, max(1.0, size * 0.035))
+    for wmul, a in ((0.16, 26), (0.09, 50)):
+        p.setPen(QPen(QColor(0, 0, 0, int(a * outline)), max(2.0 * k, size * wmul), Qt.PenStyle.SolidLine,
+                      Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin))
+        p.drawPath(sh)
+    # contorno fino
+    p.setPen(QPen(QColor(4, 8, 14, int(175 * outline)), max(1.3 * k, size * 0.055), Qt.PenStyle.SolidLine,
+                  Qt.PenCapStyle.RoundCap, Qt.PenJoinStyle.RoundJoin))
+    p.drawPath(path)
+    p.setPen(Qt.PenStyle.NoPen)
+    p.setBrush(color)
+    p.drawPath(path)
+    p.restore()
+    return w
+
+
+def outlined_line(p, a, b, color, width, th, outline=1.0, cap=Qt.PenCapStyle.RoundCap):
+    p.setPen(QPen(QColor(4, 8, 14, int(120 * outline)), width + th.px(2.4), Qt.PenStyle.SolidLine, cap))
+    p.drawLine(a, b)
+    p.setPen(QPen(color, width, Qt.PenStyle.SolidLine, cap))
+    p.drawLine(a, b)

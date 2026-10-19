@@ -41,8 +41,39 @@ Next runs start immediately. Keep the black console window open while you use th
 |---------|--------------|
 | `launch.bat` | Opens the main launcher (all tools) |
 | `launch.bat speedometer` (or `quick_speedometer.bat`) | Opens the speedometer directly |
+| `launch.bat qt` (or `quick_qt.bat`) | Opens the speedometer with the **new HUD (experimental)**, see below |
 | `launch.bat reinstall` | Rebuilds the environment from scratch (use it if something is broken) |
 | `install.bat` | Old name, kept as an alias of `launch.bat` |
+
+### New HUD (experimental) / HUD nuevo (experimental)
+
+An optional, redesigned HUD drawn with Qt on top of the game. The speedometer, the checkpoints, the logs, the uploads and the multiplayer are **exactly the same**: the new HUD only *shows* the values the speedometer already measures. Without the option nothing changes.
+
+**How to start it**
+
+- `quick_qt.bat` or `launch.bat qt`, or
+- in the launcher: **Speedometer (new HUD)** (run only one of the two speedometer cards at a time).
+
+**Requirements**
+
+- Guild Wars 2 in **Windowed** or **Windowed Fullscreen** mode (Options → Graphics → Display mode). In exclusive **Fullscreen** Windows does not let other windows draw on top of the game, so the HUD is not visible.
+- Windows 10/11 with desktop composition (always on). The PySide6-Essentials library is already installed by `launch.bat`.
+- Display scaling (125 %, 150 %…) and several monitors are supported; the HUD uses the primary monitor.
+
+**What it shows**: speed and acceleration, lap time, lap x/y, checkpoint x/y, delta and splits against your best lap of this session (or the time in `<map>_records.csv` for one-lap maps), map name, best time and record. `--` means there is no reference yet. The online ghost keeps running in its own window.
+
+**Keys** (they work while the game has the focus)
+
+| Key | Action |
+|-----|--------|
+| `Ctrl+Shift+M` | Map selector (type to search, ↑↓ + Enter to choose, Esc to close). The choice goes through the same code as the speedometer's map menus |
+| `Ctrl+Shift+O` | Show/hide the optional widgets (splits, next checkpoint, minimap) |
+
+The HUD also adds a tray icon (map selector, optional widgets, close the new HUD).
+
+**Safety net**: the HUD is a separate process and lets mouse clicks pass through to the game. If it is closed or crashes, the speedometer keeps measuring and the classic HUD comes back automatically.
+
+**Advanced options** (from a console in `gw2_speedometer_internal`): `..\venv\Scripts\python.exe speedometer.py --qt-hud --hud-show=splits,nextcp,minimap`. Other options: `--hud-anchor=center`, `--hud-scale=1.2`, `--hud-opacity=0.9`, `--hud-fps=30` (less CPU), `--hud-offline` (map list without internet), `--hud-select-map` (open the selector at start). Setting the environment variable `GW2_QT_HUD=1` is the same as `--qt-hud`.
 
 ### Updating
 
@@ -447,6 +478,17 @@ If you have connection issues, ensure these ports are not blocked.
 4. **Actualizar**: descarga el zip nuevo y descomprímelo sobre la carpeta (haz copia de `gw2_speedometer_internal\config.txt` si no quieres perder tu configuración), y ejecuta `launch.bat`; si cambian los requisitos se actualizan solos.
 5. **Problemas**: `launch.bat reinstall` reconstruye el entorno. Si el antivirus o SmartScreen bloquea algo, permite la carpeta del proyecto ("Más información → Ejecutar de todas formas"). Si falla la descarga, revisa internet/proxy. Evita rutas largas o con caracteres raros.
 6. **Puertos del multijugador** (conexiones salientes a `www.beetlerank.com`): 41234/UDP, 41235/TCP y 3002/WSS.
+
+### HUD nuevo (experimental)
+
+HUD rediseñado y opcional, dibujado con Qt encima del juego. La medición, los checkpoints, los logs, las subidas y el multijugador son **exactamente los mismos**: el HUD nuevo solo *muestra* lo que ya mide el speedometer. Sin la opción no cambia nada.
+
+- **Arrancar**: `quick_qt.bat` o `launch.bat qt`, o en el launcher **Speedometer (new HUD)** (no abras las dos tarjetas de speedometer a la vez).
+- **Requisitos**: GW2 en modo **Ventana** o **Ventana a pantalla completa** (Opciones → Gráficos → Modo de pantalla). En **Pantalla completa** exclusiva Windows no deja dibujar encima del juego y el HUD no se ve. Windows 10/11; PySide6-Essentials ya lo instala `launch.bat`. Soporta escalado de pantalla (125 %, 150 %…); usa el monitor principal.
+- **Muestra**: velocidad, aceleración, tiempo de vuelta, vuelta x/y, checkpoint x/y, delta y parciales contra tu mejor vuelta de la sesión (o el tiempo de `<mapa>_records.csv` en mapas de una vuelta), nombre del mapa, mejor tiempo y récord. `--` = todavía no hay referencia. El ghost online sigue en su propia ventana.
+- **Teclas** (funcionan con el juego en primer plano): `Ctrl+Shift+M` abre el selector de mapas (escribe para buscar, ↑↓ + Enter para elegir, Esc para cerrar; usa el mismo código que los menús del speedometer). `Ctrl+Shift+O` muestra/oculta los widgets opcionales (parciales, siguiente checkpoint, minimapa). También hay un icono en la bandeja del sistema.
+- **Red de seguridad**: el HUD es un proceso aparte y deja pasar los clics al juego. Si se cierra o falla, el speedometer sigue midiendo y vuelve el HUD clásico.
+- **Opciones avanzadas** (consola en `gw2_speedometer_internal`): `..\venv\Scripts\python.exe speedometer.py --qt-hud --hud-show=splits,nextcp,minimap`; también `--hud-anchor=center`, `--hud-scale=1.2`, `--hud-opacity=0.9`, `--hud-fps=30` (menos CPU), `--hud-offline`, `--hud-select-map`. La variable de entorno `GW2_QT_HUD=1` equivale a `--qt-hud`.
 
 ---
 

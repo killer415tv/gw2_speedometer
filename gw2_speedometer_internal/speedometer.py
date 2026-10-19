@@ -5498,6 +5498,25 @@ if __name__ == "__main__":
 
         root.after(1500, _select_sim_circuit)
 
+    # Optional new HUD (--qt-hud): separate Qt process fed by a read-only adapter
+    # that runs after each tick; without the flag nothing below does anything.
+    qt_hud = None
+    try:
+        import qt_hud_bridge
+
+        if qt_hud_bridge.requested():
+            qt_hud = qt_hud_bridge.start(
+                globals(),
+                meter,
+                tk_windows=[meter.root, tmhud.root],
+                tk_root=meter.root,
+                client_args=[
+                    "--" + a[len("--hud-"):] for a in sys.argv[1:] if a.startswith("--hud-")
+                ],
+            )
+    except Exception as exc:  # noqa: BLE001 - the optional HUD must never stop the speedometer
+        print("[qt-hud] disabled:", exc)
+
     meter.updateMeterTimer()
 
     root.mainloop()
